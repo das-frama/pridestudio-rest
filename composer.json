@@ -1,0 +1,21 @@
+{
+  "name": "das-frama/pridestudio",
+  "description": "A pridestudio web app for rent places.",
+  "type": "project",
+  "require": {
+    "php": "^7.1"
+  },
+  "authors": [
+    {
+      "name": "Andrey Galaktionov",
+      "email": "das.frama@gmail.com",
+      "homepage": "https://das-frama.ru"
+    }
+  ],
+  "minimum-stability": "stable",
+  "autoload": {
+    "psr-4": {
+      "app\\": "src/"
+    }
+  }
+}
