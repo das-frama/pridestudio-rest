@@ -121,13 +121,21 @@ CREATE TABLE IF NOT EXISTS `record` (
 CREATE TABLE IF NOT EXISTS `reservation` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `record_id` int(11) unsigned DEFAULT NULL,
-  `seance_start` datetime DEFAULT NULL,
-  `seance_length` int(11) DEFAULT NULL,
+  `start_at` int(10) unsigned DEFAULT NULL,
+  `length` int(11) DEFAULT NULL,
   `comment` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `amount` decimal(10,2) NOT NULL,
+  `created_at` int(10) unsigned NOT NULL,
+  `updated_at` int(10) unsigned NOT NULL,
+  `created_by` int(10) unsigned DEFAULT NULL,
+  `updated_by` int(10) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `FK_reservation_record_id` (`record_id`),
-  CONSTRAINT `FK_reservation_record_id` FOREIGN KEY (`record_id`) REFERENCES `record` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  KEY `record_id` (`record_id`),
+  KEY `created_by` (`created_by`),
+  KEY `updated_by` (`updated_by`),
+  CONSTRAINT `FK_reservation_record_id` FOREIGN KEY (`record_id`) REFERENCES `record` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `FK_reservation_created_by` FOREIGN KEY (`created_by`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  CONSTRAINT `FK_reservation_updated_by` FOREIGN KEY (`updated_by`) REFERENCES `user` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Экспортируемые данные не выделены.
@@ -135,11 +143,11 @@ CREATE TABLE IF NOT EXISTS `reservation` (
 -- Дамп структуры для таблица pridetstudio-true.user
 CREATE TABLE IF NOT EXISTS `user` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `email` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `auth_key` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `access_token` varchar(32) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `password_hash` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `password_reset_token` varchar(32) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `email` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `auth_key` varchar(32) COLLATE utf8_bin NOT NULL,
+  `access_token` varchar(32) COLLATE utf8_bin DEFAULT NULL,
+  `password_hash` varchar(64) COLLATE utf8_bin NOT NULL,
+  `password_reset_token` varchar(32) COLLATE utf8_bin DEFAULT NULL,
   `role` tinyint(4) DEFAULT '1',
   `status` tinyint(4) DEFAULT '1',
   `created_at` int(11) unsigned NOT NULL,
