@@ -1,5 +1,2 @@
-# IDE stuff.
-.idea
-.vscode
-
 vendor
+.vscode

@@ -1,4 +1,5 @@
 <?php declare(strict_type = 1);
+
 namespace app\domain\user;
 
 class User

@@ -1,11 +1,11 @@
 <?php declare(strict_types=1);
 
-namespace app\enitites\order;
+namespace app\domains\order;
 
 /**
  * Client class.
  */
-class Client 
+class Client
 {
     /** @var int */
     public $id;

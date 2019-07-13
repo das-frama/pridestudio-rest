@@ -1,11 +1,11 @@
 <?php declare(strict_types=1);
 
-namespace app\enitites\record;
+namespace app\domains\record;
 
 /**
  * Record class.
  */
-class Record 
+class Record
 {
     /** @var int */
     public $id;
@@ -42,6 +42,4 @@ class Record
 
     /** @var int */
     public $updated_by;
-
-
 }

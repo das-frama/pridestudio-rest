@@ -1,10 +1,14 @@
-<?php declare(strict_types = 1);
+<?php
+
+declare(strict_types=1);
+
 namespace app\storage\mysql;
 
+use app\storage\StorageInterface;
 use PDO;
 use PDOException;
 
-class Storage
+class Storage implements StorageInterface
 {
     /** @var PDO */
     protected $conn = null;
@@ -27,8 +31,26 @@ class Storage
         }
     }
 
-    public function getConnection() : PDO
+    public function getConnection(): PDO
     {
         return $this->conn;
+    }
+
+    /**
+     * @param int $limit
+     * @param int $offset
+     * @return array
+     */
+    public function findAll(string $table, int $limit, int $offset): array
+    {
+        try {
+            $sth = $this->conn->prepare("SELECT * FROM `{$table}`");
+            $sth->execute();
+            $result = $sth->fetchAll();
+
+            return $result;
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
     }
 }

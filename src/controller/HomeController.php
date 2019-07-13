@@ -1,4 +1,4 @@
-<?php declare(strict_types = 1);
+<?php declare(strict_types=1);
 
 namespace app\controller;
 
@@ -19,7 +19,7 @@ class HomeController implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $response = $handler->handle($request);
-        $response->getBody()->write("Hallo!");
+        $response->getBody()->write('Hello dude!');
 
         return $response;
     }

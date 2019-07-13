@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace app\entities\hall;
+namespace app\domains\hall;
 
 /**
  * Hall class.
@@ -45,6 +45,4 @@ class Hall
 
     /** @var int */
     public $updated_by;
-
-    
 }
