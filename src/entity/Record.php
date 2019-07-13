@@ -1,6 +1,8 @@
-<?php declare(strict_types=1);
+<?php
 
-namespace app\domains\record;
+declare(strict_types=1);
+
+namespace app\entity;
 
 /**
  * Record class.
@@ -12,22 +14,22 @@ class Record
 
     /** @var int */
     public $client_id;
-    
+
     /** @var int */
     public $hall_id;
-    
+
     /** @var int */
     public $payment_id;
-    
+
     /** @var int */
     public $promo_id;
-    
+
     /** @var float */
     public $total;
 
     /** @var string */
     public $comment;
-    
+
     /** @var int */
     public $status;
 

@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace app;
 
-use app\controller\HomeController;
-use app\controller\ResourceController;
+use app\http\controller\HomeController;
+use app\http\controller\UserController;
+use app\domain\user\UserService;
 use app\storage\mysql\Storage;
+use app\storage\mysql\UserRepository;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Sunrise\Http\Router\Router;
@@ -36,31 +38,11 @@ class App
         $routes->get('home', '/')
             ->addMiddleware(new HomeController);
 
-        $routes->group('/resource', function ($routes) use ($db) {
-            $service = new ResourceService($db);
-            $routes->post('resource.create', '/{table}')
-                ->addPattern('table', '\w+')
-                ->addMiddleware(new ResourceController($service));
-
-            $routes->patch('resource.update', '/{table}/{id}')
-                ->addPattern('table', '\w+')
-                ->addPattern('id', '\d+')
-                ->addMiddleware(new ResourceController($service));
-
-            $routes->delete('resource.delete', '/{table}/{id}')
-                ->addPattern('table', '\w+')
-                ->addPattern('id', '\d+')
-                ->addMiddleware(new ResourceController($service));
-
-            $routes->get('resource.read', '/{table}/{id}')
-                ->addPattern('table', '\w+')
-                ->addPattern('id', '\d+')
-                ->addMiddleware(new ResourceController($service));
-
-            $routes->get('resource.all', '/{table}')
-                ->addPattern('table', '\w+')
-                ->addMiddleware(new ResourceController($service));
-        });
+        // User.
+        $userRepo = new UserRepository($db->getConnection());
+        $userService = new UserService($userRepo);
+        $routes->get('user.all', '/user')
+            ->addMiddleware(new UserController($userService));
 
         // Router.
         $router = new Router();

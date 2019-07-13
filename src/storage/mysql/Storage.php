@@ -46,7 +46,11 @@ class Storage implements StorageInterface
         try {
             $sth = $this->conn->prepare("SELECT * FROM `{$table}`");
             $sth->execute();
-            $result = $sth->fetchAll();
+
+            $result = [];
+            while ($data = $sth->fetch(PDO::FETCH_ASSOC)) {
+                $result[] = $data;
+            }
 
             return $result;
         } catch (\PDOException $e) {

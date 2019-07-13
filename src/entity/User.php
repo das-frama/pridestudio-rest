@@ -1,6 +1,8 @@
-<?php declare(strict_type = 1);
+<?php
 
-namespace app\domain\user;
+declare(strict_types=1);
+
+namespace app\entity;
 
 class User
 {
@@ -31,7 +33,7 @@ class User
     /**
      * @param string $password
      */
-    public function setPassword(string $password) : void
+    public function setPassword(string $password): void
     {
         $hash = password_hash($password, PASSWORD_BCRYPT);
         if ($hash === false) {
@@ -45,7 +47,7 @@ class User
      * @param string $password
      * @return bool
      */
-    public function verifyPassword(string $password) : bool
+    public function verifyPassword(string $password): bool
     {
         return password_verify($password, $this->password_hash);
     }

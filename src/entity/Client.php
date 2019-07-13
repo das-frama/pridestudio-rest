@@ -1,6 +1,8 @@
-<?php declare(strict_types=1);
+<?php
 
-namespace app\domains\order;
+declare(strict_types=1);
+
+namespace app\entity;
 
 /**
  * Client class.
