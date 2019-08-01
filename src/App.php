@@ -7,8 +7,8 @@ namespace app;
 use app\http\controller\HomeController;
 use app\http\controller\UserController;
 use app\domain\user\UserService;
-use app\storage\mysql\Storage;
-use app\storage\mysql\UserRepository;
+use app\storage\mongodb\UserRepository;
+use MongoDB\Client;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Sunrise\Http\Router\Router;
@@ -31,7 +31,7 @@ class App
     public function __construct()
     {
         // Database.
-        $db = new Storage('mysql:host=localhost;dbname=pridestudio', 'root', '');
+        $db = (new Client('mongodb://127.0.0.1:27017'))->selectDatabase('pridestudio');
 
         // Routes.
         $routes = new RouteCollection();
@@ -39,9 +39,11 @@ class App
             ->addMiddleware(new HomeController);
 
         // User.
-        $userRepo = new UserRepository($db->getConnection());
+        $userRepo = new UserRepository($db);
         $userService = new UserService($userRepo);
         $routes->get('user.all', '/user')
+            ->addMiddleware(new UserController($userService));
+        $routes->get('user.read', '/user/{id}')
             ->addMiddleware(new UserController($userService));
 
         // Router.

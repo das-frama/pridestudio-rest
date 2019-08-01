@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace app\domain\user;
 
+use app\entity\User;
+
 class UserService
 {
     /**
@@ -16,7 +18,7 @@ class UserService
         $this->userRepo = $userRepo;
     }
 
-    public function findByID(int $id): ?User
+    public function findByID(string $id): ?User
     {
         return $this->userRepo->findByID($id);
     }

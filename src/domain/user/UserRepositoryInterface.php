@@ -8,9 +8,12 @@ use app\entity\User;
 
 interface UserRepositoryInterface
 {
-    public function findByID(int $id): ?User;
+    public function findByID(string $id): ?User;
     public function findByEmail(string $email): ?User;
+
     /**
+     * @param int $limit
+     * @param int $offset
      * @return User[]
      */
     public function findAll(int $limit, int $offset): array;

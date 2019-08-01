@@ -4,10 +4,12 @@
   "type": "project",
   "require": {
     "php": "^7.1",
-    "ext-pdo": "*",
+    "ext-mongodb": "*",
+    "ext-json": "*",
     "sunrise/http-router": "^1.0",
     "sunrise/http-message": "^1.0",
-    "sunrise/http-server-request": "^1.0"
+    "sunrise/http-server-request": "^1.0",
+    "mongodb/mongodb": "^1.4"
   },
   "authors": [
     {
@@ -29,6 +31,6 @@
     "test": [
       "phpcs"
     ],
-    "serve": "php -S 0.0.0.0:8080 -t public/"
+    "serve": "php -S 127.0.0.1:8000 -t public/"
   }
 }

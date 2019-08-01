@@ -12,6 +12,5 @@ use PDO;
  */
 interface StorageInterface
 {
-    public function getConnection(): PDO;
-    public function findAll(string $table, int $limit, int $offset): array;
+    // public function findAll(string $table, int $limit, int $offset): array;
 }
