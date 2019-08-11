@@ -7,7 +7,6 @@ namespace app\http\controller;
 use app\RequestUtils;
 use app\ResponseFactory;
 use app\domain\user\UserService;
-use app\storage\mongodb\UserRepository;
 use app\http\exception\RouteNotFoundException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -25,7 +24,7 @@ class UserController
 
     public function __construct(Database $db)
     {
-        $this->service = new UserService(new UserRepository($db));
+        $this->service = new UserService($db);
     }
 
     /**

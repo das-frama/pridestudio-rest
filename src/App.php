@@ -25,10 +25,11 @@ class App
      */
     public function __construct(array $config)
     {
-        // DB.
-        $database = (new Client('mongodb://127.0.0.1:27017'))->selectDatabase('pridestudio');
+        // MongoDB.
+        $db = (new Client('mongodb://127.0.0.1:27017'))->selectDatabase('pridestudio');
 
-        $this->router = new Router($database);
+        // Router.
+        $this->router = new Router($db);
         foreach ($config['routes'] as $route) {
             $this->router->register($route[0], $route[1], $route[2]);
         }

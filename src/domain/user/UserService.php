@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace app\domain\user;
 
 use app\entity\User;
+use app\storage\mongodb\UserRepository;
+use MongoDB\Database;
 
 class UserService
 {
@@ -13,9 +15,9 @@ class UserService
      */
     private $userRepo;
 
-    public function __construct(UserRepositoryInterface $userRepo)
+    public function __construct(Database $db)
     {
-        $this->userRepo = $userRepo;
+        $this->userRepo = new UserRepository($db);
     }
 
     public function findByID(string $id): ?User

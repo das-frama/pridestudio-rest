@@ -2,8 +2,8 @@
 
 return [
     'routes' => [
-        ['GET', '/', ['app\http\controller\HomeController', 'index']],
-        ['GET', '/users', ['app\http\controller\UserController', 'all']],
-        ['GET', '/users/*', ['app\http\controller\UserController', 'read']],
+        'home' => ['GET', '/', ['app\http\controller\HomeController', 'index']],
+        'users.all' => ['GET', '/users', ['app\http\controller\UserController', 'all']],
+        'users.read' => ['GET', '/users/*', ['app\http\controller\UserController', 'read']],
     ],
 ];
