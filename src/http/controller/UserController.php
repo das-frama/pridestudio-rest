@@ -4,58 +4,52 @@ declare(strict_types=1);
 
 namespace app\http\controller;
 
+use app\RequestUtils;
+use app\ResponseFactory;
 use app\domain\user\UserService;
+use app\storage\mongodb\UserRepository;
+use app\http\exception\RouteNotFoundException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Server\RequestHandlerInterface;
-use Sunrise\Http\Message\ResponseFactory;
-use Sunrise\Http\Router\Exception\RouteNotFoundException;
+use MongoDB\Database;
 
 /**
  * User class.
  */
-class UserController implements MiddlewareInterface
+class UserController
 {
+    /**
+     * @var UserService
+     */
     private $service;
 
-    public function __construct(UserService $service)
+    public function __construct(Database $db)
     {
-        $this->service = $service;
+        $this->service = new UserService(new UserRepository($db));
     }
 
     /**
-     * {@inheritDoc}
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
      */
-    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
-    {
-        switch ($request->getAttribute('@route')) {
-            case 'user.all':
-                return $this->all($request);
-            case 'user.read':
-                return $this->read($request);
-        }
-
-        return $handler->handle($request);
-    }
-
     public function all(ServerRequestInterface $request): ResponseInterface
     {
         $users = $this->service->findAll(0, 0);
-        $response = (new ResponseFactory())->createResponse();
-        $response->getBody()->write(json_encode($users, JSON_UNESCAPED_UNICODE));
-        return $response;
+        return ResponseFactory::fromObject(200, $users);
     }
 
+    /**
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
+     */
     public function read(ServerRequestInterface $request): ResponseInterface
     {
-        $id = $request->getAttribute('id');
+        $id = RequestUtils::getPathSegment($request, 2);
         $user = $this->service->findByID($id);
         if ($user === null) {
-            throw new RouteNotFoundException($request);
+            throw new RouteNotFoundException();
         }
-        $response = (new ResponseFactory())->createResponse();
-        $response->getBody()->write(json_encode($user, JSON_UNESCAPED_UNICODE));
-        return $response;
+
+        return ResponseFactory::fromObject(200, $user);
     }
 }

@@ -3,8 +3,9 @@
 declare(strict_types=1);
 
 use app\App;
-use Sunrise\Http\ServerRequest\ServerRequestFactory;
+use app\RequestFactory;
 
-require "../vendor/autoload.php";
+require __DIR__ . '/../vendor/autoload.php';
 
-(new App())->run(ServerRequestFactory::fromGlobals());
+$config = require __DIR__ . '/../config/app.php';
+(new App($config))->run(RequestFactory::fromGlobals());

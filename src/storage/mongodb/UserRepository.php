@@ -7,7 +7,6 @@ namespace app\storage\mongodb;
 use app\entity\User;
 use app\domain\user\UserRepositoryInterface;
 use MongoDB\BSON\ObjectId;
-use MongoDB\Client;
 use MongoDB\Collection;
 use MongoDB\Database;
 
@@ -20,9 +19,9 @@ class UserRepository implements UserRepositoryInterface
     /** @var Collection */
     private $collection;
 
-    public function __construct(Database $database)
+    public function __construct(Database $db)
     {
-        $this->collection = $database->selectCollection('user');
+        $this->collection = $db->selectCollection('user');
     }
 
     public function findByID(string $id): ?User
@@ -42,18 +41,28 @@ class UserRepository implements UserRepositoryInterface
         return null;
     }
 
+    /**
+     * @param string $email
+     * @return User|null
+     */
     public function findByEmail(string $email): ?User
     {
         return null;
     }
 
     /**
+     * @param int $limit
+     * @param int $offset
      * @return User[]
      */
     public function findAll(int $limit, int $offset): array
     {
         return [];
     }
+
+    /**
+     * @return bool
+     */
     public function save(): bool
     {
         return false;

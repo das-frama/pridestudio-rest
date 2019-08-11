@@ -4,25 +4,21 @@ declare(strict_types=1);
 
 namespace app\http\controller;
 
+use app\ResponseFactory;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 
 /**
  * Class HomeController
  * @package app\controller
  */
-class HomeController implements MiddlewareInterface
+class HomeController
 {
     /**
      * {@inheritDoc}
      */
-    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    public function index(ServerRequestInterface $request): ResponseInterface
     {
-        $response = $handler->handle($request);
-        $response->getBody()->write('Hello dude!');
-
-        return $response;
+        return ResponseFactory::fromObject(200, ['success' => true]);
     }
 }

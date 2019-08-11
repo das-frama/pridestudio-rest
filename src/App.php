@@ -4,19 +4,14 @@ declare(strict_types=1);
 
 namespace app;
 
-use app\http\controller\HomeController;
-use app\http\controller\UserController;
-use app\domain\user\UserService;
-use app\storage\mongodb\UserRepository;
-use MongoDB\Client;
+use app\http\router\Router;
+use app\http\router\RouterInterface;
+use app\http\exception\MethodNotAllowedException;
+use app\http\exception\RouteNotFoundException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Sunrise\Http\Router\Router;
-use Sunrise\Http\Router\RouteCollection;
-use Sunrise\Http\Message\ResponseFactory;
-use Sunrise\Http\Router\Exception\MethodNotAllowedException;
-use Sunrise\Http\Router\Exception\RouteNotFoundException;
-use Sunrise\Http\Router\RouterInterface;
+use RuntimeException;
+use MongoDB\Client;
 
 class App
 {
@@ -28,45 +23,28 @@ class App
     /**
      * App constructor.
      */
-    public function __construct()
+    public function __construct(array $config)
     {
-        // Database.
-        $db = (new Client('mongodb://127.0.0.1:27017'))->selectDatabase('pridestudio');
+        // DB.
+        $database = (new Client('mongodb://127.0.0.1:27017'))->selectDatabase('pridestudio');
 
-        // Routes.
-        $routes = new RouteCollection();
-        $routes->get('home', '/')
-            ->addMiddleware(new HomeController);
-
-        // User.
-        $userRepo = new UserRepository($db);
-        $userService = new UserService($userRepo);
-        $routes->get('user.all', '/user')
-            ->addMiddleware(new UserController($userService));
-        $routes->get('user.read', '/user/{id}')
-            ->addMiddleware(new UserController($userService));
-
-        // Router.
-        $router = new Router();
-        $router->addRoutes($routes);
-
-        $this->router = $router;
+        $this->router = new Router($database);
+        foreach ($config['routes'] as $route) {
+            $this->router->register($route[0], $route[1], $route[2]);
+        }
     }
 
     public function run(ServerRequestInterface $request): void
     {
         try {
-            $response = $this->router->handle($request)
-                ->withHeader('Content-Type', 'application/json');
-            $response->getBody()->getContents();
+            $response = $this->router->handle($request);
         } catch (RouteNotFoundException $e) {
-            $response = (new ResponseFactory())->createResponse(404);
-            $response->getBody()->write($response->getReasonPhrase());
+            $response = ResponseFactory::fromObject(404, ['error' => 'Not found.']);
         } catch (MethodNotAllowedException $e) {
-            $response = (new ResponseFactory())
-                ->createResponse(405)
-                ->withHeader('Allow', implode(', ', $e->getAllowedMethods()));
-            $response->getBody()->write($response->getReasonPhrase());
+            // TODO(frama): Добавить Allow header.
+            $response = ResponseFactory::fromObject(403, ['error' => 'Not allowed.']);
+        } catch (RuntimeException $e) {
+            $response = ResponseFactory::fromObject(500, ['error' => 'Internal server error.']);
         }
 
         $this->emit($response);

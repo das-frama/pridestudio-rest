@@ -26,7 +26,7 @@ class User implements Persistable
     {
         settype($this->id, 'int');
         settype($this->role, 'int');
-        settype($this->status, 'int');
+        settype($this->status, 'boolean');
         settype($this->created_at, 'int');
         settype($this->updated_at, 'int');
         settype($this->created_by, 'int');
