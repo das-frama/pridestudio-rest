@@ -10,7 +10,6 @@ use app\domain\user\UserService;
 use app\http\exception\RouteNotFoundException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use MongoDB\Database;
 
 /**
  * User class.
@@ -22,9 +21,9 @@ class UserController
      */
     private $service;
 
-    public function __construct(Database $db)
+    public function __construct(UserService $service)
     {
-        $this->service = new UserService($db);
+        $this->service = $service;
     }
 
     /**

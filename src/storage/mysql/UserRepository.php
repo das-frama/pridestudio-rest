@@ -26,7 +26,7 @@ class UserRepository implements UserRepositoryInterface
      * @param int $id
      * @return User|null
      */
-    public function findByID(int $id): ?User
+    public function findByID(string $id): ?User
     {
         try {
             $sth = $this->storage->prepare("SELECT * FROM `user` WHERE id=?");

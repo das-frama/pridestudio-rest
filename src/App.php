@@ -10,8 +10,8 @@ use app\http\exception\MethodNotAllowedException;
 use app\http\exception\RouteNotFoundException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Dice\Dice;
 use RuntimeException;
-use MongoDB\Client;
 
 class App
 {
@@ -25,11 +25,12 @@ class App
      */
     public function __construct(array $config)
     {
-        // MongoDB.
-        $db = (new Client('mongodb://127.0.0.1:27017'))->selectDatabase('pridestudio');
+        // DI.
+        $dice = new Dice();
+        $dice->addRules($config['rules']);
 
         // Router.
-        $this->router = new Router($db);
+        $this->router = new Router($dice);
         foreach ($config['routes'] as $route) {
             $this->router->register($route[0], $route[1], $route[2]);
         }

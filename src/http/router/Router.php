@@ -8,8 +8,8 @@ use app\RequestUtils;
 use app\http\exception\RouteNotFoundException;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Dice\Dice;
 use RuntimeException;
-use MongoDB\Database;
 
 class Router implements RouterInterface
 {
@@ -17,12 +17,12 @@ class Router implements RouterInterface
     private $middlewares = [];
     /** @var PathTree */
     private $routes;
-    /** @var Database */
-    private $db;
+    /** @var Dice */
+    private $dice;
 
-    public function __construct(Database $db)
+    public function __construct(Dice $dice)
     {
-        $this->db = $db;
+        $this->dice = $dice;
         $this->routes = $this->loadPathTree();
     }
 
@@ -63,7 +63,7 @@ class Router implements RouterInterface
 
         try {
             list($class, $method) = $this->routeHandlers[$routeNumbers[0]];
-            $controller = new $class($this->db);
+            $controller = $this->dice->create($class);
             $response = call_user_func([$controller, $method], $request);
         } catch (MongoDB\Exception\Exception $e) {
             throw new RuntimeException();

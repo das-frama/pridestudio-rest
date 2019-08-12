@@ -8,7 +8,7 @@ use app\entity\User;
 use app\domain\user\UserRepositoryInterface;
 use MongoDB\BSON\ObjectId;
 use MongoDB\Collection;
-use MongoDB\Database;
+use MongoDB\Client;
 
 /**
  * Class UserRepository
@@ -19,9 +19,9 @@ class UserRepository implements UserRepositoryInterface
     /** @var Collection */
     private $collection;
 
-    public function __construct(Database $db)
+    public function __construct(Client $client)
     {
-        $this->collection = $db->selectCollection('user');
+        $this->collection = $client->selectDatabase('pridestudio')->selectCollection('user');
     }
 
     public function findByID(string $id): ?User
