@@ -4,56 +4,47 @@ declare(strict_types=1);
 
 namespace app\storage\mongodb;
 
-use app\entity\User;
-use app\domain\user\UserRepositoryInterface;
+use app\entity\Record;
+use app\domain\record\RecordRepositoryInterface;
 use MongoDB\BSON\ObjectId;
 use MongoDB\Collection;
 use MongoDB\Client;
 
 /**
- * Class UserRepository
+ * Class RecordRepository
  * @package app\storage\mongodb
  */
-class UserRepository implements UserRepositoryInterface
+class RecordRepository implements RecordRepositoryInterface
 {
     /** @var Collection */
     private $collection;
 
     public function __construct(Client $client)
     {
-        $this->collection = $client->selectDatabase('pridestudio')->selectCollection('users');
+        $this->collection = $client->selectDatabase('pridestudio')->selectCollection('records');
     }
 
-    public function findByID(string $id): ?User
+    public function findByID(string $id): ?Record
     {
-        $user = $this->collection->findOne([
+        $record = $this->collection->findOne([
             '_id' => new ObjectId($id)
         ], [
             'typeMap' => [
-                'root' => User::class,
+                'root' => Record::class,
             ]
         ]);
 
-        if ($user instanceof User) {
-            return $user;
+        if ($record instanceof Record) {
+            return $record;
         }
 
         return null;
     }
 
     /**
-     * @param string $email
-     * @return User|null
-     */
-    public function findByEmail(string $email): ?User
-    {
-        return null;
-    }
-
-    /**
      * @param int $limit
      * @param int $offset
-     * @return User[]
+     * @return Record[]
      */
     public function findAll(int $limit, int $offset): array
     {

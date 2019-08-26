@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace app\entity;
 
+use app\storage\mongodb\Entity;
+
 /**
- * Record class.
+ * Record entity class.
  */
-class Record
+class Record extends Entity
 {
     /** @var int */
     public $id;
@@ -17,6 +19,9 @@ class Record
 
     /** @var int */
     public $hall_id;
+
+    /** @var Reservation[] */
+    public $reservations;
 
     /** @var int */
     public $payment_id;
@@ -44,4 +49,19 @@ class Record
 
     /** @var int */
     public $updated_by;
+
+    /**
+     * {@inheritDoc}
+     */
+    public function bsonUnserialize(array $data): void
+    {
+        parent::bsonUnserialize($data);
+        foreach ($data['reservations'] as $reservationObject) {
+            $reservation = new Reservation;
+            $reservation->start_at = $reservationObject->start_at->toDateTime()->getTimestamp();
+            $reservation->length = $reservationObject->length;
+            $reservation->comment = $reservationObject->comment;
+            $this->reservations[] = $reservation;
+        }
+    }
 }
