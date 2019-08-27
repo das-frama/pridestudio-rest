@@ -56,12 +56,12 @@ class Record extends Entity
     public function bsonUnserialize(array $data): void
     {
         parent::bsonUnserialize($data);
-        foreach ($data['reservations'] as $reservationObject) {
-            $reservation = new Reservation;
-            $reservation->start_at = $reservationObject->start_at->toDateTime()->getTimestamp();
-            $reservation->length = $reservationObject->length;
-            $reservation->comment = $reservationObject->comment;
-            $this->reservations[] = $reservation;
+        foreach ($this->reservations as &$reservation) {
+            $entity = new Reservation;
+            $entity->start_at = $reservation['start_at']->toDateTime()->getTimestamp();
+            $entity->length = $reservation['length'];
+            $entity->comment = $reservation['comment'];
+            $reservation = $entity;
         }
     }
 }

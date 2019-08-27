@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\storage\mongodb;
 
 use MongoDB\BSON\ObjectId;
+use MongoDB\BSON\UTCDateTime;
 use MongoDB\BSON\Persistable;
 
 /**
@@ -43,8 +44,19 @@ abstract class Entity implements Persistable
             }
         }
         foreach ($data as $property => $value) {
-            if (property_exists($this, $property) && $value instanceof ObjectId) {
+            if (!property_exists($this, $property)) {
+                continue;
+            }
+            if ($value instanceof ObjectId) {
                 $this->{$property} = $value->__toString();
+            } else if ($value instanceof UTCDateTime) {
+                if (strpos($property, '_at', -3)) {
+                    $this->{$property} = $value->toDateTime()->getTimestamp();
+                } else {
+                    $this->{$property} = $value->toDateTime();
+                }
+            } else {
+                $this->{$property} = $value;
             }
         }
     }
