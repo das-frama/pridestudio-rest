@@ -8,6 +8,7 @@ use app\http\router\Router;
 use app\http\router\RouterInterface;
 use app\http\exception\MethodNotAllowedException;
 use app\http\exception\RouteNotFoundException;
+use app\http\middleware\CorsMiddleware;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Dice\Dice;
@@ -31,6 +32,7 @@ class App
 
         // Router.
         $this->router = new Router($dice);
+        $this->router->load(new CorsMiddleware);
         foreach ($config['routes'] as $route) {
             $this->router->register($route[0], $route[1], $route[2]);
         }

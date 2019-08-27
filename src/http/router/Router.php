@@ -9,6 +9,7 @@ use app\http\exception\RouteNotFoundException;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Dice\Dice;
+use Psr\Http\Server\MiddlewareInterface;
 use RuntimeException;
 
 class Router implements RouterInterface
@@ -48,6 +49,11 @@ class Router implements RouterInterface
         $this->routes->put($parts, $routeNumber);
     }
 
+    public function load(MiddlewareInterface $middleware): void
+    {
+        array_push($this->middlewares, $middleware);
+    }
+
     public function route(ServerRequestInterface $request): ResponseInterface
     {
         // $data = gzcompress(json_encode($this->routes, JSON_UNESCAPED_UNICODE));
@@ -56,6 +62,12 @@ class Router implements RouterInterface
 
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
+        // middlewares.
+        if (count($this->middlewares)) {
+            $handler = array_pop($this->middlewares);
+            return $handler->process($request, $this);
+        }
+
         $routeNumbers = $this->getRouteNumbers($request);
         if (count($routeNumbers) == 0) {
             throw new RouteNotFoundException();
