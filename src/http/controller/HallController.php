@@ -32,8 +32,8 @@ class HallController
      */
     public function all(ServerRequestInterface $request): ResponseInterface
     {
-        $Halls = $this->service->findAll(0, 0);
-        return ResponseFactory::fromObject(200, $Halls);
+        $halls = $this->service->findAll(0, 0);
+        return ResponseFactory::fromObject(200, $halls);
     }
 
     /**
@@ -43,11 +43,11 @@ class HallController
     public function read(ServerRequestInterface $request): ResponseInterface
     {
         $id = RequestUtils::getPathSegment($request, 2);
-        $Hall = $this->service->findByID($id);
-        if ($Hall === null) {
+        $hall = $this->service->findByID($id);
+        if ($hall === null) {
             throw new RouteNotFoundException();
         }
 
-        return ResponseFactory::fromObject(200, $Hall);
+        return ResponseFactory::fromObject(200, $hall);
     }
 }

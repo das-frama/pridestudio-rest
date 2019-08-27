@@ -49,7 +49,23 @@ class HallRepository implements HallRepositoryInterface
      */
     public function findAll(int $limit, int $offset): array
     {
-        return [];
+        $options = [
+            'typeMap' => [
+                'root' => Hall::class,
+                'document' => 'array',
+            ]
+        ];
+        if ($limit > 0) {
+            $options['limit'] = $limit;
+        }
+
+        $result = [];
+        $cursor = $this->collection->find([], $options);
+        foreach ($cursor as $document) {
+            $result[] = $document;
+        }
+
+        return $result;
     }
 
     /**

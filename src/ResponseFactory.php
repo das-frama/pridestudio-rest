@@ -26,4 +26,10 @@ class ResponseFactory
         $response = $response->withHeader('Content-Length', strlen($content));
         return $response;
     }
+
+    public static function fromStatus(int $status): ResponseInterface
+    {
+        $psr17Factory = new Psr17Factory();
+        return $psr17Factory->createResponse($status);
+    }
 }
