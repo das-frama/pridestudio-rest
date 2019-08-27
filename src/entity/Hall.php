@@ -1,13 +1,17 @@
-<?php declare(strict_types=1);
+<?php
 
-namespace app\domains\hall;
+declare(strict_types=1);
+
+namespace app\entity;
+
+use app\storage\mongodb\Entity;
 
 /**
  * Hall class.
  */
-class Hall
+class Hall extends Entity
 {
-    /** @var int */
+    /** @var string */
     public $id;
 
     /** @var string */
