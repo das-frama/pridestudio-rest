@@ -49,4 +49,15 @@ class Hall extends Entity
 
     /** @var int */
     public $updated_by;
+
+    /**
+     * {@inheritDoc}
+     */
+    public function bsonUnserialize(array $data): void
+    {
+        parent::bsonUnserialize($data);
+
+        $this->preview_image = HOST . $this->preview_image;
+        $this->detail_image = HOST . $this->detail_image;
+    }
 }

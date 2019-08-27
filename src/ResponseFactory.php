@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app;
 
+use app\entity\File;
 use Psr\Http\Message\ResponseInterface;
 use Nyholm\Psr7\Factory\Psr17Factory;
 
@@ -13,6 +14,18 @@ class ResponseFactory
     {
         $content = json_encode($body, JSON_UNESCAPED_UNICODE);
         return self::from($status, 'application/json', $content);
+    }
+
+    public static function fromFile(File $file): ResponseInterface
+    {
+        $psr17Factory = new Psr17Factory();
+        $response = $psr17Factory->createResponse(200);
+        $stream = $psr17Factory->createStreamFromFile($file->path);
+        $stream->rewind();
+        $response = $response->withBody($stream);
+        $response = $response->withHeader('Content-Type', $file->mimeType);
+        $response = $response->withHeader('Content-Length', (string) filesize($file->path));
+        return $response;
     }
 
     private static function from(int $status, string $contentType, string $content): ResponseInterface

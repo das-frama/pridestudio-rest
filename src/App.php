@@ -48,7 +48,7 @@ class App
             // TODO(frama): Добавить Allow header.
             $response = ResponseFactory::fromObject(403, ['error' => 'Not allowed.']);
         } catch (RuntimeException $e) {
-            $response = ResponseFactory::fromObject(500, ['error' => 'Internal server error.']);
+            $response = ResponseFactory::fromObject(500, ['error' => $e]);
         }
 
         $this->emit($response);
