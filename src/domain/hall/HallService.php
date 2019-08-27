@@ -19,9 +19,20 @@ class HallService
         $this->hallRepo = $hallRepo;
     }
 
+    /**
+     * @return Hall|null
+     */
     public function findByID(string $id): ?Hall
     {
         return $this->hallRepo->findByID($id);
+    }
+
+    /**
+     * @return Hall|null
+     */
+    public function findBySlug(string $slug): ?Hall
+    {
+        return $this->hallRepo->findBySlug($slug);
     }
 
     /**

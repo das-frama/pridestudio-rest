@@ -24,11 +24,27 @@ class HallRepository implements HallRepositoryInterface
         $this->collection = $client->selectDatabase('pridestudio')->selectCollection('halls');
     }
 
-    public function findByID(string $id): ?Hall
+    public function findByID(string $slug): ?Hall
     {
         $hall = $this->collection->findOne([
-            '_id' => new ObjectId($id)
+            '_id' => new ObjectId($slug)
         ], [
+            'typeMap' => [
+                'root' => Hall::class,
+                'document' => 'array',
+            ]
+        ]);
+
+        if ($hall instanceof Hall) {
+            return $hall;
+        }
+
+        return null;
+    }
+
+    public function findBySlug(string $slug): ?Hall
+    {
+        $hall = $this->collection->findOne(['slug' => $slug], [
             'typeMap' => [
                 'root' => Hall::class,
                 'document' => 'array',

@@ -42,8 +42,8 @@ class HallController
      */
     public function read(ServerRequestInterface $request): ResponseInterface
     {
-        $id = RequestUtils::getPathSegment($request, 2);
-        $hall = $this->service->findByID($id);
+        $slug = RequestUtils::getPathSegment($request, 2);
+        $hall = $this->service->findBySlug($slug);
         if ($hall === null) {
             throw new RouteNotFoundException();
         }

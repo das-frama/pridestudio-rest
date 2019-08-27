@@ -9,6 +9,7 @@ use app\entity\Hall;
 interface HallRepositoryInterface
 {
     public function findByID(string $id): ?Hall;
+    public function findBySlug(string $slug): ?Hall;
 
     /**
      * @param int $limit
