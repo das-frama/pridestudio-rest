@@ -60,6 +60,7 @@ class HallRepository implements HallRepositoryInterface
 
         $hall = $this->collection->findOne($filter, $options);
         if ($hall instanceof Hall) {
+            $hall->setInclude($include);
             return $hall;
         }
 
@@ -71,8 +72,13 @@ class HallRepository implements HallRepositoryInterface
      * @param int $offset
      * @return Hall[]
      */
-    public function findAll(int $limit, int $offset): array
+    public function findAll(int $limit, int $offset, bool $onlyActive, array $include): array
     {
+        $filter = [];
+        if ($onlyActive) {
+            $filter['is_active'] = true;
+        }
+
         $options = [
             'typeMap' => [
                 'root' => Hall::class,
@@ -82,11 +88,17 @@ class HallRepository implements HallRepositoryInterface
         if ($limit > 0) {
             $options['limit'] = $limit;
         }
+        if (!empty($include)) {
+            $options['projection'] = array_fill_keys($include, 1);
+        }
 
         $result = [];
-        $cursor = $this->collection->find([], $options);
-        foreach ($cursor as $document) {
-            $result[] = $document;
+        $cursor = $this->collection->find($filter, $options);
+        foreach ($cursor as $hall) {
+            if ($hall instanceof Hall) {
+                $hall->setInclude($include);
+                $result[] = $hall;
+            }
         }
 
         return $result;

@@ -32,19 +32,18 @@ class HallService
      */
     public function findBySlug(string $slug, array $params = []): ?Hall
     {
-        $columns = $this->getColumns($params);
-        $hall = $this->hallRepo->findBySlug($slug, true, $columns);
-        $hall->setInclude($columns);
-
+        $includeColumns = $this->getColumns($params);
+        $hall = $this->hallRepo->findBySlug($slug, true, $includeColumns);
         return $hall;
     }
 
     /**
      * @return Hall[]
      */
-    public function findAll(int $limit, int $offset): array
+    public function findAll(int $limit, int $offset, array $params = []): array
     {
-        return $this->hallRepo->findAll($limit, $offset);
+        $includeColumns = $this->getColumns($params);
+        return $this->hallRepo->findAll($limit, $offset, true, $includeColumns);
     }
 
     private function getColumns(array $params): array

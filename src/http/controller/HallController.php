@@ -36,7 +36,7 @@ class HallController
      */
     public function all(ServerRequestInterface $request): ResponseInterface
     {
-        $halls = $this->service->findAll(0, 0);
+        $halls = $this->service->findAll(0, 0, $request->getQueryParams());
         return ResponseFactory::fromObject(200, $halls);
     }
 
