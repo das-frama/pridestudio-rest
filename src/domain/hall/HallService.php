@@ -30,9 +30,13 @@ class HallService
     /**
      * @return Hall|null
      */
-    public function findBySlug(string $slug): ?Hall
+    public function findBySlug(string $slug, array $params = []): ?Hall
     {
-        return $this->hallRepo->findBySlug($slug);
+        $columns = $this->getColumns($params);
+        $hall = $this->hallRepo->findBySlug($slug, true, $columns);
+        $hall->setInclude($columns);
+
+        return $hall;
     }
 
     /**
@@ -41,5 +45,13 @@ class HallService
     public function findAll(int $limit, int $offset): array
     {
         return $this->hallRepo->findAll($limit, $offset);
+    }
+
+    private function getColumns(array $params): array
+    {
+        if (!isset($params['include'])) {
+            return [];
+        }
+        return explode(',', $params['include']);
     }
 }

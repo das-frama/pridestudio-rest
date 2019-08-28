@@ -57,7 +57,11 @@ class Hall extends Entity
     {
         parent::bsonUnserialize($data);
 
-        $this->preview_image = HOST . $this->preview_image;
-        $this->detail_image = HOST . $this->detail_image;
+        if ($this->preview_image !== null) {
+            $this->preview_image = HOST . $this->preview_image;
+        }
+        if ($this->detail_image !== null) {
+            $this->detail_image = HOST . $this->detail_image;
+        }
     }
 }

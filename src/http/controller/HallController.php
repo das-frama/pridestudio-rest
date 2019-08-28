@@ -16,10 +16,14 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 class HallController
 {
+    public $includeColumns = [];
+    public $excludeColumns = ['created_by', 'updated_by', 'created_at', 'updated_at', 'is_active'];
+
     /**
      * @var HallService
      */
     private $service;
+
 
     public function __construct(HallService $service)
     {
@@ -43,7 +47,7 @@ class HallController
     public function read(ServerRequestInterface $request): ResponseInterface
     {
         $slug = RequestUtils::getPathSegment($request, 2);
-        $hall = $this->service->findBySlug($slug);
+        $hall = $this->service->findBySlug($slug, $request->getQueryParams());
         if ($hall === null) {
             throw new RouteNotFoundException();
         }

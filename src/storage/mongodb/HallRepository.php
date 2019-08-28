@@ -42,15 +42,23 @@ class HallRepository implements HallRepositoryInterface
         return null;
     }
 
-    public function findBySlug(string $slug): ?Hall
+    public function findBySlug(string $slug, bool $onlyActive, array $include): ?Hall
     {
-        $hall = $this->collection->findOne(['slug' => $slug], [
+        $filter = ['slug' => $slug];
+        if ($onlyActive) {
+            $filter['is_active'] = true;
+        }
+        $options = [
             'typeMap' => [
                 'root' => Hall::class,
                 'document' => 'array',
-            ]
-        ]);
+            ],
+        ];
+        if (!empty($include)) {
+            $options['projection'] = array_fill_keys($include, 1);
+        }
 
+        $hall = $this->collection->findOne($filter, $options);
         if ($hall instanceof Hall) {
             return $hall;
         }

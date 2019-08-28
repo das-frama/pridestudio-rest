@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace app\storage\mongodb;
 
+use JsonSerializable;
+use ReflectionObject;
+use ReflectionProperty;
 use MongoDB\BSON\ObjectId;
 use MongoDB\BSON\UTCDateTime;
 use MongoDB\BSON\Persistable;
@@ -11,8 +14,39 @@ use MongoDB\BSON\Persistable;
 /**
  * Entity is a base class for mongodb records.
  */
-abstract class Entity implements Persistable
+abstract class Entity implements Persistable, JsonSerializable
 {
+    protected $include = [];
+    protected $exclude = [];
+
+    public function setInclude(array $properties): void
+    {
+        $this->include = $properties;
+    }
+
+    public function setExclude(array $properties): void
+    {
+        $this->exclude = $properties;
+    }
+
+    public function jsonSerialize(): array
+    {
+        $reflectionProperties = (new ReflectionObject($this))->getProperties(ReflectionProperty::IS_PUBLIC);
+        $properties = [];
+
+        foreach ($reflectionProperties as $reflectionProperty) {
+            $name = $reflectionProperty->getName();
+            $value = $reflectionProperty->getValue($this);
+            $isInclude = empty($this->include) || in_array($name, $this->include);
+            $isExclude = !empty($this->exclude) && in_array($name, $this->exclude);
+            if ($isInclude && !$isExclude) {
+                $properties[$name] = $value;
+            }
+        }
+
+        return $properties;
+    }
+
     /**
      * Provides an array or document to serialize as BSON
      * Called during serialization of the object to BSON. The method must return an array or stdClass.
