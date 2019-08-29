@@ -8,8 +8,8 @@ use app\RequestUtils;
 use app\http\exception\RouteNotFoundException;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use Dice\Dice;
 use Psr\Http\Server\MiddlewareInterface;
+use Dice\Dice;
 use RuntimeException;
 
 class Router implements RouterInterface

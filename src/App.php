@@ -43,7 +43,8 @@ class App
         try {
             $response = $this->router->handle($request);
         } catch (RouteNotFoundException $e) {
-            $response = ResponseFactory::fromObject(404, ['error' => 'Not found.']);
+            $response = ResponseFactory::fromObject(404, ['error' => 'Resource not found.']);
+            $response = $response->withHeader('Access-Control-Allow-Origin', 'http://localhost:8080');
         } catch (MethodNotAllowedException $e) {
             // TODO(frama): Добавить Allow header.
             $response = ResponseFactory::fromObject(403, ['error' => 'Not allowed.']);

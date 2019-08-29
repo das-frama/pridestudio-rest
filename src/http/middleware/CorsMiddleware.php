@@ -6,8 +6,8 @@ namespace app\http\middleware;
 
 use app\ResponseFactory;
 use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 class CorsMiddleware implements MiddlewareInterface
