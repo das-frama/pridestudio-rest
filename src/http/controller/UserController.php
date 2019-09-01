@@ -12,13 +12,12 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
- * User class.
+ * Class UserController
+ * @package app\http\controller
  */
 class UserController
 {
-    /**
-     * @var UserService
-     */
+    /** @var UserService */
     private $service;
 
     public function __construct(UserService $service)
@@ -27,6 +26,7 @@ class UserController
     }
 
     /**
+     * Get all users.
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      */
@@ -37,6 +37,7 @@ class UserController
     }
 
     /**
+     * Read one specific user.
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      */

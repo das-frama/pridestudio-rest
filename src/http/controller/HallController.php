@@ -19,18 +19,20 @@ class HallController
     public $includeColumns = [];
     public $excludeColumns = ['created_by', 'updated_by', 'created_at', 'updated_at', 'is_active'];
 
-    /**
-     * @var HallService
-     */
+    /** @var HallService */
     private $service;
 
-
+    /**
+     * HallController constructor.
+     * @param HallService $service
+     */
     public function __construct(HallService $service)
     {
         $this->service = $service;
     }
 
     /**
+     * Get all halls.
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      */
@@ -41,6 +43,7 @@ class HallController
     }
 
     /**
+     * Get one hall by slug.
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      */

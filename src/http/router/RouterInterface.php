@@ -12,6 +12,6 @@ use Psr\Http\Message\ResponseInterface;
 interface RouterInterface extends RequestHandlerInterface
 {
     public function register(string $method, string $path, array $handler): void;
-    // public function load(MiddlewareInterface $middleware): void;
+    public function load(MiddlewareInterface $middleware): void;
     public function route(ServerRequestInterface $request): ResponseInterface;
 }

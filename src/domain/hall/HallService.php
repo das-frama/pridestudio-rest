@@ -20,6 +20,8 @@ class HallService
     }
 
     /**
+     * Get hall by id.
+     * @param string $id
      * @return Hall|null
      */
     public function findByID(string $id): ?Hall
@@ -28,6 +30,9 @@ class HallService
     }
 
     /**
+     * Get hall by slug.
+     * @param string $slug
+     * @param array $params
      * @return Hall|null
      */
     public function findBySlug(string $slug, array $params = []): ?Hall
@@ -38,6 +43,10 @@ class HallService
     }
 
     /**
+     * Get all halls.
+     * @param int $limit
+     * @param int $offset
+     * @param array $params
      * @return Hall[]
      */
     public function findAll(int $limit, int $offset, array $params = []): array

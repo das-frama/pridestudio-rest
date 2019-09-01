@@ -11,7 +11,12 @@ use app\storage\mongodb\Entity;
  */
 class Reservation extends Entity
 {
+    /** @var int */
     public $start_at;
+
+    /** @var int */
     public $length;
+
+    /** @var int */
     public $comment;
 }

@@ -16,17 +16,20 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 class SettingsController
 {
-    /**
-     * @var SettingService
-     */
+    /** @var SettingService */
     private $service;
 
+    /**
+     * SettingsController constructor.
+     * @param SettingService $service
+     */
     public function __construct(SettingService $service)
     {
         $this->service = $service;
     }
 
     /**
+     * Get all stored settings.
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      */
@@ -37,6 +40,7 @@ class SettingsController
     }
 
     /**
+     * Get settings by specific group.
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      */
@@ -47,6 +51,11 @@ class SettingsController
         return ResponseFactory::fromObject(200, $settings);
     }
 
+    /**
+     * Get one setting by key.
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
+     */
     public function read(ServerRequestInterface $request): ResponseInterface
     {
         $key = RequestUtils::getPathSegment($request, 2);

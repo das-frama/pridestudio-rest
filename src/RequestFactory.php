@@ -10,6 +10,9 @@ use Nyholm\Psr7Server\ServerRequestCreator;
 
 class RequestFactory
 {
+    /**
+     * @return ServerRequestInterface
+     */
     public static function fromGlobals(): ServerRequestInterface
     {
         $psr17Factory = new Psr17Factory();

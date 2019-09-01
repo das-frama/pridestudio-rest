@@ -19,12 +19,20 @@ class RecordService
         $this->recordRepo = $recordRepo;
     }
 
+    /**
+     * Get record by id.
+     * @param string $id
+     * @return Record|null
+     */
     public function findByID(string $id): ?Record
     {
         return $this->recordRepo->findByID($id);
     }
 
     /**
+     * Get all records.
+     * @param int $limit
+     * @param int $offset
      * @return Record[]
      */
     public function findAll(int $limit, int $offset): array

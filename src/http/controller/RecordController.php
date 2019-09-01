@@ -27,6 +27,7 @@ class RecordController
     }
 
     /**
+     * Get all records.
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      */
@@ -37,6 +38,7 @@ class RecordController
     }
 
     /**
+     * Get one record by id.
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      */

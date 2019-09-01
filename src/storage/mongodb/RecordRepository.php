@@ -24,6 +24,11 @@ class RecordRepository implements RecordRepositoryInterface
         $this->collection = $client->selectDatabase('pridestudio')->selectCollection('records');
     }
 
+    /**
+     * Find a record from storage by id.
+     * @param string $id
+     * @return Record|null
+     */
     public function findByID(string $id): ?Record
     {
         $record = $this->collection->findOne([
@@ -43,6 +48,7 @@ class RecordRepository implements RecordRepositoryInterface
     }
 
     /**
+     * Find all records from storage.
      * @param int $limit
      * @param int $offset
      * @return Record[]

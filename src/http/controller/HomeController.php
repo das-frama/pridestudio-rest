@@ -15,7 +15,9 @@ use Psr\Http\Message\ServerRequestInterface;
 class HomeController
 {
     /**
-     * {@inheritDoc}
+     * Base response.
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
      */
     public function index(ServerRequestInterface $request): ResponseInterface
     {

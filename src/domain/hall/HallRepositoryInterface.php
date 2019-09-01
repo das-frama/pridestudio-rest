@@ -14,6 +14,8 @@ interface HallRepositoryInterface
     /**
      * @param int $limit
      * @param int $offset
+     * @param bool $onlyActive
+     * @param array $include
      * @return Hall[]
      */
     public function findAll(int $limit, int $offset, bool $onlyActive, array $include): array;

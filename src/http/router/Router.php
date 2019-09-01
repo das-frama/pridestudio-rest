@@ -12,12 +12,21 @@ use Psr\Http\Server\MiddlewareInterface;
 use Dice\Dice;
 use RuntimeException;
 
+/**
+ * Class Router
+ * @package app\http\router
+ */
 class Router implements RouterInterface
 {
+    /** @var array  */
     private $routeHandlers = [];
+
+    /** @var array  */
     private $middlewares = [];
+
     /** @var PathTree */
     private $routes;
+
     /** @var Dice */
     private $dice;
 
@@ -34,7 +43,10 @@ class Router implements RouterInterface
     }
 
     /**
-     * 
+     * Register a route.
+     * @param string $method
+     * @param string $path
+     * @param array $handler
      */
     public function register(string $method, string $path, array $handler): void
     {
@@ -49,6 +61,10 @@ class Router implements RouterInterface
         $this->routes->put($parts, $routeNumber);
     }
 
+    /**
+     * Load a middleware.
+     * @param MiddlewareInterface $middleware
+     */
     public function load(MiddlewareInterface $middleware): void
     {
         array_push($this->middlewares, $middleware);
@@ -60,6 +76,9 @@ class Router implements RouterInterface
         return $this->handle($request);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         // middlewares.
@@ -77,8 +96,8 @@ class Router implements RouterInterface
             list($class, $method) = $this->routeHandlers[$routeNumbers[0]];
             $controller = $this->dice->create($class);
             $response = call_user_func([$controller, $method], $request);
-        } catch (MongoDB\Exception\Exception $e) {
-            throw new RuntimeException();
+        } catch (\MongoDB\Exception\RuntimeException $e) {
+            throw new RuntimeException($e->getMessage(), $e->getCode(), $e);
         }
 
         return $response;

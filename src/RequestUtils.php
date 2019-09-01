@@ -8,6 +8,12 @@ use Psr\Http\Message\ServerRequestInterface;
 
 class RequestUtils
 {
+    /**
+     * Get path segment of requested url. ('/users/1': users - 1, 1 - 2)
+     * @param ServerRequestInterface $request
+     * @param int $part
+     * @return string
+     */
     public static function getPathSegment(ServerRequestInterface $request, int $part): string
     {
         $path = $request->getUri()->getPath();

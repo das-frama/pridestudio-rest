@@ -10,12 +10,23 @@ use Nyholm\Psr7\Factory\Psr17Factory;
 
 class ResponseFactory
 {
+    /**
+     * Get response object from object (array, object, scalar).
+     * @param int $status
+     * @param mixed $body
+     * @return ResponseInterface
+     */
     public static function fromObject(int $status, $body): ResponseInterface
     {
         $content = json_encode($body, JSON_UNESCAPED_UNICODE);
         return self::from($status, 'application/json', $content);
     }
 
+    /**
+     * Get response object from file.
+     * @param File $file
+     * @return ResponseInterface
+     */
     public static function fromFile(File $file): ResponseInterface
     {
         $psr17Factory = new Psr17Factory();
@@ -28,6 +39,12 @@ class ResponseFactory
         return $response;
     }
 
+    /**
+     * @param int $status
+     * @param string $contentType
+     * @param string $content
+     * @return ResponseInterface
+     */
     private static function from(int $status, string $contentType, string $content): ResponseInterface
     {
         $psr17Factory = new Psr17Factory();
@@ -40,6 +57,11 @@ class ResponseFactory
         return $response;
     }
 
+    /**
+     * Get response object with status.
+     * @param int $status
+     * @return ResponseInterface
+     */
     public static function fromStatus(int $status): ResponseInterface
     {
         $psr17Factory = new Psr17Factory();

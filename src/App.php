@@ -23,6 +23,7 @@ class App
 
     /**
      * App constructor.
+     * @param array $config
      */
     public function __construct(array $config)
     {
@@ -38,6 +39,10 @@ class App
         }
     }
 
+    /**
+     * Run the application.
+     * @param ServerRequestInterface $request
+     */
     public function run(ServerRequestInterface $request): void
     {
         try {
@@ -55,6 +60,10 @@ class App
         $this->emit($response);
     }
 
+    /**
+     * Print response object with headers.
+     * @param ResponseInterface $response
+     */
     public function emit(ResponseInterface $response): void
     {
         // Emit headers iteratively:

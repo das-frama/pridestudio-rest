@@ -20,6 +20,7 @@ class SettingService
     }
 
     /**
+     * Get all settings.
      * @return Setting[]
      */
     public function findAll(): array
@@ -28,6 +29,8 @@ class SettingService
     }
 
     /**
+     * Get setting by group name.
+     * @param string $name
      * @return Setting[]
      */
     public function findByGroup(string $name): array
@@ -36,7 +39,9 @@ class SettingService
     }
 
     /**
-     * @return Hall|null
+     * Get setting by key.
+     * @param string $key
+     * @return Setting|null
      */
     public function findByKey(string $key): ?Setting
     {

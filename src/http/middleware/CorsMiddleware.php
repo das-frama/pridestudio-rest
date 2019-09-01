@@ -12,6 +12,9 @@ use Psr\Http\Message\ResponseInterface;
 
 class CorsMiddleware implements MiddlewareInterface
 {
+    /**
+     * {@inheritDoc}
+     */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $next): ResponseInterface
     {
         $method = $request->getMethod();

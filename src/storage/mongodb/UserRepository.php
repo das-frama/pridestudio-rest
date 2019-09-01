@@ -19,11 +19,20 @@ class UserRepository implements UserRepositoryInterface
     /** @var Collection */
     private $collection;
 
+    /**
+     * UserRepository constructor.
+     * @param Client $client
+     */
     public function __construct(Client $client)
     {
         $this->collection = $client->selectDatabase('pridestudio')->selectCollection('users');
     }
 
+    /**
+     * Find a user by id.
+     * @param string $id
+     * @return User|null
+     */
     public function findByID(string $id): ?User
     {
         $user = $this->collection->findOne([
@@ -42,6 +51,7 @@ class UserRepository implements UserRepositoryInterface
     }
 
     /**
+     * Find a user by email.
      * @param string $email
      * @return User|null
      */
@@ -51,6 +61,7 @@ class UserRepository implements UserRepositoryInterface
     }
 
     /**
+     * Find all users.
      * @param int $limit
      * @param int $offset
      * @return User[]
@@ -61,6 +72,7 @@ class UserRepository implements UserRepositoryInterface
     }
 
     /**
+     * Save user.
      * @return bool
      */
     public function save(): bool

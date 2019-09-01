@@ -26,6 +26,11 @@ class FileController
         $this->service = $service;
     }
 
+    /**
+     * Get a file by path.
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
+     */
     public function read(ServerRequestInterface $request): ResponseInterface
     {
         $type = RequestUtils::getPathSegment($request, 2);

@@ -24,6 +24,11 @@ class HallRepository implements HallRepositoryInterface
         $this->collection = $client->selectDatabase('pridestudio')->selectCollection('halls');
     }
 
+    /**
+     * Find a hall from storage by id.
+     * @param string $slug
+     * @return Hall|null
+     */
     public function findByID(string $slug): ?Hall
     {
         $hall = $this->collection->findOne([
@@ -42,6 +47,13 @@ class HallRepository implements HallRepositoryInterface
         return null;
     }
 
+    /**
+     * Find a hall from storage by slug.
+     * @param string $slug
+     * @param bool $onlyActive
+     * @param array $include
+     * @return Hall|null
+     */
     public function findBySlug(string $slug, bool $onlyActive, array $include): ?Hall
     {
         $filter = ['slug' => $slug];
@@ -68,8 +80,11 @@ class HallRepository implements HallRepositoryInterface
     }
 
     /**
+     * Find all halls from storage.
      * @param int $limit
      * @param int $offset
+     * @param bool $onlyActive
+     * @param array $include
      * @return Hall[]
      */
     public function findAll(int $limit, int $offset, bool $onlyActive, array $include): array

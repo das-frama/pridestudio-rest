@@ -22,6 +22,10 @@ class SettingRepository implements SettingRepositoryInterface
     /** @var array */
     private $options;
 
+    /**
+     * SettingRepository constructor.
+     * @param Client $client
+     */
     public function __construct(Client $client)
     {
         $this->collection = $client->selectDatabase('pridestudio')->selectCollection('settings');
@@ -34,6 +38,9 @@ class SettingRepository implements SettingRepositoryInterface
     }
 
     /**
+     * Find a setting by regular expression.
+     * @param string $regex
+     * @param bool $onlyActive
      * @return Setting[]
      */
     public function findByRegEx(string $regex, bool $onlyActive): array
@@ -54,6 +61,12 @@ class SettingRepository implements SettingRepositoryInterface
         return $result;
     }
 
+    /**
+     * Find a setting by key.
+     * @param string $key
+     * @param bool $onlyActive
+     * @return Setting|null
+     */
     public function findByKey(string $key, bool $onlyActive): ?Setting
     {
         $filter = ['key' => $key];
@@ -70,6 +83,8 @@ class SettingRepository implements SettingRepositoryInterface
     }
 
     /**
+     * Find all settings.
+     * @param bool $onlyActive
      * @return Setting[]
      */
     public function findAll(bool $onlyActive): array
@@ -90,6 +105,10 @@ class SettingRepository implements SettingRepositoryInterface
         return $result;
     }
 
+    /**
+     * Save settings.
+     * @return bool
+     */
     public function save(): bool
     {
         return false;
