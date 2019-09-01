@@ -6,6 +6,7 @@ namespace app\domain\calendar;
 
 use app\domain\setting\SettingRepositoryInterface;
 use app\storage\mongodb\SettingRepository;
+use DateTime;
 
 /**
  * Class CalendarService
@@ -34,9 +35,9 @@ class CalendarService
      * Get days of the week by week number and year.
      * @param int $year default current year
      * @param int $week default current weak
-     * @return array
+     * @return CalendarDocument
      */
-    public function weekdays(int $year = null, int $week = null): array
+    public function weekdays(int $year = null, int $week = null): CalendarDocument
     {
         if ($year === null) {
             $year = (int) date('Y');
@@ -52,10 +53,17 @@ class CalendarService
             $str = sprintf("%04dW%02d%d", $year, $week, $day);
             $time = strtotime($str);
             if ($time === false) {
-                return [];
+                return new CalendarDocument;
             }
             $dates[] = date('Y-m-d', $time);
         }
-        return $dates;
+
+        $firstDate = new DateTime($dates[6]);
+        $document = new CalendarDocument;
+        $document->year = (int) $firstDate->format('Y');
+        $document->week = (int) $firstDate->format('W');
+        $document->dates = $dates;
+
+        return $document;
     }
 }

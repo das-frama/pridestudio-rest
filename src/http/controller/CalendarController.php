@@ -37,8 +37,8 @@ class CalendarController
      */
     public function index(ServerRequestInterface $request): ResponseInterface
     {
-        $weekdays = $this->service->weekdays();
-        return ResponseFactory::fromObject(200, $weekdays);
+        $document = $this->service->weekdays();
+        return ResponseFactory::fromObject(200, $document);
     }
 
     /**
@@ -49,9 +49,9 @@ class CalendarController
     public function week(ServerRequestInterface $request): ResponseInterface
     {
         $year = (int) RequestUtils::getPathSegment($request, 2);
-        $weekdays = $this->service->weekdays($year);
+        $document = $this->service->weekdays($year);
 
-        return ResponseFactory::fromObject(200, $weekdays);
+        return ResponseFactory::fromObject(200, $document);
     }
 
     /**
@@ -63,8 +63,8 @@ class CalendarController
     {
         $year = (int) RequestUtils::getPathSegment($request, 2);
         $week = (int) RequestUtils::getPathSegment($request, 3);
-        $weekdays = $this->service->weekdays($year, $week);
+        $document = $this->service->weekdays($year, $week);
 
-        return ResponseFactory::fromObject(200, $weekdays);
+        return ResponseFactory::fromObject(200, $document);
     }
 }
