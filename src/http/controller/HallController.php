@@ -6,7 +6,7 @@ namespace app\http\controller;
 
 use app\RequestUtils;
 use app\ResponseFactory;
-use app\domain\Hall\HallService;
+use app\domain\hall\HallService;
 use app\http\exception\RouteNotFoundException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
