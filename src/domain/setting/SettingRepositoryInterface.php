@@ -18,5 +18,7 @@ interface SettingRepositoryInterface
      * @return Setting[]
      */
     public function findAll(bool $onlyActive): array;
+
+    public function insertManyIfNotExists(array $settings): int;
     public function save(): bool;
 }

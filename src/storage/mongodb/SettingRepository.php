@@ -106,6 +106,31 @@ class SettingRepository implements SettingRepositoryInterface
     }
 
     /**
+     * @param Setting[] $data
+     * @return int
+     */
+    public function insertManyIfNotExists(array $settings): int
+    {
+        $upsertedCount = 0;
+        foreach ($settings as $setting) {
+            if ($setting instanceof Setting) {
+                $result = $this->collection->updateOne(
+                    ['key' => $setting->key],
+                    ['$set' => [
+                        'key' => $setting->key,
+                        'value' => $setting->value,
+                        'is_active' => true,
+                    ]],
+                    ['upsert' => true]
+                );
+                $upsertedCount += $result->getUpsertedCount();
+            }
+        }
+
+        return $upsertedCount;
+    }
+
+    /**
      * Save settings.
      * @return bool
      */

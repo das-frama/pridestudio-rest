@@ -20,4 +20,6 @@ return [
     'settings.all'   => ['GET', '/settings', ['app\http\controller\SettingsController', 'all']],
     'settings.group' => ['GET', '/settings/group/*', ['app\http\controller\SettingsController', 'group']],
     'settings.read'  => ['GET', '/settings/*', ['app\http\controller\SettingsController', 'read']],
+
+    'system.init'  => ['GET', '/system/init', ['app\http\controller\SystemController', 'init']],
 ];

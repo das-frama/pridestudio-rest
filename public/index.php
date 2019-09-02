@@ -8,6 +8,7 @@ use app\RequestFactory;
 require __DIR__ . '/../vendor/autoload.php';
 
 define('ROOT_DIR', dirname(__FILE__));
+define('APP_DIR', dirname(ROOT_DIR));
 define('HOST', 'http://' . $_SERVER['SERVER_NAME'] . ':' . $_SERVER['SERVER_PORT']);
 
 $config = require __DIR__ . '/../config/app.php';
