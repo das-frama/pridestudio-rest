@@ -11,9 +11,9 @@ return [
     'halls.all'  => ['GET', '/halls', ['app\http\controller\HallController', 'all']],
     'halls.read' => ['GET', '/halls/*', ['app\http\controller\HallController', 'read']],
 
-    'calendar.index' => ['GET', '/calendar', ['app\http\controller\CalendarController', 'index']],
-    'calendar.week'    => ['GET', '/calendar/*', ['app\http\controller\CalendarController', 'week']],
-    'calendar.read'    => ['GET', '/calendar/*/*', ['app\http\controller\CalendarController', 'read']],
+    'calendar.index' => ['GET', '/calendar/*', ['app\http\controller\CalendarController', 'index']],
+    'calendar.week'    => ['GET', '/calendar/*/*', ['app\http\controller\CalendarController', 'week']],
+    'calendar.read'    => ['GET', '/calendar/*/*/*', ['app\http\controller\CalendarController', 'read']],
 
     'files.read' => ['GET', '/files/*/*/*', ['app\http\controller\FileController', 'read']],
 

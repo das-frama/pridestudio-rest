@@ -43,6 +43,20 @@ class HallService
     }
 
     /**
+     * Get an ID of hall by slug.
+     * @param string $slug
+     * @return string|null
+     */
+    public function getIDBySlug(string $slug): ?string
+    {
+        $hall = $this->hallRepo->findBySlug($slug, true, ['_id' => 1]);
+        if ($hall === null) {
+            return null;
+        }
+        return $hall->id;
+    }
+
+    /**
      * Get all halls.
      * @param int $limit
      * @param int $offset

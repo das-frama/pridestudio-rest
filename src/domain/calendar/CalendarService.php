@@ -9,6 +9,7 @@ use app\domain\setting\SettingRepositoryInterface;
 use app\entity\Reservation;
 use app\storage\mongodb\RecordRepository;
 use app\storage\mongodb\SettingRepository;
+use MongoDB\BSON\ObjectId;
 use DateTime;
 
 /**
@@ -44,7 +45,7 @@ class CalendarService
      * @param int $week default current weak
      * @return CalendarDocument
      */
-    public function weekdays(int $year = null, int $week = null): CalendarDocument
+    public function weekdays(string $hallID, int $year = null, int $week = null): CalendarDocument
     {
         if ($year === null) {
             $year = (int) date('Y');
@@ -72,6 +73,7 @@ class CalendarService
         $document->week = (int) $lastDate->format('W');
         $document->dates = $dates;
         $document->reservations = $this->findReservations(
+            $hallID,
             $firstDate->getTimestamp(),
             $lastDate->getTimestamp()
         );
@@ -80,14 +82,18 @@ class CalendarService
     }
 
     /**
-     * Find reservations between startAt and endAt
+     * Find reservations in hall between startAt and endAt.
+     * @param string $startAt
      * @param int $startAt
      * @param int $endAt
      * @return Reservation[]
      */
-    private function findReservations(int $startAt, int $endAt): array
+    private function findReservations(string $hallID, int $startAt, int $endAt): array
     {
-        $filter = ['reservations.start_at' => ['$gte' => $startAt, '$lt' => $endAt]];
+        $filter = [
+            'hall_id' => new ObjectId($hallID),
+            'reservations.start_at' => ['$gte' => $startAt, '$lt' => $endAt]
+        ];
         return $this->recordsRepo->findReservations($filter);
     }
 }

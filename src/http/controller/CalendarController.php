@@ -7,6 +7,8 @@ namespace app\http\controller;
 use app\RequestUtils;
 use app\ResponseFactory;
 use app\domain\calendar\CalendarService;
+use app\domain\hall\HallService;
+use app\http\exception\RouteNotFoundException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -19,15 +21,20 @@ class CalendarController
     public $excludeColumns = ['created_by', 'updated_by', 'created_at', 'updated_at', 'is_active'];
 
     /** @var CalendarService */
-    private $service;
+    private $calendarService;
+
+    /** @var HallService */
+    private $hallService;
 
     /**
      * CalendarController constructor.
-     * @param CalendarService $service
+     * @param CalendarService $calendarService
+     * @param HallService $hallService
      */
-    public function __construct(CalendarService $service)
+    public function __construct(CalendarService $calendarService, HallService $hallService)
     {
-        $this->service = $service;
+        $this->calendarService = $calendarService;
+        $this->hallService = $hallService;
     }
 
     /**
@@ -37,7 +44,12 @@ class CalendarController
      */
     public function index(ServerRequestInterface $request): ResponseInterface
     {
-        $document = $this->service->weekdays();
+        $hallSlug = RequestUtils::getPathSegment($request, 2);
+        $hallID = $this->hallService->getIDBySlug($hallSlug);
+        if ($hallID === null) {
+            throw new RouteNotFoundException();
+        }
+        $document = $this->calendarService->weekdays($hallID);
         return ResponseFactory::fromObject(200, $document);
     }
 
@@ -48,8 +60,13 @@ class CalendarController
      */
     public function week(ServerRequestInterface $request): ResponseInterface
     {
-        $year = (int) RequestUtils::getPathSegment($request, 2);
-        $document = $this->service->weekdays($year);
+        $hallSlug = RequestUtils::getPathSegment($request, 2);
+        $hallID = $this->hallService->getIDBySlug($hallSlug);
+        if ($hallID === null) {
+            throw new RouteNotFoundException();
+        }
+        $year = (int) RequestUtils::getPathSegment($request, 3);
+        $document = $this->calendarService->weekdays($hallID, $year);
 
         return ResponseFactory::fromObject(200, $document);
     }
@@ -61,9 +78,14 @@ class CalendarController
      */
     public function read(ServerRequestInterface $request): ResponseInterface
     {
-        $year = (int) RequestUtils::getPathSegment($request, 2);
-        $week = (int) RequestUtils::getPathSegment($request, 3);
-        $document = $this->service->weekdays($year, $week);
+        $hallSlug = RequestUtils::getPathSegment($request, 2);
+        $hallID = $this->hallService->getIDBySlug($hallSlug);
+        if ($hallID === null) {
+            throw new RouteNotFoundException();
+        }
+        $year = (int) RequestUtils::getPathSegment($request, 3);
+        $week = (int) RequestUtils::getPathSegment($request, 4);
+        $document = $this->calendarService->weekdays($hallID, $year, $week);
 
         return ResponseFactory::fromObject(200, $document);
     }
