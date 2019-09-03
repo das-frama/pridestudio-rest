@@ -59,9 +59,7 @@ class Record extends Entity
         parent::bsonUnserialize($data);
         foreach ($this->reservations as &$reservation) {
             $entity = new Reservation;
-            if ($reservation['start_at'] instanceof UTCDateTime) {
-                $entity->start_at = $reservation['start_at']->toDateTime()->getTimestamp();
-            }
+            $entity->start_at = $reservation['start_at'];
             $entity->length = $reservation['length'];
             $entity->comment = $reservation['comment'];
             $reservation = $entity;

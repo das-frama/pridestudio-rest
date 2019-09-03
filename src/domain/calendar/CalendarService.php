@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace app\domain\calendar;
 
+use app\domain\record\RecordRepositoryInterface;
 use app\domain\setting\SettingRepositoryInterface;
+use app\entity\Reservation;
+use app\storage\mongodb\RecordRepository;
 use app\storage\mongodb\SettingRepository;
 use DateTime;
 
@@ -17,8 +20,12 @@ class CalendarService
     /** @var SettingRepositoryInterface */
     private $settingsRepo;
 
-    public function __construct(SettingRepository $settingsRepo)
+    /** @var RecordRepositoryInterface */
+    private $recordsRepo;
+
+    public function __construct(RecordRepository $recordsRepo, SettingRepository $settingsRepo)
     {
+        $this->recordsRepo = $recordsRepo;
         $this->settingsRepo = $settingsRepo;
     }
 
@@ -58,12 +65,29 @@ class CalendarService
             $dates[] = date('Y-m-d', $time);
         }
 
-        $firstDate = new DateTime($dates[6]);
+        $firstDate = new DateTime($dates[0]);
+        $lastDate = new DateTime($dates[6]);
         $document = new CalendarDocument;
-        $document->year = (int) $firstDate->format('Y');
-        $document->week = (int) $firstDate->format('W');
+        $document->year = (int) $lastDate->format('Y');
+        $document->week = (int) $lastDate->format('W');
         $document->dates = $dates;
+        $document->reservations = $this->findReservations(
+            $firstDate->getTimestamp(),
+            $lastDate->getTimestamp()
+        );
 
         return $document;
+    }
+
+    /**
+     * Find reservations between startAt and endAt
+     * @param int $startAt
+     * @param int $endAt
+     * @return Reservation[]
+     */
+    private function findReservations(int $startAt, int $endAt): array
+    {
+        $filter = ['reservations.start_at' => ['$gte' => $startAt, '$lt' => $endAt]];
+        return $this->recordsRepo->findReservations($filter);
     }
 }

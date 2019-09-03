@@ -6,6 +6,7 @@ namespace app\storage\mongodb;
 
 use app\entity\Record;
 use app\domain\record\RecordRepositoryInterface;
+use app\entity\Reservation;
 use MongoDB\BSON\ObjectId;
 use MongoDB\Collection;
 use MongoDB\Client;
@@ -19,9 +20,18 @@ class RecordRepository implements RecordRepositoryInterface
     /** @var Collection */
     private $collection;
 
+    /** @var array */
+    private $options = [];
+
     public function __construct(Client $client)
     {
         $this->collection = $client->selectDatabase('pridestudio')->selectCollection('records');
+        $this->options = [
+            'typeMap' => [
+                'root' => Record::class,
+                'document' => 'array',
+            ]
+        ];
     }
 
     /**
@@ -31,15 +41,7 @@ class RecordRepository implements RecordRepositoryInterface
      */
     public function findByID(string $id): ?Record
     {
-        $record = $this->collection->findOne([
-            '_id' => new ObjectId($id)
-        ], [
-            'typeMap' => [
-                'root' => Record::class,
-                'document' => 'array',
-            ]
-        ]);
-
+        $record = $this->collection->findOne(['_id' => new ObjectId($id)], $this->options);
         if ($record instanceof Record) {
             return $record;
         }
@@ -56,6 +58,25 @@ class RecordRepository implements RecordRepositoryInterface
     public function findAll(int $limit, int $offset): array
     {
         return [];
+    }
+
+    /**
+     * Find nested reservations in records.
+     * @param array $filter
+     * @return Reservation[]
+     */
+    public function findReservations(array $filter): array
+    {
+        $result = [];
+        $this->options['projection'] = ['reservations' => 1];
+        $cursor = $this->collection->find($filter, $this->options);
+        foreach ($cursor as $record) {
+            if ($record instanceof Record) {
+                $result = array_merge($result, $record->reservations);
+            }
+        }
+
+        return $result;
     }
 
     /**
