@@ -18,6 +18,7 @@ abstract class Entity implements Persistable, JsonSerializable
 {
     protected $include = [];
     protected $exclude = [];
+    protected $unserialized = false;
 
     public function setInclude(array $properties): void
     {
@@ -72,7 +73,7 @@ abstract class Entity implements Persistable, JsonSerializable
     public function bsonUnserialize(array $data): void
     {
         if ($data['_id'] instanceof ObjectId) {
-            $this->id = $data['_id']->__toString();
+            $this->id = (string) $data['_id'];
             if (property_exists($this, 'created_at')) {
                 $this->created_at = $data['_id']->getTimestamp();
             }
@@ -82,16 +83,29 @@ abstract class Entity implements Persistable, JsonSerializable
                 continue;
             }
             if ($value instanceof ObjectId) {
-                $this->{$property} = $value->__toString();
+                $this->{$property} = (string) $value;
             } else if ($value instanceof UTCDateTime) {
                 if (strpos($property, '_at', -3)) {
                     $this->{$property} = $value->toDateTime()->getTimestamp();
                 } else {
                     $this->{$property} = $value->toDateTime();
                 }
+            } elseif (is_array($value)) {
+                $this->{$property} = array_map([$this, 'convertArray'], $value);
             } else {
                 $this->{$property} = $value;
             }
         }
+    }
+
+    private function convertArray($value)
+    {
+        if ($value instanceof ObjectId) {
+            return (string) $value;
+        } elseif (is_array($value)) {
+            return array_map([$this, 'convertArray'], $value);
+        }
+
+        return $value;
     }
 }

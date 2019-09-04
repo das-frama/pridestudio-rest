@@ -30,6 +30,9 @@ class RecordRepository implements RecordRepositoryInterface
             'typeMap' => [
                 'root' => Record::class,
                 'document' => 'array',
+                'fieldPaths' => [
+                    'reservations.$' => Reservation::class,
+                ]
             ]
         ];
     }

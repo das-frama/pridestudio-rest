@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace app\entity;
 
 use app\storage\mongodb\Entity;
-use MongoDB\BSON\UTCDateTime;
 
 /**
  * Record entity class.
@@ -50,19 +49,4 @@ class Record extends Entity
 
     /** @var string */
     public $updated_by;
-
-    /**
-     * {@inheritDoc}
-     */
-    public function bsonUnserialize(array $data): void
-    {
-        parent::bsonUnserialize($data);
-        foreach ($this->reservations as &$reservation) {
-            $entity = new Reservation;
-            $entity->start_at = $reservation['start_at'];
-            $entity->length = $reservation['length'];
-            $entity->comment = $reservation['comment'];
-            $reservation = $entity;
-        }
-    }
 }

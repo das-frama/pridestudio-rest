@@ -19,27 +19,28 @@ class HallRepository implements HallRepositoryInterface
     /** @var Collection */
     private $collection;
 
+    /** @var array */
+    private $options;
+
     public function __construct(Client $client)
     {
         $this->collection = $client->selectDatabase('pridestudio')->selectCollection('halls');
+        $this->options = [
+            'typeMap' => [
+                'root' => Hall::class,
+                'document' => 'array',
+            ],
+        ];
     }
 
     /**
      * Find a hall from storage by id.
-     * @param string $slug
+     * @param string $id
      * @return Hall|null
      */
-    public function findByID(string $slug): ?Hall
+    public function findByID(string $id): ?Hall
     {
-        $hall = $this->collection->findOne([
-            '_id' => new ObjectId($slug)
-        ], [
-            'typeMap' => [
-                'root' => Hall::class,
-                'document' => 'array',
-            ]
-        ]);
-
+        $hall = $this->collection->findOne(['_id' => new ObjectId($id)], $this->options);
         if ($hall instanceof Hall) {
             return $hall;
         }
@@ -60,17 +61,11 @@ class HallRepository implements HallRepositoryInterface
         if ($onlyActive) {
             $filter['is_active'] = true;
         }
-        $options = [
-            'typeMap' => [
-                'root' => Hall::class,
-                'document' => 'array',
-            ],
-        ];
         if (!empty($include)) {
-            $options['projection'] = array_fill_keys($include, 1);
+            $this->options['projection'] = array_fill_keys($include, 1);
         }
 
-        $hall = $this->collection->findOne($filter, $options);
+        $hall = $this->collection->findOne($filter, $this->options);
         if ($hall instanceof Hall) {
             $hall->setInclude($include);
             return $hall;
@@ -93,22 +88,15 @@ class HallRepository implements HallRepositoryInterface
         if ($onlyActive) {
             $filter['is_active'] = true;
         }
-
-        $options = [
-            'typeMap' => [
-                'root' => Hall::class,
-                'document' => 'array',
-            ]
-        ];
         if ($limit > 0) {
-            $options['limit'] = $limit;
+            $this->options['limit'] = $limit;
         }
         if (!empty($include)) {
-            $options['projection'] = array_fill_keys($include, 1);
+            $this->options['projection'] = array_fill_keys($include, 1);
         }
 
         $result = [];
-        $cursor = $this->collection->find($filter, $options);
+        $cursor = $this->collection->find($filter, $this->options);
         foreach ($cursor as $hall) {
             if ($hall instanceof Hall) {
                 $hall->setInclude($include);
