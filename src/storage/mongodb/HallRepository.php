@@ -55,7 +55,7 @@ class HallRepository implements HallRepositoryInterface
      * @param array $include
      * @return Hall|null
      */
-    public function findBySlug(string $slug, bool $onlyActive, array $include): ?Hall
+    public function findBySlug(string $slug, bool $onlyActive, array $include = [], array $exclude = []): ?Hall
     {
         $filter = ['slug' => $slug];
         if ($onlyActive) {
@@ -63,11 +63,14 @@ class HallRepository implements HallRepositoryInterface
         }
         if (!empty($include)) {
             $this->options['projection'] = array_fill_keys($include, 1);
+        } elseif (!empty($exclude)) {
+            $this->options['projection'] = array_fill_keys($exclude, 0);
         }
 
         $hall = $this->collection->findOne($filter, $this->options);
         if ($hall instanceof Hall) {
             $hall->setInclude($include);
+            $hall->setExclude($exclude);
             return $hall;
         }
 
@@ -82,7 +85,7 @@ class HallRepository implements HallRepositoryInterface
      * @param array $include
      * @return Hall[]
      */
-    public function findAll(int $limit, int $offset, bool $onlyActive, array $include): array
+    public function findAll(int $limit, int $offset, bool $onlyActive, array $include = [], array $exclude = []): array
     {
         $filter = [];
         if ($onlyActive) {

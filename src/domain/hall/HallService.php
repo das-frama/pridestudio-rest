@@ -37,8 +37,9 @@ class HallService
      */
     public function findBySlug(string $slug, array $params = []): ?Hall
     {
-        $includeColumns = $this->getColumns($params);
-        $hall = $this->hallRepo->findBySlug($slug, true, $includeColumns);
+        $include = $this->getColumns('include', $params);
+        $exclude = $this->getColumns('exclude', $params);
+        $hall = $this->hallRepo->findBySlug($slug, true, $include, $exclude);
         return $hall;
     }
 
@@ -65,15 +66,21 @@ class HallService
      */
     public function findAll(int $limit, int $offset, array $params = []): array
     {
-        $includeColumns = $this->getColumns($params);
+        $includeColumns = $this->getColumns('include', $params);
         return $this->hallRepo->findAll($limit, $offset, true, $includeColumns);
     }
 
-    private function getColumns(array $params): array
+    /**
+     * Return an array of coma separated fields.
+     * @param string $key
+     * @param array $params
+     * @return array
+     */
+    private function getColumns(string $key, array $params): array
     {
-        if (!isset($params['include'])) {
+        if (!isset($params[$key])) {
             return [];
         }
-        return explode(',', $params['include']);
+        return explode(',', $params[$key]);
     }
 }

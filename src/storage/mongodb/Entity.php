@@ -72,7 +72,7 @@ abstract class Entity implements Persistable, JsonSerializable
      */
     public function bsonUnserialize(array $data): void
     {
-        if ($data['_id'] instanceof ObjectId) {
+        if (isset($data['_id']) && $data['_id'] instanceof ObjectId) {
             $this->id = (string) $data['_id'];
             if (property_exists($this, 'created_at')) {
                 $this->created_at = $data['_id']->getTimestamp();
