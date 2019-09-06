@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\domain\record;
 
 use app\entity\Record;
+use app\entity\Reservation;
 use app\storage\mongodb\RecordRepository;
 
 class RecordService
@@ -38,5 +39,16 @@ class RecordService
     public function findAll(int $limit, int $offset): array
     {
         return $this->recordRepo->findAll($limit, $offset);
+    }
+
+    /**
+     * Calculate price for reservations.
+     * @param string $hallID
+     * @param Reservation[] $reservations
+     * @return int
+     */
+    public function calculatePrice(string $hallID, array $reservations): int
+    {
+        return 0;
     }
 }

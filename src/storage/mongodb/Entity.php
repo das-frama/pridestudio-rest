@@ -30,6 +30,9 @@ abstract class Entity implements Persistable, JsonSerializable
         $this->exclude = $properties;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function jsonSerialize(): array
     {
         $reflectionProperties = (new ReflectionObject($this))->getProperties(ReflectionProperty::IS_PUBLIC);
