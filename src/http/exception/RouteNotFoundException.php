@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace app\http\exception;
 
-use RuntimeException;
+use app\http\exception\base\HttpException;
 
-class RouteNotFoundException extends RuntimeException
+class RouteNotFoundException extends HttpException
 { }

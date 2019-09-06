@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app;
 
 use app\http\exception\ArgumentMismatchException;
+use app\http\exception\base\HttpException;
 use app\http\router\Router;
 use app\http\router\RouterInterface;
 use app\http\exception\MethodNotAllowedException;
@@ -48,16 +49,12 @@ class App
     {
         try {
             $response = $this->router->handle($this->addParsedBody($request));
-        } catch (RouteNotFoundException $e) {
-            $response = ResponseFactory::fromObject(404, ['error' => 'Resource not found.']);
+        } catch (HttpException $e) {
+            $response = ResponseFactory::fromObject($e->getCode(), ['error' => $e->getMessage()]);
             $response = $response->withHeader('Access-Control-Allow-Origin', 'http://localhost:8080');
-        } catch (MethodNotAllowedException $e) {
-            // TODO(frama): Добавить Allow header.
-            $response = ResponseFactory::fromObject(403, ['error' => 'Not allowed.']);
-        } catch (ArgumentMismatchException $e) {
-            $response = ResponseFactory::fromObject(422, ['error' => 'Argument count mismatch.']);
         } catch (RuntimeException $e) {
-            $response = ResponseFactory::fromObject(500, ['error' => $e]);
+            $response = ResponseFactory::fromObject(500, $e->getMessage());
+            $response = $response->withHeader('Access-Control-Allow-Origin', 'http://localhost:8080');
         }
 
         $this->emit($response);

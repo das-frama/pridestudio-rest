@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace app\http\exception;
 
-use RuntimeException;
+use app\http\exception\base\HttpException;
 
-class UprocessableEntityException extends RuntimeException
+class UprocessableEntityException extends HttpException
 {
-    public $code = 422;
+    protected $code = 422;
+    protected $message = "Unprocessable entity.";
 }

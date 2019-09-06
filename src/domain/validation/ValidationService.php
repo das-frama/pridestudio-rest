@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace app\domain\validation;
 
-
 class ValidationService
 {
     const VALIDATION_REQUIRED = 'Отсутствует обязательное поле {property}.';
@@ -21,10 +20,30 @@ class ValidationService
     public function validate(object $entity, array $rules): array
     {
         $errors = [];
-        // Parse validators.
-        // $validators = [];
         foreach ($rules as $property => $rule) {
-            $errors[$property] = $this->validateProperty($entity, $property, $rule);
+            // Nested arrays.
+            if (strpos($property, '.$.') !== false) {
+                $parts = explode('.$.', $property);
+                foreach ($entity->{$parts[0]} as $element) {
+                    $err = $this->validateVar($element->{$parts[1]} ?? null, $rule);
+                    if (!empty($err)) {
+                        $errors[$property] = $err;
+                    }
+                }
+                // Object.
+            } elseif (strpos($property, '.') !== false) {
+                $parts = explode('.', $property);
+                $err = $this->validateVar($entity->{$parts[0]}->{$parts[1]} ?? null, $rule);
+                if (!empty($err)) {
+                    $errors[$property] = $err;
+                }
+            } else {
+                // Plain value.
+                $err = $this->validateVar($entity->{$property} ?? null, $rule);
+                if (!empty($err)) {
+                    $errors[$property] = $err;
+                }
+            }
         }
 
         return $errors;
@@ -78,7 +97,7 @@ class ValidationService
 
     public function validateInt($value, array $params): string
     {
-        if (!filter_var($value, FILTER_VALIDATE_INT)) {
+        if (!is_int($value)) {
             return static::VALIDATION_INT;
         }
 
@@ -99,31 +118,27 @@ class ValidationService
         return "";
     }
 
-    private function validateProperty(object $entity, string $property, array $rules): array
+    private function validateVar($variable, array $rules): array
     {
-        // if (substr_compare($property, '$'))
-
-        if (!isset($entity->{$property})) {
+        $errors = [];
+        if ($variable === null) {
             if (in_array('required', $rules)) {
-                return [static::VALIDATION_REQUIRED];
+                $errors['required'] = static::VALIDATION_REQUIRED;
             }
-            return [];
+            return $errors;
         }
 
-        $errors = [];
-        $value = $entity->{$property};
-        foreach ($rules as $ruleString) {
-            $ruleArr = explode(':', $ruleString);
+        foreach ($rules as $ruleStr) {
+            $ruleArr = explode(':', $ruleStr);
             $params = array_slice($ruleArr, 1);
             $method = 'validate' . ucfirst($ruleArr[0]);
             if (method_exists($this, $method)) {
-                $error = call_user_func([$this, $method], $value, $params);
+                $error = call_user_func([$this, $method], $variable, $params);
                 if (!empty($error)) {
                     $errors[$ruleArr[0]] = $error;
                 }
             }
         }
-
         return $errors;
     }
 }

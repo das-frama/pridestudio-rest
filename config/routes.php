@@ -6,12 +6,12 @@ return [
     'users.all'  => ['GET', '/users', ['app\http\controller\UserController', 'all']],
     'users.read' => ['GET', '/users/*', ['app\http\controller\UserController', 'read']],
 
+    'records.price' => ['POST', '/records/price', ['app\http\controller\RecordController', 'price']],
     'records.read' => ['GET', '/records/*', ['app\http\controller\RecordController', 'read']],
 
     'halls.all'  => ['GET', '/halls', ['app\http\controller\HallController', 'all']],
     'halls.read' => ['GET', '/halls/*', ['app\http\controller\HallController', 'read']],
 
-    'booking.price' => ['POST', '/booking/price', ['app\http\controller\BookingController', 'price']],
 
     'calendar.index' => ['GET', '/calendar/*', ['app\http\controller\CalendarController', 'index']],
     'calendar.week'    => ['GET', '/calendar/*/*', ['app\http\controller\CalendarController', 'week']],
