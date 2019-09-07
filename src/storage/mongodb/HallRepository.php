@@ -54,7 +54,12 @@ class HallRepository implements HallRepositoryInterface
      */
     public function findByID(string $id, bool $onlyActive = true, array $include = [], array $exclude = []): ?Hall
     {
-        return $this->findByCondition(['_id' => new ObjectId($id)], $onlyActive, $include, $exclude);
+        $filter = ['_id' => new ObjectId($id)];
+        if (isset($include['services_object']) && $include['services_object'] == 1) {
+            return $this->findWithServices($filter);
+        }
+
+        return $this->findByFilter($filter, $onlyActive, $include, $exclude);
     }
 
     /**
@@ -67,18 +72,23 @@ class HallRepository implements HallRepositoryInterface
      */
     public function findBySlug(string $slug, bool $onlyActive = true, array $include = [], array $exclude = []): ?Hall
     {
-        return $this->findByCondition(['slug' => $slug], $onlyActive, $include, $exclude);
+        $filter = ['slug' => $slug];
+        if (isset($include['services_object']) && $include['services_object'] == 1) {
+            return $this->findWithServices($filter);
+        }
+
+        return $this->findByFilter($filter, $onlyActive, $include, $exclude);
     }
 
     /** 
      * Find hall and join with services.
-     * @param string $id
+     * @param array $match
      * @return Hall|null
      */
-    public function findWithServices(string $id): ?Hall
+    public function findWithServices(array $match = []): ?Hall
     {
         $cursor = $this->collection->aggregate([
-            ['$match' => ['_id' => new ObjectId($id)]],
+            ['$match' => $match],
             ['$limit' => 1],
             ['$unwind' => '$services'],
             [
@@ -172,15 +182,14 @@ class HallRepository implements HallRepositoryInterface
 
     /**
      * Find a hall from storage by condition.
-     * @param array $condition
+     * @param array $filter
      * @param bool $onlyActive
      * @param array $include
      * @param array $exclude
      * @return Hall|null
      */
-    private function findByCondition(array $condition, bool $onlyActive = false, array $include = [], array $exclude = []): ?Hall
+    private function findByFilter(array $filter, bool $onlyActive = false, array $include = [], array $exclude = []): ?Hall
     {
-        $filter = $condition;
         if ($onlyActive) {
             $filter['is_active'] = true;
         }

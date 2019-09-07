@@ -25,19 +25,9 @@ class HallService
      */
     public function findByID(string $id, array $params = []): ?Hall
     {
-        $include = $this->getColumns('include', $params);
-        $exclude = $this->getColumns('exclude', $params);
+        $include = $params['include'] ?? [];
+        $exclude = $params['exclude'] ?? [];
         return $this->hallRepo->findByID($id, true, $include, $exclude);
-    }
-
-    /**
-     * Find hall with services.
-     * @param string $id
-     * @return Hall|null
-     */
-    public function findWithServices(string $id): ?Hall
-    {
-        return $this->hallRepo->findWithServices($id);
     }
 
     /**
@@ -48,8 +38,8 @@ class HallService
      */
     public function findBySlug(string $slug, array $params = []): ?Hall
     {
-        $include = $this->getColumns('include', $params);
-        $exclude = $this->getColumns('exclude', $params);
+        $include = $params['include'] ?? [];
+        $exclude = $params['exclude'] ?? [];
         return $this->hallRepo->findBySlug($slug, true, $include, $exclude);
     }
 
@@ -76,21 +66,8 @@ class HallService
      */
     public function findAll(int $limit, int $offset, array $params = []): array
     {
-        $includeColumns = $this->getColumns('include', $params);
-        return $this->hallRepo->findAll($limit, $offset, true, $includeColumns);
-    }
-
-    /**
-     * Return an array of coma separated fields.
-     * @param string $key
-     * @param array $params
-     * @return array
-     */
-    private function getColumns(string $key, array $params): array
-    {
-        if (!isset($params[$key])) {
-            return [];
-        }
-        return explode(',', $params[$key]);
+        $include = $params['include'] ?? [];
+        $exclude = $params['exclude'] ?? [];
+        return $this->hallRepo->findAll($limit, $offset, true, $include, $exclude);
     }
 }

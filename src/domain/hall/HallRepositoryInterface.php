@@ -10,7 +10,7 @@ interface HallRepositoryInterface
 {
     public function findByID(string $id, bool $onlyActive = true, array $include = [], array $exclude = []): ?Hall;
     public function findBySlug(string $slug, bool $onlyActive = true, array $include = [], array $exclude = []): ?Hall;
-    public function findWithServices(string $id): ?Hall;
+    public function findWithServices(array $match = []): ?Hall;
 
     /**
      * @param int $limit

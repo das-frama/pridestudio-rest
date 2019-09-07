@@ -7,17 +7,18 @@ namespace app\http\controller;
 use app\RequestUtils;
 use app\ResponseFactory;
 use app\domain\hall\HallService;
-use app\http\exception\RouteNotFoundException;
+use app\http\controller\base\Controller;
+use app\http\exception\ResourceNotFoundException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Hall class.
  */
-class HallController
+class HallController extends Controller
 {
-    public $includeColumns = [];
-    public $excludeColumns = ['created_by', 'updated_by', 'created_at', 'updated_at', 'is_active'];
+    // public $includeColumns = [];
+    // public $excludeColumns = ['created_by', 'updated_by', 'created_at', 'updated_at', 'is_active'];
 
     /** @var HallService */
     private $service;
@@ -52,9 +53,22 @@ class HallController
         $slug = RequestUtils::getPathSegment($request, 2);
         $hall = $this->service->findBySlug($slug, $request->getQueryParams());
         if ($hall === null) {
-            throw new RouteNotFoundException();
+            throw new ResourceNotFoundException("Hall not found.");
         }
 
         return ResponseFactory::fromObject(200, $hall);
+    }
+
+    public function services(ServerRequestInterface $request): ResponseInterface
+    {
+        $slug = RequestUtils::getPathSegment($request, 2);
+        $params = $this->getQueryParams($request);
+        $params['include']['services_object'] = 1;
+        $hall = $this->service->findBySlug($slug, $params);
+        if ($hall === null) {
+            throw new ResourceNotFoundException("Hall not found.");
+        }
+
+        return ResponseFactory::fromObject(200, $hall->services_object);
     }
 }
