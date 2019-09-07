@@ -31,6 +31,16 @@ class HallService
     }
 
     /**
+     * Find hall with services.
+     * @param string $id
+     * @return Hall|null
+     */
+    public function findWithServices(string $id): ?Hall
+    {
+        return $this->hallRepo->findWithServices($id);
+    }
+
+    /**
      * Get hall by slug.
      * @param string $slug
      * @param array $params

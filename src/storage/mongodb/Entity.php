@@ -82,7 +82,7 @@ abstract class Entity implements Persistable, JsonSerializable
             }
         }
         foreach ($data as $property => $value) {
-            if (!property_exists($this, $property)) {
+            if (!property_exists($this, (string) $property)) {
                 continue;
             }
             if ($value instanceof ObjectId) {

@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace app\storage\mongodb;
 
 use app\entity\Hall;
-use app\entity\HallService;
+use app\entity\Service;
+use app\entity\ServiceChild;
 use app\domain\hall\HallRepositoryInterface;
 use MongoDB\BSON\ObjectId;
 use MongoDB\Collection;
@@ -23,6 +24,9 @@ class HallRepository implements HallRepositoryInterface
     /** @var array */
     private $defaultOptions;
 
+    /**
+     * @param Client $client
+     */
     public function __construct(Client $client)
     {
         $this->collection = $client->selectDatabase('pridestudio')->selectCollection('halls');
@@ -31,7 +35,8 @@ class HallRepository implements HallRepositoryInterface
                 'root' => Hall::class,
                 'document' => 'array',
                 'fieldPaths' => [
-                    'services.$' => HallService::class,
+                    'services_object.$' => Service::class,
+                    'services_object.$.children.$' => ServiceChild::class,
                 ]
             ],
         ];
@@ -61,6 +66,65 @@ class HallRepository implements HallRepositoryInterface
     public function findBySlug(string $slug, bool $onlyActive = true, array $include = [], array $exclude = []): ?Hall
     {
         return $this->findByCondition(['slug' => $slug], $onlyActive, $include, $exclude);
+    }
+
+    /** 
+     * Find hall and join with services.
+     * @param string $id
+     * @return Hall|null
+     */
+    public function findWithServices(string $id): ?Hall
+    {
+        $cursor = $this->collection->aggregate([
+            ['$match' => ['_id' => new ObjectId($id)]],
+            ['$limit' => 1],
+            ['$unwind' => '$services'],
+            [
+                '$lookup' => [
+                    'from' => 'services',
+                    'localField' => 'services.category_id',
+                    'foreignField' => '_id',
+                    'as' => 'services_object'
+                ]
+            ],
+            ['$unwind' => '$services_object'],
+            [
+                '$project' => [
+                    '_id' => 1,
+                    'name' => 1,
+                    'base_price' => 1,
+                    'services' => 1,
+                    'services_object' => [
+                        '_id' => 1,
+                        'name' => 1,
+                        'children' => [
+                            '$filter' => [
+                                'input' => '$services_object.children',
+                                'as' => 'child',
+                                'cond' => ['in' => ['$$child._id', '$services.children']],
+                            ]
+                        ],
+                    ],
+                    'prices' => 1,
+                ]
+            ],
+            [
+                '$group' => [
+                    '_id' => '$_id',
+                    'name' => ['$first' => '$name'],
+                    'base_price' => ['$first' => '$base_price'],
+                    'prices' => ['$first' => '$prices'],
+                    'services' => ['$push' => '$services'],
+                    'services_object' => ['$push' => '$services_object'],
+                ]
+            ]
+        ], $this->defaultOptions);
+
+        $array = $cursor->toArray();
+        if (count($array) === 0) {
+            return null;
+        }
+        return $array[0];
     }
 
     /**

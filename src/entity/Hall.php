@@ -32,8 +32,11 @@ class Hall extends Entity
     /** @var string */
     public $detail_image;
 
-    /** @var Service[] */
+    /** @var array */
     public $services = [];
+
+    /** @var Service[] */
+    public $services_object = [];
 
     /** @var array */
     public $prices = [];
