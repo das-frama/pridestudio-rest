@@ -21,11 +21,20 @@ class ValidationService
     {
         $errors = [];
         foreach ($rules as $property => $rule) {
-            // Nested arrays.
+            // Arrays of object.
             if (strpos($property, '.$.') !== false) {
                 $parts = explode('.$.', $property);
                 foreach ($entity->{$parts[0]} as $element) {
                     $err = $this->validateVar($element->{$parts[1]} ?? null, $rule);
+                    if (!empty($err)) {
+                        $errors[$property] = $err;
+                    }
+                }
+                // Array.
+            } elseif (strpos($property, '.$') !== false) {
+                $parts = explode('.$', $property);
+                foreach ($entity->{$parts[0]} as $element) {
+                    $err = $this->validateVar($element, $rule);
                     if (!empty($err)) {
                         $errors[$property] = $err;
                     }
