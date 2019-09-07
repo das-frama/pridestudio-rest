@@ -45,25 +45,34 @@ class RecordService
 
     /**
      * Calculate price for reservations.
-     * @param Hall $hall
-     * @param Reservation[] $reservations
+     * @param Records $record
      * @return int
      */
-    public function calculatePrice(Hall $hall, array $reservations): int
+    public function calculatePrice(Record $record): int
     {
+        if ($record->hall === null || empty($record->reservations)) {
+            return 0;
+        }
         $amount = 0;
+        $hours = 0;
+        $calculdateBasePrice = empty($record->hall->prices);
+        // Calculate reservations.
+        foreach ($record->reservations as $reservation) {
+            $hours += $reservation->length / 60;
+            if ($calculdateBasePrice) {
+                $amount += $hours * $record->hall->base_price;
+            } else {
+                // foreach ($record->hall->prices as $price) {
+                //     $serviceIDs = array_intersect($record->service_ids, $record->hall->services);
+                //     if ($record->service_ids) {
+
+                //     }
+                // }
+            }
+        }
 
         // Calculate services.
-        // foreach ($hall->services as $category) {
-        //     foreach ($category->children as $service) {
-        //         $service->name 
-        //     }
-        //  }
-
-        // Calculate reservations.
-        foreach ($reservations as $reservation) {
-            $amount += ($reservation->length / 60) * $hall->base_price;
-        }
+        foreach ($record->service_ids as $serviceID) { }
 
         return $amount;
     }

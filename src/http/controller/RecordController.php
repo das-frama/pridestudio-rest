@@ -10,6 +10,7 @@ use app\domain\record\RecordService;
 use app\domain\booking\BookingDocument;
 use app\domain\hall\HallService;
 use app\domain\validation\ValidationService;
+use app\entity\Record;
 use app\http\controller\base\Controller;
 use app\http\exception\BadRequestException;
 use app\http\exception\ResourceNotFoundException;
@@ -83,7 +84,9 @@ class RecordController extends Controller
             'reservations' => ['required', 'array'],
             'reservations.$.start_at' => ['required', 'int'],
             'reservations.$.length' => ['required', 'int'],
-            'hall_id' => ['required', 'string:24'],
+            'services' => ['required', 'array'],
+            'services.$' => ['required', 'string:24:24'],
+            'hall_id' => ['required', 'string:24:24'],
         ]);
         // Throw exception if there are errors due to validation.
         if (!empty($errors)) {
@@ -92,13 +95,20 @@ class RecordController extends Controller
             throw new UprocessableEntityException($message);
         }
         // Find hall.
-        $hall = $this->hallService->findByID($body->hall_id);
+        $hall = $this->hallService->findByID($body->hall_id, [
+            'include' => ['_id', 'base_price', 'prices']
+        ]);
         if ($hall === null) {
             throw new ResourceNotFoundException("Hall not found.");
         }
+        // Compose record entity.
+        $record = new Record;
+        $record->hall = $hall;
+        $record->reservations = $body->reservations;
+
         // Response with document. 
         $bookingDoc = new BookingDocument;
-        $bookingDoc->price = $this->recordService->calculatePrice($hall, $body->reservations);
+        $bookingDoc->price = $this->recordService->calculatePrice($record);
         $bookingDoc->prepayment = $bookingDoc->price * 0.5;
         return ResponseFactory::fromObject(200, $bookingDoc);
     }

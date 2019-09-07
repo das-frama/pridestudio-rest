@@ -20,8 +20,17 @@ class Record extends Entity
     /** @var string */
     public $hall_id;
 
+    /** @var Hall */
+    public $hall;
+
     /** @var Reservation[] */
     public $reservations;
+
+    /** @var array */
+    public $service_ids;
+
+    /** @var Service[] */
+    public $services;
 
     /** @var string */
     public $payment_id;
