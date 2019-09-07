@@ -9,9 +9,7 @@ use app\storage\mongodb\HallRepository;
 
 class HallService
 {
-    /**
-     * @var HallRepositoryInterface
-     */
+    /** @var HallRepositoryInterface */
     private $hallRepo;
 
     public function __construct(HallRepository $hallRepo)
@@ -22,11 +20,14 @@ class HallService
     /**
      * Get hall by id.
      * @param string $id
+     * @param array $params
      * @return Hall|null
      */
-    public function findByID(string $id): ?Hall
+    public function findByID(string $id, array $params = []): ?Hall
     {
-        return $this->hallRepo->findByID($id);
+        $include = $this->getColumns('include', $params);
+        $exclude = $this->getColumns('exclude', $params);
+        return $this->hallRepo->findByID($id, true, $include, $exclude);
     }
 
     /**
@@ -39,8 +40,7 @@ class HallService
     {
         $include = $this->getColumns('include', $params);
         $exclude = $this->getColumns('exclude', $params);
-        $hall = $this->hallRepo->findBySlug($slug, true, $include, $exclude);
-        return $hall;
+        return $this->hallRepo->findBySlug($slug, true, $include, $exclude);
     }
 
     /**
