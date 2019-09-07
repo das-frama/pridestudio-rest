@@ -8,9 +8,11 @@ use app\RequestUtils;
 use app\ResponseFactory;
 use app\domain\record\RecordService;
 use app\domain\booking\BookingDocument;
+use app\domain\hall\HallService;
 use app\domain\validation\ValidationService;
 use app\http\controller\base\Controller;
 use app\http\exception\BadRequestException;
+use app\http\exception\ResourceNotFoundException;
 use app\http\exception\RouteNotFoundException;
 use app\http\exception\UprocessableEntityException;
 use Psr\Http\Message\ResponseInterface;
@@ -21,14 +23,18 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 class RecordController extends Controller
 {
-    /**
-     * @var RecordService
-     */
-    private $service;
+    /** @var RecordService */
+    private $recordService;
 
-    public function __construct(RecordService $service)
-    {
-        $this->service = $service;
+    /** @var HallService */
+    private $hallService;
+
+    public function __construct(
+        RecordService $recordService,
+        HallService $hallService
+    ) {
+        $this->recordService = $recordService;
+        $this->hallService = $hallService;
     }
 
     /**
@@ -38,7 +44,7 @@ class RecordController extends Controller
      */
     public function all(ServerRequestInterface $request): ResponseInterface
     {
-        $records = $this->service->findAll(0, 0);
+        $records = $this->recordService->findAll(0, 0);
         return ResponseFactory::fromObject(200, $records);
     }
 
@@ -50,7 +56,7 @@ class RecordController extends Controller
     public function read(ServerRequestInterface $request): ResponseInterface
     {
         $id = RequestUtils::getPathSegment($request, 2);
-        $record = $this->service->findByID($id);
+        $record = $this->recordService->findByID($id);
         if ($record === null) {
             throw new RouteNotFoundException();
         }
@@ -66,11 +72,11 @@ class RecordController extends Controller
      */
     public function price(ServerRequestInterface $request): ResponseInterface
     {
+        // Get body from request.
         $body = $request->getParsedBody();
         if ($body === null) {
             throw new BadRequestException();
         }
-
         // Validate data.
         $validator = new ValidationService;
         $errors = $validator->validate($body, [
@@ -79,14 +85,21 @@ class RecordController extends Controller
             'reservations.$.length' => ['required', 'int'],
             'hall_id' => ['required', 'string:24'],
         ]);
+        // Throw exception if there are errors due to validation.
         if (!empty($errors)) {
             $key = array_key_first($errors);
             $message = implode(', ', $errors[$key]);
             throw new UprocessableEntityException($message);
         }
-
+        // Find hall.
+        $hall = $this->hallService->findByID($body->hall_id);
+        if ($hall === null) {
+            throw new ResourceNotFoundException("Hall not found.");
+        }
+        // Response with document. 
         $bookingDoc = new BookingDocument;
-        $bookingDoc->price = $this->service->calculatePrice($body->hall_id, $body->reservations);
+        $bookingDoc->price = $this->recordService->calculatePrice($hall, $body->reservations);
+        $bookingDoc->prepayment = $bookingDoc->price * 0.5;
         return ResponseFactory::fromObject(200, $bookingDoc);
     }
 }

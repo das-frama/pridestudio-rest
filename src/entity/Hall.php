@@ -23,7 +23,7 @@ class Hall extends Entity
     /** @var string */
     public $description;
 
-    /** @var float */
+    /** @var int */
     public $base_price;
 
     /** @var string */
@@ -32,7 +32,7 @@ class Hall extends Entity
     /** @var string */
     public $detail_image;
 
-    /** @var array */
+    /** @var Service[] */
     public $services = [];
 
     /** @var array */
@@ -50,10 +50,10 @@ class Hall extends Entity
     /** @var int */
     public $updated_at;
 
-    /** @var int */
+    /** @var string */
     public $created_by;
 
-    /** @var int */
+    /** @var string */
     public $updated_by;
 
     /**

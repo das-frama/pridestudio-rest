@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\domain\record;
 
+use app\entity\Hall;
 use app\entity\Record;
 use app\entity\Reservation;
 use app\storage\mongodb\RecordRepository;
@@ -15,8 +16,9 @@ class RecordService
      */
     private $recordRepo;
 
-    public function __construct(RecordRepository $recordRepo)
-    {
+    public function __construct(
+        RecordRepository $recordRepo
+    ) {
         $this->recordRepo = $recordRepo;
     }
 
@@ -43,12 +45,26 @@ class RecordService
 
     /**
      * Calculate price for reservations.
-     * @param string $hallID
+     * @param Hall $hall
      * @param Reservation[] $reservations
      * @return int
      */
-    public function calculatePrice(string $hallID, array $reservations): int
+    public function calculatePrice(Hall $hall, array $reservations): int
     {
-        return 0;
+        $amount = 0;
+
+        // Calculate services.
+        // foreach ($hall->services as $category) {
+        //     foreach ($category->children as $service) {
+        //         $service->name 
+        //     }
+        //  }
+
+        // Calculate reservations.
+        foreach ($reservations as $reservation) {
+            $amount += ($reservation->length / 60) * $hall->base_price;
+        }
+
+        return $amount;
     }
 }
