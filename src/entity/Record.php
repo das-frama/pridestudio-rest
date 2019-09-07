@@ -24,10 +24,10 @@ class Record extends Entity
     public $hall;
 
     /** @var Reservation[] */
-    public $reservations;
+    public $reservations = [];
 
     /** @var array */
-    public $service_ids;
+    public $service_ids = [];
 
     /** @var Service[] */
     public $services;

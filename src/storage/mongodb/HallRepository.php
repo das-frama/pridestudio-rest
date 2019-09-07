@@ -7,6 +7,7 @@ namespace app\storage\mongodb;
 use app\entity\Hall;
 use app\entity\Service;
 use app\entity\ServiceChild;
+use app\entity\PriceRule;
 use app\domain\hall\HallRepositoryInterface;
 use MongoDB\BSON\ObjectId;
 use MongoDB\Collection;
@@ -37,6 +38,7 @@ class HallRepository implements HallRepositoryInterface
                 'fieldPaths' => [
                     'services_object.$' => Service::class,
                     'services_object.$.children.$' => ServiceChild::class,
+                    'prices.$.price_rule' => PriceRule::class
                 ]
             ],
         ];

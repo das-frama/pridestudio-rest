@@ -84,8 +84,8 @@ class RecordController extends Controller
             'reservations' => ['required', 'array'],
             'reservations.$.start_at' => ['required', 'int'],
             'reservations.$.length' => ['required', 'int'],
-            'services' => ['required', 'array'],
-            'services.$' => ['required', 'string:24:24'],
+            'service_ids' => ['required', 'array'],
+            'service_ids.$' => ['required', 'string:24:24'],
             'hall_id' => ['required', 'string:24:24'],
         ]);
         // Throw exception if there are errors due to validation.
@@ -96,15 +96,17 @@ class RecordController extends Controller
         }
         // Find hall.
         $hall = $this->hallService->findByID($body->hall_id, [
-            'include' => ['_id', 'base_price', 'prices']
+            'include' => '_id,base_price,prices'
         ]);
         if ($hall === null) {
             throw new ResourceNotFoundException("Hall not found.");
         }
         // Compose record entity.
         $record = new Record;
+        $record->hall_id = $hall->id;
         $record->hall = $hall;
         $record->reservations = $body->reservations;
+        $record->service_ids = $body->service_ids;
 
         // Response with document. 
         $bookingDoc = new BookingDocument;
