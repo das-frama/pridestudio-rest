@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace app\http\exception;
 
-use RuntimeException;
+use app\http\exception\base\HttpException;
 
-class ArgumentMismatchException extends RuntimeException
+class ArgumentMismatchException extends HttpException
 {
-    public $code = 422;
+    protected $code = 422;
+    protected $message = "Argument mismatch.";
 }

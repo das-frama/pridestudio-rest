@@ -2,7 +2,10 @@
 
 namespace app\http\exception;
 
-use RuntimeException;
+use app\http\exception\base\HttpException;
 
-class MethodNotAllowedException extends RuntimeException
-{ }
+class MethodNotAllowedException extends HttpException
+{
+    protected $code = 405;
+    protected $message = "Method not allowed.";
+}
