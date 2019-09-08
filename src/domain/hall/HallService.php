@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\domain\hall;
 
 use app\entity\Hall;
+use app\entity\Service;
 use app\storage\mongodb\HallRepository;
 
 class HallService
@@ -38,9 +39,20 @@ class HallService
      */
     public function findBySlug(string $slug, array $params = []): ?Hall
     {
+        return $this->hallRepo->findBySlug($slug, true, $params['include'] ?? [], $params['exclude'] ?? []);
+    }
+
+    /** 
+     * Find services in hall.
+     * @param string $slug
+     * @param array $params
+     * @return Service[]
+     */
+    public function findServices(string $slug, array $params = []): array
+    {
         $include = $params['include'] ?? [];
         $exclude = $params['exclude'] ?? [];
-        return $this->hallRepo->findBySlug($slug, true, $include, $exclude);
+        return [];
     }
 
     /**

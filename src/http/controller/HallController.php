@@ -39,7 +39,7 @@ class HallController extends Controller
      */
     public function all(ServerRequestInterface $request): ResponseInterface
     {
-        $halls = $this->service->findAll(0, 0, $request->getQueryParams());
+        $halls = $this->service->findAll(0, 0, $this->getQueryParams($request));
         return ResponseFactory::fromObject(200, $halls);
     }
 
@@ -51,7 +51,7 @@ class HallController extends Controller
     public function read(ServerRequestInterface $request): ResponseInterface
     {
         $slug = RequestUtils::getPathSegment($request, 2);
-        $hall = $this->service->findBySlug($slug, $request->getQueryParams());
+        $hall = $this->service->findBySlug($slug, $this->getQueryParams($request));
         if ($hall === null) {
             throw new ResourceNotFoundException("Hall not found.");
         }
@@ -63,7 +63,7 @@ class HallController extends Controller
     {
         $slug = RequestUtils::getPathSegment($request, 2);
         $params = $this->getQueryParams($request);
-        $params['include']['services_object'] = 1;
+        $params['include'][] = 'services_object';
         $hall = $this->service->findBySlug($slug, $params);
         if ($hall === null) {
             throw new ResourceNotFoundException("Hall not found.");

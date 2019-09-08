@@ -7,6 +7,7 @@ namespace app\storage\mongodb;
 use JsonSerializable;
 use ReflectionObject;
 use ReflectionProperty;
+use ReflectionClass;
 use MongoDB\BSON\ObjectId;
 use MongoDB\BSON\UTCDateTime;
 use MongoDB\BSON\Persistable;
@@ -110,5 +111,18 @@ abstract class Entity implements Persistable, JsonSerializable
         }
 
         return $value;
+    }
+
+    /** 
+     * Get all public properties of this class.
+     * @return array
+     */
+    public static function publicProperties(): array
+    {
+        // Get all public propertes.
+        $reflectionProperties = (new ReflectionClass(static::class))->getProperties($reflectionProperty::IS_PUBLIC);
+        return array_map(function (ReflectionProperty $reflectionProperty) {
+            return $reflectionProperty->getName();
+        },  $reflectionProperties);
     }
 }

@@ -73,70 +73,102 @@ class HallRepository implements HallRepositoryInterface
     public function findBySlug(string $slug, bool $onlyActive = true, array $include = [], array $exclude = []): ?Hall
     {
         $filter = ['slug' => $slug];
-        if (isset($include['services_object']) && $include['services_object'] == 1) {
-            return $this->findWithServices($filter);
+        if (in_array('services_object', $include)) {
+            return $this->findWithServices($filter, $onlyActive, $include, $exclude);
         }
 
         return $this->findByFilter($filter, $onlyActive, $include, $exclude);
     }
 
-    /** 
-     * Find hall and join with services.
-     * @param array $match
+    /**
+     * Find a hall from storage with services.
+     * @param array $filter
+     * @param bool $onlyActive
+     * @param array $include
+     * @param array $exclude
      * @return Hall|null
      */
-    public function findWithServices(array $match = []): ?Hall
+    public function findWithServices(array $filter, bool $onlyActive = true, $include = [], $exclude = []): ?Hall
     {
-        $cursor = $this->collection->aggregate([
-            ['$match' => $match],
-            ['$limit' => 1],
-            ['$unwind' => '$services'],
-            [
-                '$lookup' => [
-                    'from' => 'services',
-                    'localField' => 'services.category_id',
-                    'foreignField' => '_id',
-                    'as' => 'services_object'
-                ]
-            ],
-            ['$unwind' => '$services_object'],
-            [
-                '$project' => [
-                    '_id' => 1,
-                    'name' => 1,
-                    'base_price' => 1,
-                    'services' => 1,
-                    'services_object' => [
-                        '_id' => 1,
-                        'name' => 1,
-                        'children' => [
-                            '$filter' => [
-                                'input' => '$services_object.children',
-                                'as' => 'child',
-                                'cond' => ['in' => ['$$child._id', '$services.children']],
-                            ]
-                        ],
-                    ],
-                    'prices' => 1,
-                ]
-            ],
-            [
-                '$group' => [
-                    '_id' => '$_id',
-                    'name' => ['$first' => '$name'],
-                    'base_price' => ['$first' => '$base_price'],
-                    'prices' => ['$first' => '$prices'],
-                    'services' => ['$push' => '$services'],
-                    'services_object' => ['$push' => '$services_object'],
+        if ($onlyActive) {
+            $filter['is_active'] = true;
+        }
+        // Setup include.
+        if (empty($include)) {
+            $include = Hall::publicProperties();
+        }
+        if (!empty($exclude)) {
+            $include = array_diff_key($include, $exclude);
+        }
+        // Setup project.
+        $project = array_fill_keys($include, 1);
+        $project['_id'] = 1;
+        $project['services_object'] = [
+            '_id' => 1,
+            'name' => 1,
+            'children' => [
+                '$filter' => [
+                    'input' => '$services_object.children',
+                    'as' => 'child',
+                    'cond' => ['in' => ['$$child._id', '$services.children']],
                 ]
             ]
+        ];
+        // Setup groups.
+        $group = [];
+        foreach ($include as $column) {
+            if ($column != 'id') {
+                $group[$column] = ['$first' => '$' . $column];
+            }
+        }
+        $group['_id'] = '$_id';
+        if (in_array('services', $include)) {
+            $group['services'] = ['$push' => '$services'];
+        }
+        $group['services_object'] = ['$push' => '$services_object'];
+
+        // Perform query.
+        $cursor = $this->collection->aggregate([
+            ['$match' => $filter],
+            ['$limit' => 1],
+            ['$unwind' => '$services'],
+            ['$lookup' => [
+                'from' => 'services',
+                'localField' => 'services.category_id',
+                'foreignField' => '_id',
+                'as' => 'services_object'
+            ]],
+            ['$unwind' => '$services_object'],
+            ['$project' => $project],
+            ['$group' => $group]
         ], $this->defaultOptions);
 
         $array = $cursor->toArray();
         if (count($array) === 0) {
             return null;
         }
-        return $array[0];
+        $hall = $array[0];
+        if ($hall instanceof Hall) {
+            $hall->setInclude($include);
+            foreach ($hall->services_object as $service) {
+                $service->setInclude(['id', 'name', 'children']);
+            }
+        }
+
+        return $hall;
+    }
+
+    /**
+     * Find services from storage in hall.
+     * @param array $filter
+     * @param bool $onlyActive
+     * @param array $include
+     * @param array $exclude
+     * @return Hall[]
+     */
+    public function findServices(array $filter = [], bool $onlyActive = true, array $include = [], array $exclude = []): array
+    {
+        return [];
     }
 
     /**

@@ -10,10 +10,9 @@ class Controller
 {
     protected function getQueryParams(ServerRequestInterface $request): array
     {
-        $params = [];
-        $query = $request->getUri()->getQuery();
-        $query = str_replace('][]=', ']=', str_replace('=', '[]=', $query));
-        parse_str($query, $params);
-        return $params;
+        $params = $request->getQueryParams();
+        return array_map(function ($str) {
+            return explode(',', $str);
+        }, $params);
     }
 }
