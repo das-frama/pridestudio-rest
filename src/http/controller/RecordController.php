@@ -20,7 +20,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
- * Record class.
+ * RecordController class.
  */
 class RecordController extends Controller
 {
@@ -40,6 +40,7 @@ class RecordController extends Controller
 
     /**
      * Get all records.
+     * @method GET
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      */
@@ -51,6 +52,7 @@ class RecordController extends Controller
 
     /**
      * Get one record by id.
+     * @method GET
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      */
@@ -66,7 +68,7 @@ class RecordController extends Controller
     }
 
     /**
-     * Calculate the price for user reservations.
+     * Calculate price for reservations.
      * @method POST
      * @param ServerRequestInterface $request
      * @return ResponseInterface
@@ -111,7 +113,7 @@ class RecordController extends Controller
         // Response with document. 
         $bookingDoc = new BookingDocument;
         $bookingDoc->price = $this->recordService->calculatePrice($record);
-        $bookingDoc->prepayment = $bookingDoc->price * 0.5;
+        // $bookingDoc->prepayment = $bookingDoc->price * 0.5;
         return ResponseFactory::fromObject(200, $bookingDoc);
     }
 }

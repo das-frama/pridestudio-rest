@@ -45,39 +45,43 @@ class HallRepository implements HallRepositoryInterface
     }
 
     /**
-     * Find a hall from storage by id.
-     * @param string $id
+     * Find a hall from storage by filter.
+     * @param array $filter
      * @param bool $onlyActive
      * @param array $include
      * @param array $exclude
      * @return Hall|null
      */
-    public function findByID(string $id, bool $onlyActive = true, array $include = [], array $exclude = []): ?Hall
+    public function findOne(array $filter, bool $onlyActive = false, array $include = [], array $exclude = []): ?Hall
     {
-        $filter = ['_id' => new ObjectId($id)];
-        if (isset($include['services_object']) && $include['services_object'] == 1) {
-            return $this->findWithServices($filter);
+        // Prepare filter.
+        if (isset($filter['id'])) {
+            $filter['_id'] = new ObjectId($filter['id']);
+            unset($filter['id']);
         }
-
-        return $this->findByFilter($filter, $onlyActive, $include, $exclude);
-    }
-
-    /**
-     * Find a hall from storage by slug.
-     * @param string $slug
-     * @param bool $onlyActive
-     * @param array $include
-     * @param array $exclude
-     * @return Hall|null
-     */
-    public function findBySlug(string $slug, bool $onlyActive = true, array $include = [], array $exclude = []): ?Hall
-    {
-        $filter = ['slug' => $slug];
-        if (in_array('services_object', $include)) {
-            return $this->findWithServices($filter, $onlyActive, $include, $exclude);
+        if ($onlyActive) {
+            $filter['is_active'] = true;
         }
+        // Prepare options.
+        $options = $this->defaultOptions;
+        if (!empty($include)) {
+            $options['projection'] = array_fill_keys($include, 1);
+            if (isset($options['projection']['id'])) {
+                $options['projection']['_id'] = 1;
+                unset($options['projection']['id']);
+            }
+        } elseif (!empty($exclude)) {
+            $options['projection'] = array_fill_keys($exclude, 0);
+        }
+        // Process result.
+        $hall = $this->collection->findOne($filter, $options);
+        if (!$hall instanceof Hall) {
+            return null;
+        }
+        $hall->setInclude($include);
+        $hall->setExclude($exclude);
 
-        return $this->findByFilter($filter, $onlyActive, $include, $exclude);
+        return $hall;
     }
 
     /**
@@ -88,19 +92,20 @@ class HallRepository implements HallRepositoryInterface
      * @param array $exclude
      * @return Hall|null
      */
-    public function findWithServices(array $filter, bool $onlyActive = true, $include = [], $exclude = []): ?Hall
+    public function findWithServices(array $filter, bool $onlyActive = true, array $include = [], array $exclude = []): ?Hall
     {
+        // Prepare filter.
         if ($onlyActive) {
             $filter['is_active'] = true;
         }
-        // Setup include.
+        // Prepare include.
         if (empty($include)) {
             $include = Hall::publicProperties();
         }
         if (!empty($exclude)) {
             $include = array_diff_key($include, $exclude);
         }
-        // Setup project.
+        // Prepare project.
         $project = array_fill_keys($include, 1);
         $project['_id'] = 1;
         $project['services_object'] = [
@@ -114,7 +119,7 @@ class HallRepository implements HallRepositoryInterface
                 ]
             ]
         ];
-        // Setup groups.
+        // Prepare groups.
         $group = [];
         foreach ($include as $column) {
             if ($column != 'id') {
@@ -143,11 +148,12 @@ class HallRepository implements HallRepositoryInterface
             ['$group' => $group]
         ], $this->defaultOptions);
 
-        $array = $cursor->toArray();
-        if (count($array) === 0) {
-            return $this->findByFilter($filter, $onlyActive, $include, $exclude);
+        // Process result.
+        $halls = $cursor->toArray();
+        if (count($halls) === 0) {
+            return $this->findOne($filter, $onlyActive, $include, $exclude);
         }
-        $hall = $array[0];
+        $hall = $halls[0];
         if ($hall instanceof Hall) {
             $hall->setInclude($include);
             foreach ($hall->services_object as $service) {
@@ -164,11 +170,66 @@ class HallRepository implements HallRepositoryInterface
      * @param bool $onlyActive
      * @param array $include
      * @param array $exclude
-     * @return Hall[]
+     * @return Service[]
      */
     public function findServices(array $filter = [], bool $onlyActive = true, array $include = [], array $exclude = []): array
     {
-        return [];
+        // Prepare filter.
+        if ($onlyActive) {
+            $filter['is_active'] = true;
+        }
+        // Prepare project.
+        $project = [
+            'services_object' => 1,
+        ];
+        if (!empty($include)) {
+            $project['services_object'] = array_fill_keys($include, 1);
+            if (isset($project['services_object']['id'])) {
+                unset($project['services_object']['id']);
+                $project['services_object']['_id'] = 1;
+            }
+        } elseif (!empty($exclude)) {
+            $project['services_object'] = array_fill_keys($exclude, 0);
+        }
+        // Prepare optios.
+        $options = [
+            'typeMap' => [
+                'root' => Service::class,
+                'document' => 'array',
+                'fieldPaths' => [
+                    'children.$' => ServiceChild::class,
+                ]
+            ]
+        ];
+        // Perform query.
+        $cursor = $this->collection->aggregate([
+            ['$match' => $filter],
+            ['$limit' => 1],
+            ['$unwind' => '$services'],
+            ['$lookup' => [
+                'from' => 'services',
+                'localField' => 'services.category_id',
+                'foreignField' => '_id',
+                'as' => 'services_object'
+            ]],
+            ['$unwind' => '$services_object'],
+            ['$project' => $project],
+            ['$replaceRoot' => ['newRoot' => '$services_object']]
+        ], $options);
+
+        // Read and return result.
+        $services = $cursor->toArray();
+        if (count($services) === 0) {
+            return [];
+        }
+        foreach ($services as $service) {
+            if ($service instanceof Service) {
+                $service->setInclude($include);
+                $service->setExclude($exclude);
+            }
+        }
+
+        return $services;
     }
 
     /**
@@ -213,31 +274,21 @@ class HallRepository implements HallRepositoryInterface
     }
 
     /**
-     * Find a hall from storage by condition.
+     * Check if document exists.
      * @param array $filter
      * @param bool $onlyActive
-     * @param array $include
-     * @param array $exclude
-     * @return Hall|null
+     * @return bool
      */
-    private function findByFilter(array $filter, bool $onlyActive = false, array $include = [], array $exclude = []): ?Hall
+    public function isExists(array $filter, bool $onlyActive = true): bool
     {
+        if (isset($filter['id'])) {
+            $filter['_id'] = new ObjectId($filter['id']);
+            unset($filter['id']);
+        }
         if ($onlyActive) {
             $filter['is_active'] = true;
         }
-        $options = $this->defaultOptions;
-        if (!empty($include)) {
-            $options['projection'] = array_fill_keys($include, 1);
-        } elseif (!empty($exclude)) {
-            $options['projection'] = array_fill_keys($exclude, 0);
-        }
 
-        $hall = $this->collection->findOne($filter, $options);
-        if (!$hall instanceof Hall) {
-            return null;
-        }
-        $hall->setInclude($include);
-        $hall->setExclude($exclude);
-        return $hall;
+        return (bool) $this->collection->count($filter, []);
     }
 }

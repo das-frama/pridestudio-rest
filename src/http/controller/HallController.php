@@ -34,6 +34,7 @@ class HallController extends Controller
 
     /**
      * Get all halls.
+     * @method GET
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      */
@@ -45,6 +46,7 @@ class HallController extends Controller
 
     /**
      * Get one hall by slug.
+     * @method GET
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      */
@@ -59,16 +61,21 @@ class HallController extends Controller
         return ResponseFactory::fromObject(200, $hall);
     }
 
+    /**
+     * Get services from hall.
+     * @method GET
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
+     */
     public function services(ServerRequestInterface $request): ResponseInterface
     {
         $slug = RequestUtils::getPathSegment($request, 2);
-        $params = $this->getQueryParams($request);
-        $params['include'][] = 'services_object';
-        $hall = $this->service->findBySlug($slug, $params);
-        if ($hall === null) {
+        if (!$this->service->isExists($slug)) {
             throw new ResourceNotFoundException("Hall not found.");
         }
+        $params = $this->getQueryParams($request);
+        $services = $this->service->findServices($slug, $params);
 
-        return ResponseFactory::fromObject(200, $hall->services_object);
+        return ResponseFactory::fromObject(200, $services);
     }
 }

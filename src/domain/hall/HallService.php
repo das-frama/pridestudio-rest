@@ -28,7 +28,7 @@ class HallService
     {
         $include = $params['include'] ?? [];
         $exclude = $params['exclude'] ?? [];
-        return $this->hallRepo->findByID($id, true, $include, $exclude);
+        return $this->hallRepo->findOne(['id' => $id], true, $include, $exclude);
     }
 
     /**
@@ -39,7 +39,13 @@ class HallService
      */
     public function findBySlug(string $slug, array $params = []): ?Hall
     {
-        return $this->hallRepo->findBySlug($slug, true, $params['include'] ?? [], $params['exclude'] ?? []);
+        $filter = ['slug' => $slug];
+        $include = $params['include'] ?? [];
+        $exclude = $params['exclude'] ?? [];
+        if (in_array('services_object', $include)) {
+            return $this->hallRepo->findWithServices($filter, true, $include, $exclude);
+        }
+        return $this->hallRepo->findOne($filter, true, $include, $exclude);
     }
 
     /** 
@@ -52,7 +58,7 @@ class HallService
     {
         $include = $params['include'] ?? [];
         $exclude = $params['exclude'] ?? [];
-        return [];
+        return $this->hallRepo->findServices(['slug' => $slug], true, $include, $exclude);
     }
 
     /**
@@ -62,7 +68,7 @@ class HallService
      */
     public function getIDBySlug(string $slug): ?string
     {
-        $hall = $this->hallRepo->findBySlug($slug, true, ['_id' => 1]);
+        $hall = $this->hallRepo->findOne(['slug' => $slug], true, ['id' => 1]);
         if ($hall === null) {
             return null;
         }
@@ -81,5 +87,16 @@ class HallService
         $include = $params['include'] ?? [];
         $exclude = $params['exclude'] ?? [];
         return $this->hallRepo->findAll($limit, $offset, true, $include, $exclude);
+    }
+
+    /**
+     * Check if hall is exists by provided slug.
+     * @param string $slug
+     * @param bool $onlyActive
+     * @return bool
+     */
+    public function isExists(string $slug, $onlyActive = true): bool
+    {
+        return $this->hallRepo->isExists(['slug' => $slug], $onlyActive);
     }
 }

@@ -114,13 +114,13 @@ abstract class Entity implements Persistable, JsonSerializable
     }
 
     /** 
-     * Get all public properties of this class.
+     * Get all public properties of class.
      * @return array
      */
     public static function publicProperties(): array
     {
         // Get all public propertes.
-        $reflectionProperties = (new ReflectionClass(static::class))->getProperties($reflectionProperty::IS_PUBLIC);
+        $reflectionProperties = (new ReflectionClass(static::class))->getProperties(ReflectionProperty::IS_PUBLIC);
         return array_map(function (ReflectionProperty $reflectionProperty) {
             return $reflectionProperty->getName();
         },  $reflectionProperties);
