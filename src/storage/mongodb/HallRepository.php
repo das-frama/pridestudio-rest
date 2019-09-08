@@ -145,7 +145,7 @@ class HallRepository implements HallRepositoryInterface
 
         $array = $cursor->toArray();
         if (count($array) === 0) {
-            return null;
+            return $this->findByFilter($filter, $onlyActive, $include, $exclude);
         }
         $hall = $array[0];
         if ($hall instanceof Hall) {
