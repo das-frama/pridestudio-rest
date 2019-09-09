@@ -56,9 +56,10 @@ class HallService
      */
     public function findServices(string $slug, array $params = []): array
     {
-        $include = $params['include'] ?? [];
-        $exclude = $params['exclude'] ?? [];
-        return $this->hallRepo->findServices(['slug' => $slug], true, $include, $exclude);
+        $selected = $params['selected'] ?? [];
+        $include  = $params['include'] ?? [];
+        $exclude  = $params['exclude'] ?? [];
+        return $this->hallRepo->findServices(['slug' => $slug], true, $selected, $include, $exclude);
     }
 
     /**

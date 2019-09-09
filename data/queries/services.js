@@ -1,8 +1,6 @@
 db.halls
   .aggregate([
-    {
-      $match: { _id: ObjectId("5d6665acd174792330992eca") }
-    },
+    { $match: { slug: "royal" } },
     { $unwind: "$services" },
     {
       $lookup: {
@@ -15,16 +13,42 @@ db.halls
     { $unwind: "$services_object" },
     {
       $project: {
-        _id: 1,
+        services: 1,
         services_object: {
           _id: 1,
           name: 1,
-          children: 1
+          children: {
+            $filter: {
+              input: "$services_object.children",
+              as: "child",
+              cond: { $in: ["$$child._id", "$services.children"] }
+            }
+          }
         }
       }
     },
     {
-      $replaceRoot: { newRoot: "$services_object" }
-    }
+      $match: {
+        $or: [
+          {
+            "services.children": {
+              $in: [
+                // ObjectId("5d6fb45782f9d22454c8866f")
+                // ObjectId("5d6fb49582f9d22454c88670")
+              ]
+            }
+          },
+          {
+            "services.parents": {
+              $in: [
+                // ObjectId("5d6fb45782f9d22454c8866f")
+                // ObjectId("5d6fb49582f9d22454c88670")
+              ]
+            }
+          }
+        ]
+      }
+    },
+    { $replaceRoot: { newRoot: "$services_object" } }
   ])
   .pretty();

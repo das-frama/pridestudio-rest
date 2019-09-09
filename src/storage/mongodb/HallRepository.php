@@ -107,6 +107,7 @@ class HallRepository implements HallRepositoryInterface
         }
         // Prepare project.
         $project = array_fill_keys($include, 1);
+        unset($project['id']);
         $project['_id'] = 1;
         $project['services_object'] = [
             '_id' => 1,
@@ -115,7 +116,7 @@ class HallRepository implements HallRepositoryInterface
                 '$filter' => [
                     'input' => '$services_object.children',
                     'as' => 'child',
-                    'cond' => ['in' => ['$$child._id', '$services.children']],
+                    'cond' => ['$in' => ['$$child._id', '$services.children']],
                 ]
             ]
         ];
@@ -168,30 +169,46 @@ class HallRepository implements HallRepositoryInterface
      * Find services from storage in hall.
      * @param array $filter
      * @param bool $onlyActive
+     * @param array $selected
      * @param array $include
      * @param array $exclude
      * @return Service[]
      */
-    public function findServices(array $filter = [], bool $onlyActive = true, array $include = [], array $exclude = []): array
+    public function findServices(array $filter = [], bool $onlyActive = true, array $selected = [], array $include = [], array $exclude = []): array
     {
         // Prepare filter.
         if ($onlyActive) {
             $filter['is_active'] = true;
         }
+        // Prepare include.
+        if (!empty($selected)) {
+            $selected = array_map(function ($id) {
+                return new ObjectId($id);
+            }, $selected);
+        }
+        if (empty($include)) {
+            $include = Service::publicProperties();
+        }
+        if (!empty($exclude)) {
+            $include = array_diff($include, $exclude);
+        }
         // Prepare project.
         $project = [
-            'services_object' => 1,
+            'services' => 1,
+            'services_object' => array_fill_keys($include, 1),
         ];
-        if (!empty($include)) {
-            $project['services_object'] = array_fill_keys($include, 1);
-            if (isset($project['services_object']['id'])) {
-                unset($project['services_object']['id']);
-                $project['services_object']['_id'] = 1;
-            }
-        } elseif (!empty($exclude)) {
-            $project['services_object'] = array_fill_keys($exclude, 0);
+        if (isset($project['services_object']['id'])) {
+            $project['services_object']['_id'] = 1;
+            unset($project['services_object']['id']);
         }
-        // Prepare optios.
+        $project['services_object']['children'] = [
+            '$filter' => [
+                'input' => '$services_object.children',
+                'as' => 'child',
+                'cond' => ['$in' => ['$$child._id', '$services.children']]
+            ]
+        ];
+        // Prepare options.
         $options = [
             'typeMap' => [
                 'root' => Service::class,
@@ -214,12 +231,18 @@ class HallRepository implements HallRepositoryInterface
             ]],
             ['$unwind' => '$services_object'],
             ['$project' => $project],
+            ['$match' => [
+                '$or' => [
+                    ['services.children' => ['$in' => $selected]],
+                    ['services.parents' => ['$in' => $selected]],
+                ]
+            ]],
             ['$replaceRoot' => ['newRoot' => '$services_object']]
         ], $options);
 
         // Read and return result.
         $services = $cursor->toArray();
-        if (count($services) === 0) {
+        if (count($services) == 0) {
             return [];
         }
         foreach ($services as $service) {

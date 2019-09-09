@@ -18,7 +18,7 @@ interface HallRepositoryInterface
      * @param array $exclude
      * @return Service[]
      */
-    public function findServices(array $filter = [], bool $onlyActive = true, array $include = [], array $exclude = []): array;
+    public function findServices(array $filter = [], bool $onlyActive = true, array $selected, array $include = [], array $exclude = []): array;
     /**
      * @param int $limit
      * @param int $offset
