@@ -100,6 +100,7 @@ abstract class Entity implements Persistable, JsonSerializable
                 $this->{$property} = $value;
             }
         }
+        $this->unserialized = true;
     }
 
     private function convertArray($value)

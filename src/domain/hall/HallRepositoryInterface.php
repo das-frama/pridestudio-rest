@@ -9,16 +9,16 @@ use app\entity\Service;
 
 interface HallRepositoryInterface
 {
-    public function findOne(array $filter, bool $onlyActive = true, array $include = [], array $exclude = []): ?Hall;
-    public function findWithServices(array $filter, bool $onlyActive = true, array $include = [], array $exclude = []): ?Hall;
+    public function findOne(array $filter, array $include = [], array $exclude = []): ?Hall;
     /**
      * @param array $filter
      * @param bool $onlyActive
+     * @param array $selected
      * @param array $include
      * @param array $exclude
      * @return Service[]
      */
-    public function findServices(array $filter = [], bool $onlyActive = true, array $selected, array $include = [], array $exclude = []): array;
+    public function findServices(array $filter = [], array $selected, array $include = [], array $exclude = []): array;
     /**
      * @param int $limit
      * @param int $offset

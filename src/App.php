@@ -4,12 +4,9 @@ declare(strict_types=1);
 
 namespace app;
 
-use app\http\exception\ArgumentMismatchException;
 use app\http\exception\base\HttpException;
 use app\http\router\Router;
 use app\http\router\RouterInterface;
-use app\http\exception\MethodNotAllowedException;
-use app\http\exception\RouteNotFoundException;
 use app\http\middleware\CorsMiddleware;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -18,9 +15,7 @@ use RuntimeException;
 
 class App
 {
-    /**
-     * @var RouterInterface
-     */
+    /** @var RouterInterface */
     private $router;
 
     /**
@@ -83,6 +78,11 @@ class App
         echo $response->getBody();
     }
 
+    /**
+     * Add parsed to request and return it.
+     * @param ServerRequestInterface $request
+     * @return ServerRequestInterface
+     */
     private function addParsedBody(ServerRequestInterface $request): ServerRequestInterface
     {
         if (!$request->hasHeader('Content-Type')) {
@@ -113,6 +113,11 @@ class App
         return $request;
     }
 
+    /**
+     * Parse JSON body to php object.
+     * @param string $body
+     * @return object
+     */
     private function parseJSONBody(string $body): ?object
     {
         $object = json_decode($body);
@@ -124,6 +129,11 @@ class App
         return $object;
     }
 
+    /**
+     * Parse x-www-form-urlencoded to php object.
+     * @param string $body
+     * @return object
+     */
     private function parseURLBody(string $body): ?object
     {
         parse_str($body, $input);

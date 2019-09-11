@@ -14,9 +14,6 @@ class ServiceChild extends Entity
     /** @var string */
     public $name;
 
-    /** @var int */
-    public $sort;
-
     /** @var bool */
     public $is_active;
 }

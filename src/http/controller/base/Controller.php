@@ -12,7 +12,7 @@ class Controller
     {
         $params = $request->getQueryParams();
         return array_map(function ($str) {
-            return explode(',', $str);
+            return empty($str) ? [] : explode(',', $str);
         }, $params);
     }
 }

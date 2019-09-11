@@ -137,6 +137,10 @@ class ValidationService
             return $errors;
         }
 
+        if (empty($variable)) {
+            return [];
+        }
+
         foreach ($rules as $ruleStr) {
             $ruleArr = explode(':', $ruleStr);
             $params = array_slice($ruleArr, 1);

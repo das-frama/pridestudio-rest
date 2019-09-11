@@ -36,7 +36,7 @@ class Hall extends Entity
     public $services = [];
 
     /** @var Service[] */
-    public $services_object = [];
+    public $services_join = [];
 
     /** @var array */
     public $prices = [];
@@ -72,5 +72,25 @@ class Hall extends Entity
         if ($this->detail_image !== null) {
             $this->detail_image = HOST . $this->detail_image;
         }
+    }
+
+    /**
+     * Get default selected services.
+     * @return array
+     */
+    public function getDefaultServices(): array
+    {
+        $selected = [];
+        foreach ($this->services as $service) {
+            if (isset($service['parents'])) {
+                $common = array_intersect($selected, $service['parents']);
+                if (!empty($common)) {
+                    $selected[] = reset($service['children']);
+                }
+            } else {
+                $selected[] = reset($service['children']);
+            }
+        }
+        return $selected;
     }
 }
