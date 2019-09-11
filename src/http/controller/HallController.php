@@ -17,19 +17,16 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 class HallController extends Controller
 {
-    // public $includeColumns = [];
-    // public $excludeColumns = ['created_by', 'updated_by', 'created_at', 'updated_at', 'is_active'];
-
     /** @var HallService */
-    private $service;
+    public $hallService;
 
     /**
      * HallController constructor.
-     * @param HallService $service
+     * @param HallService $hallService
      */
-    public function __construct(HallService $service)
+    public function __construct(HallService $hallService)
     {
-        $this->service = $service;
+        $this->hallService = $hallService;
     }
 
     /**
@@ -40,7 +37,8 @@ class HallController extends Controller
      */
     public function all(ServerRequestInterface $request): ResponseInterface
     {
-        $halls = $this->service->findAll(0, 0, $this->getQueryParams($request));
+        $params = $this->getQueryParams($request);
+        $halls = $this->hallService->findAll($params['include'] ?? []);
         return ResponseFactory::fromObject(200, $halls);
     }
 
@@ -54,11 +52,7 @@ class HallController extends Controller
     {
         $slug = RequestUtils::getPathSegment($request, 2);
         $params = $this->getQueryParams($request);
-        $hall = $this->service->findBySlug(
-            $slug,
-            $params['include'] ?? [],
-            $params['exclude'] ?? []
-        );
+        $hall = $this->hallService->findBySlug($slug, $params['include'] ?? []);
         if ($hall === null) {
             throw new ResourceNotFoundException("Hall not found.");
         }
@@ -74,15 +68,14 @@ class HallController extends Controller
     public function services(ServerRequestInterface $request): ResponseInterface
     {
         $slug = RequestUtils::getPathSegment($request, 2);
-        if (!$this->service->isExists($slug)) {
+        if (!$this->hallService->isExists($slug)) {
             throw new ResourceNotFoundException("Hall not found.");
         }
         $params = $this->getQueryParams($request);
-        $services = $this->service->findServices(
+        $services = $this->hallService->findServices(
             $slug,
             $params['selected'] ?? [],
-            $params['include'] ?? [],
-            $params['exclude'] ?? []
+            $params['include'] ?? []
         );
         return ResponseFactory::fromObject(200, $services);
     }

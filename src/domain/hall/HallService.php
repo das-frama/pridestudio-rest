@@ -6,13 +6,12 @@ namespace app\domain\hall;
 
 use app\entity\Hall;
 use app\entity\Service;
-use app\entity\ServiceChild;
 use app\storage\mongodb\HallRepository;
 
 class HallService
 {
     /** @var HallRepositoryInterface */
-    private $hallRepo;
+    public $hallRepo;
 
     public function __construct(HallRepository $hallRepo)
     {
@@ -23,43 +22,39 @@ class HallService
      * Get hall by id.
      * @param string $id
      * @param array $include
-     * @param array $exclude
      * @return Hall|null
      */
-    public function findByID(string $id, array $include = [], array $exclude = []): ?Hall
+    public function findByID(string $id, array $include = []): ?Hall
     {
         $filter = [
             'id' => $id,
             'is_active' => true,
         ];
-        return $this->hallRepo->findOne($filter, $include, $exclude);
+        return $this->hallRepo->findOne($filter, $include);
     }
 
     /**
      * Get hall by slug.
      * @param string $slug
-     * @param array $join
      * @param array $include
-     * @param array $exclude
      * @return Hall|null
      */
-    public function findBySlug(string $slug, array $include = [], array $exclude = []): ?Hall
+    public function findBySlug(string $slug, array $include = []): ?Hall
     {
         $filter = [
             'slug' => $slug,
             'is_active' => true,
         ];
-        return $this->hallRepo->findOne($filter, $include, $exclude);
+        return $this->hallRepo->findOne($filter, $include);
     }
 
     /** 
      * Find services in hall.
      * @param string $slug
      * @param array $include
-     * @param array $exclude
      * @return Service[]
      */
-    public function findServices(string $slug, array $selected = [], array $include = [], array $exclude = []): array
+    public function findServices(string $slug, array $selected = [], array $include = []): array
     {
         $filter = [
             'slug' => $slug,
@@ -72,7 +67,7 @@ class HallService
             }
             $selected = $hall->getDefaultServices();
         }
-        return $this->hallRepo->findServices($filter, $selected, $include, $exclude);
+        return $this->hallRepo->findServices($filter, $selected, $include);
     }
 
     /**
@@ -95,16 +90,12 @@ class HallService
 
     /**
      * Get all halls.
-     * @param int $limit
-     * @param int $offset
-     * @param array $params
+     * @param array $include
      * @return Hall[]
      */
-    public function findAll(int $limit, int $offset, array $params = []): array
+    public function findAll(array $include = []): array
     {
-        $include = $params['include'] ?? [];
-        $exclude = $params['exclude'] ?? [];
-        return $this->hallRepo->findAll($limit, $offset, true, $include, $exclude);
+        return $this->hallRepo->findAll(['is_active' => true], $include);
     }
 
     /**
@@ -115,6 +106,10 @@ class HallService
      */
     public function isExists(string $slug, $onlyActive = true): bool
     {
-        return $this->hallRepo->isExists(['slug' => $slug], $onlyActive);
+        $filter = ['slug' => $slug];
+        if ($onlyActive) {
+            $filter['is_active'] = true;
+        }
+        return $this->hallRepo->isExists($filter);
     }
 }

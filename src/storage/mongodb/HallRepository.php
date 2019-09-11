@@ -9,21 +9,28 @@ use app\entity\Service;
 use app\entity\ServiceChild;
 use app\entity\PriceRule;
 use app\domain\hall\HallRepositoryInterface;
-use MongoDB\BSON\ObjectId;
 use MongoDB\Client;
 
 /**
  * Class HallRepository
  * @package app\storage\mongodb
  */
-class HallRepository extends Repository implements HallRepositoryInterface
+class HallRepository implements HallRepositoryInterface
 {
-    /**
+    use RepositoryTrait;
+
+    /** @var Collection */
+    public $collection;
+
+    /** @var array */
+    public $defaultOptions = [];
+
+    /** 
      * @param Client $client
      */
     public function __construct(Client $client)
     {
-        parent::__construct($client, 'halls');
+        $this->collection = $client->selectDatabase('pridestudio')->selectCollection("halls");
         $this->defaultOptions = [
             'typeMap' => [
                 'root' => Hall::class,
@@ -35,35 +42,22 @@ class HallRepository extends Repository implements HallRepositoryInterface
         ];
     }
 
-    public function findOne(array $filter, array $include = [], array $exclude = []): ?Hall
+    /**
+     * {@inheritDoc}
+     */
+    public function findOne(array $filter, array $include = []): ?Hall
     {
-        $hall = $this->internalFindOne($filter, $include, $exclude);
-        if ($hall === null) {
-            return null;
-        }
-        return $hall;
+        return $this->internalFindOne($filter, $this->defaultOptions, $include);
     }
 
     /**
-     * Find services from storage in hall.
-     * @param array $filter
-     * @param array $selected
-     * @param array $include
-     * @param array $exclude
-     * @return Service[]
+     * {@inheritDoc}
      */
-    public function findServices(array $filter = [], array $selected, array $include = [], array $exclude = []): array
+    public function findServices(array $filter, array $selected, array $include = []): array
     {
         // Prepare include.
         if (empty($include)) {
             $include = Service::publicProperties();
-        }
-        if (!empty($exclude)) {
-            $include = array_diff($include, $exclude);
-        }
-        $selectedObjectID = [];
-        foreach ($selected as $id) {
-            $selectedObjectID[] = new ObjectId($id);
         }
         // Prepare project.
         $project = [
@@ -91,6 +85,8 @@ class HallRepository extends Repository implements HallRepositoryInterface
                 ]
             ]
         ];
+        // Confert selected to array of ObjectId
+        $objectIDs = $this->convertToObjectId($selected);
         // Perform query.
         $cursor = $this->collection->aggregate([
             ['$match' => $filter],
@@ -106,63 +102,30 @@ class HallRepository extends Repository implements HallRepositoryInterface
             ['$project' => $project],
             ['$match' => [
                 '$or' => [
-                    ['services.children' => ['$in' => $selectedObjectID]],
-                    ['services.parents' => ['$in' => $selectedObjectID]],
+                    ['services.children' => ['$in' => $objectIDs]],
+                    ['services.parents' => ['$in' => $objectIDs]],
                 ]
             ]],
             ['$replaceRoot' => ['newRoot' => '$services_join']]
         ], $options);
 
         // Read and return result.
-        $services = $cursor->toArray();
-        if (count($services) == 0) {
-            return [];
-        }
-        foreach ($services as $service) {
-            if ($service instanceof Service) {
-                $service->setInclude($include);
-                $service->setExclude($exclude);
-            }
-        }
-
-        return $services;
+        return array_map(function (Service $service) use ($include) {
+            $service->setInclude($include);
+            return $service;
+        }, $cursor->toArray());
     }
 
     /**
-     * Find all halls from storage.
-     * @param int $limit
-     * @param int $offset
-     * @param bool $onlyActive
-     * @param array $include
-     * @return Hall[]
+     * {@inheritDoc}
      */
-    public function findAll(int $limit, int $offset, bool $onlyActive = true, array $include = [], array $exclude = []): array
+    public function findAll(array $filter, array $include = []): array
     {
-        $filter = [];
-        if ($onlyActive) {
-            $filter['is_active'] = true;
-        }
-        $options = $this->defaultOptions;
-        if ($limit > 0) {
-            $options['limit'] = $limit;
-        }
-        if (!empty($include)) {
-            $options['projection'] = array_fill_keys($include, 1);
-        }
-        $result = [];
-        $cursor = $this->collection->find($filter, $options);
-        foreach ($cursor as $hall) {
-            if ($hall instanceof Hall) {
-                $hall->setInclude($include);
-                $result[] = $hall;
-            }
-        }
-
-        return $result;
+        return $this->internalFindAll($filter, $this->defaultOptions, $include);
     }
 
     /**
-     * @return bool
+     * {@inheritDoc}
      */
     public function save(): bool
     {
@@ -170,21 +133,10 @@ class HallRepository extends Repository implements HallRepositoryInterface
     }
 
     /**
-     * Check if document exists.
-     * @param array $filter
-     * @param bool $onlyActive
-     * @return bool
+     * {@inheritDoc}
      */
-    public function isExists(array $filter, bool $onlyActive = true): bool
+    public function isExists(array $filter): bool
     {
-        if (isset($filter['id'])) {
-            $filter['_id'] = new ObjectId($filter['id']);
-            unset($filter['id']);
-        }
-        if ($onlyActive) {
-            $filter['is_active'] = true;
-        }
-
-        return (bool) $this->collection->count($filter, []);
+        return (bool) $this->collection->count($this->convertFilter($filter), []);
     }
 }

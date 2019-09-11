@@ -9,25 +9,36 @@ use app\entity\Service;
 
 interface HallRepositoryInterface
 {
-    public function findOne(array $filter, array $include = [], array $exclude = []): ?Hall;
     /**
+     * Find one hall by filter.
      * @param array $filter
-     * @param bool $onlyActive
+     * @param array $include
+     * @return Hall|null
+     */
+    public function findOne(array $filter, array $include = []): ?Hall;
+
+    /** 
+     * Find hall's services.
+     * @param array $filter
      * @param array $selected
      * @param array $include
-     * @param array $exclude
      * @return Service[]
      */
-    public function findServices(array $filter = [], array $selected, array $include = [], array $exclude = []): array;
+    public function findServices(array $filter, array $selected, array $include = []): array;
+
     /**
-     * @param int $limit
-     * @param int $offset
-     * @param bool $onlyActive
+     * Find all halls.
+     * @param array $filter
      * @param array $include
-     * @param array $exclude
      * @return Hall[]
      */
-    public function findAll(int $limit, int $offset, bool $onlyActive = true, array $include = [], array $exclude = []): array;
-    public function isExists(array $filter, bool $onlyActive = true): bool;
+    public function findAll(array $filter, array $include = []): array;
+
+    /**
+     * Check if hall exists by filter.
+     * @param array $filter
+     * @return bool
+     */
+    public function isExists(array $filter): bool;
     public function save(): bool;
 }
