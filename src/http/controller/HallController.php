@@ -5,28 +5,32 @@ declare(strict_types=1);
 namespace app\http\controller;
 
 use app\RequestUtils;
-use app\ResponseFactory;
 use app\domain\hall\HallService;
-use app\http\controller\base\Controller;
+use app\http\controller\base\ControllerTrait;
 use app\http\exception\ResourceNotFoundException;
+use app\http\responder\JsonResponder;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * Hall class.
  */
-class HallController extends Controller
+class HallController
 {
+    use ControllerTrait;
+
     /** @var HallService */
     public $hallService;
 
     /**
      * HallController constructor.
      * @param HallService $hallService
+     * @param JsonResponder $responder
      */
-    public function __construct(HallService $hallService)
+    public function __construct(HallService $hallService, JsonResponder $responder)
     {
         $this->hallService = $hallService;
+        $this->responder = $responder;
     }
 
     /**
@@ -39,7 +43,7 @@ class HallController extends Controller
     {
         $params = $this->getQueryParams($request);
         $halls = $this->hallService->findAll($params['include'] ?? []);
-        return ResponseFactory::fromObject(200, $halls);
+        return $this->responder->success($halls);
     }
 
     /**
@@ -56,7 +60,7 @@ class HallController extends Controller
         if ($hall === null) {
             throw new ResourceNotFoundException("Hall not found.");
         }
-        return ResponseFactory::fromObject(200, $hall);
+        return $this->responder->success($hall);
     }
 
     /**
@@ -77,6 +81,6 @@ class HallController extends Controller
             $params['selected'] ?? [],
             $params['include'] ?? []
         );
-        return ResponseFactory::fromObject(200, $services);
+        return $this->responder->success($services);
     }
 }

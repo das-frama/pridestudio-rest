@@ -5,36 +5,38 @@ declare(strict_types=1);
 namespace app\http\controller;
 
 use app\RequestUtils;
-use app\ResponseFactory;
 use app\domain\calendar\CalendarService;
 use app\domain\hall\HallService;
+use app\http\controller\base\ControllerTrait;
 use app\http\exception\RouteNotFoundException;
+use app\http\responder\JsonResponder;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
- * Calendar class.
+ * CalendarController class.
  */
 class CalendarController
 {
-    public $includeColumns = [];
-    public $excludeColumns = ['created_by', 'updated_by', 'created_at', 'updated_at', 'is_active'];
+    use ControllerTrait;
 
     /** @var CalendarService */
-    private $calendarService;
+    public $calendarService;
 
     /** @var HallService */
-    private $hallService;
+    public $hallService;
 
     /**
      * CalendarController constructor.
      * @param CalendarService $calendarService
      * @param HallService $hallService
+     * @param JsonResponder $responder
      */
-    public function __construct(CalendarService $calendarService, HallService $hallService)
+    public function __construct(CalendarService $calendarService, HallService $hallService, JsonResponder $responder)
     {
         $this->calendarService = $calendarService;
         $this->hallService = $hallService;
+        $this->responder = $responder;
     }
 
     /**
@@ -50,7 +52,7 @@ class CalendarController
             throw new RouteNotFoundException();
         }
         $document = $this->calendarService->weekdays($hallID);
-        return ResponseFactory::fromObject(200, $document);
+        return $this->responder->success($document);
     }
 
     /**
@@ -67,8 +69,7 @@ class CalendarController
         }
         $year = (int) RequestUtils::getPathSegment($request, 3);
         $document = $this->calendarService->weekdays($hallID, $year);
-
-        return ResponseFactory::fromObject(200, $document);
+        return $this->responder->success($document);
     }
 
     /**
@@ -86,7 +87,6 @@ class CalendarController
         $year = (int) RequestUtils::getPathSegment($request, 3);
         $week = (int) RequestUtils::getPathSegment($request, 4);
         $document = $this->calendarService->weekdays($hallID, $year, $week);
-
-        return ResponseFactory::fromObject(200, $document);
+        return $this->responder->success($document);
     }
 }

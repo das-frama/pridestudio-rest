@@ -5,37 +5,38 @@ declare(strict_types=1);
 namespace app\http\controller;
 
 use app\RequestUtils;
-use app\ResponseFactory;
 use app\domain\record\RecordService;
 use app\domain\booking\BookingDocument;
 use app\domain\hall\HallService;
 use app\domain\validation\ValidationService;
 use app\entity\Record;
-use app\http\controller\base\Controller;
+use app\http\controller\base\ControllerTrait;
 use app\http\exception\BadRequestException;
 use app\http\exception\ResourceNotFoundException;
 use app\http\exception\RouteNotFoundException;
 use app\http\exception\UprocessableEntityException;
+use app\http\responder\JsonResponder;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * RecordController class.
  */
-class RecordController extends Controller
+class RecordController
 {
+    use ControllerTrait;
+
     /** @var RecordService */
-    private $recordService;
+    public $recordService;
 
     /** @var HallService */
-    private $hallService;
+    public $hallService;
 
-    public function __construct(
-        RecordService $recordService,
-        HallService $hallService
-    ) {
+    public function __construct(RecordService $recordService, HallService $hallService, JsonResponder $responder)
+    {
         $this->recordService = $recordService;
         $this->hallService = $hallService;
+        $this->responder = $responder;
     }
 
     /**
@@ -47,7 +48,7 @@ class RecordController extends Controller
     public function all(ServerRequestInterface $request): ResponseInterface
     {
         $records = $this->recordService->findAll(0, 0);
-        return ResponseFactory::fromObject(200, $records);
+        return $this->responder->success($records);
     }
 
     /**
@@ -63,8 +64,7 @@ class RecordController extends Controller
         if ($record === null) {
             throw new RouteNotFoundException();
         }
-
-        return ResponseFactory::fromObject(200, $record);
+        return $this->responder->success($record);
     }
 
     /**
@@ -114,6 +114,6 @@ class RecordController extends Controller
         $bookingDoc = new BookingDocument;
         $bookingDoc->price = $this->recordService->calculatePrice($record);
         // $bookingDoc->prepayment = $bookingDoc->price * 0.5;
-        return ResponseFactory::fromObject(200, $bookingDoc);
+        return $this->responder->success($bookingDoc);
     }
 }

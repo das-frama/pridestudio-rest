@@ -13,10 +13,10 @@ class ResponseFactory
     /**
      * Get response object from object (array, object, scalar).
      * @param int $status
-     * @param mixed $body
+     * @param array $body
      * @return ResponseInterface
      */
-    public static function fromObject(int $status, $body): ResponseInterface
+    public static function fromObject(int $status, array $body): ResponseInterface
     {
         $content = json_encode($body, JSON_UNESCAPED_UNICODE);
         return self::from($status, 'application/json', $content);

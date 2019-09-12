@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace app\http\controller;
 
-use app\RequestUtils;
-use app\ResponseFactory;
 use app\domain\system\SystemService;
+use app\http\controller\base\ControllerTrait;
+use app\http\responder\JsonResponder;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -15,16 +15,19 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 class SystemController
 {
+    use ControllerTrait;
+
     /** @var SystemService */
-    private $service;
+    public $systemService;
 
     /**
      * SystemController constructor.
-     * @param SystemService $service
+     * @param SystemService $systemService
      */
-    public function __construct(SystemService $service)
+    public function __construct(SystemService $systemService, JsonResponder $responder)
     {
-        $this->service = $service;
+        $this->systemService = $systemService;
+        $this->responder = $responder;
     }
 
     /**
@@ -34,10 +37,9 @@ class SystemController
      */
     public function init(ServerRequestInterface $request): ResponseInterface
     {
-        $system = [];
-        // Init settings.
-        $system['settings'] = $this->service->initSettings();
-
-        return ResponseFactory::fromObject(200, $system);
+        $system = [
+            'settings' => $this->service->initSettings()
+        ];
+        return $this->responder($system);
     }
 }

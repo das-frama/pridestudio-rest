@@ -5,27 +5,31 @@ declare(strict_types=1);
 namespace app\http\controller;
 
 use app\RequestUtils;
-use app\ResponseFactory;
 use app\domain\setting\SettingService;
+use app\http\controller\base\ControllerTrait;
 use app\http\exception\RouteNotFoundException;
+use app\http\responder\JsonResponder;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
- * Settings class.
+ * SettingsController class.
  */
 class SettingsController
 {
+    use ControllerTrait;
+
     /** @var SettingService */
-    private $service;
+    public $settingService;
 
     /**
      * SettingsController constructor.
      * @param SettingService $service
      */
-    public function __construct(SettingService $service)
+    public function __construct(SettingService $settingService, JsonResponder $responder)
     {
-        $this->service = $service;
+        $this->settingService = $settingService;
+        $this->responder = $responder;
     }
 
     /**
@@ -35,8 +39,8 @@ class SettingsController
      */
     public function all(ServerRequestInterface $request): ResponseInterface
     {
-        $settings = $this->service->findAll();
-        return ResponseFactory::fromObject(200, $settings);
+        $settings = $this->settingService->findAll();
+        return $this->responder($settings);
     }
 
     /**
@@ -47,8 +51,8 @@ class SettingsController
     public function group(ServerRequestInterface $request): ResponseInterface
     {
         $group = RequestUtils::getPathSegment($request, 3);
-        $settings = $this->service->findByGroup($group);
-        return ResponseFactory::fromObject(200, $settings);
+        $settings = $this->settingService->findByGroup($group);
+        return $this->responder($settings);
     }
 
     /**
@@ -59,11 +63,10 @@ class SettingsController
     public function read(ServerRequestInterface $request): ResponseInterface
     {
         $key = RequestUtils::getPathSegment($request, 2);
-        $setting = $this->service->findByKey($key);
+        $setting = $this->settingService->findByKey($key);
         if ($setting === null) {
             throw new RouteNotFoundException();
         }
-
-        return ResponseFactory::fromObject(200, $setting);
+        return $this->responder($setting);
     }
 }

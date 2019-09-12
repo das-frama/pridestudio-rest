@@ -16,14 +16,12 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 class FileController
 {
-    /**
-     * @var FileService
-     */
-    private $service;
+    /** @var FileService */
+    public $fileService;
 
-    public function __construct(FileService $service)
+    public function __construct(FileService $fileService)
     {
-        $this->service = $service;
+        $this->fileService = $fileService;
     }
 
     /**
@@ -37,7 +35,7 @@ class FileController
         $entity = RequestUtils::getPathSegment($request, 3);
         $name = RequestUtils::getPathSegment($request, 4);
 
-        $file = $this->service->findByPath(join(DIRECTORY_SEPARATOR, [$type, $entity, $name]));
+        $file = $this->fileService->findByPath(join(DIRECTORY_SEPARATOR, [$type, $entity, $name]));
         if ($file === null) {
             throw new RouteNotFoundException();
         }

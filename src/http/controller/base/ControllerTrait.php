@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace app\http\controller\base;
 
+use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-class Controller
+trait ControllerTrait
 {
+    /** @var ResponderInterface */
+    public $responder;
+
     protected function getQueryParams(ServerRequestInterface $request): array
     {
         $params = $request->getQueryParams();
