@@ -7,7 +7,6 @@ namespace app\domain\record;
 use app\entity\PriceRule;
 use app\entity\Record;
 use app\entity\Reservation;
-use app\storage\mongodb\RecordRepository;
 use DateTimeImmutable;
 
 class RecordService
@@ -15,7 +14,7 @@ class RecordService
     /** @var RecordRepositoryInterface */
     private $recordRepo;
 
-    public function __construct(RecordRepository $recordRepo)
+    public function __construct(RecordRepositoryInterface $recordRepo)
     {
         $this->recordRepo = $recordRepo;
     }

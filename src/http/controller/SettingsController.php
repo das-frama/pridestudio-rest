@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace app\http\controller;
 
 use app\RequestUtils;
+use app\ResponseFactory;
 use app\domain\setting\SettingService;
 use app\http\controller\base\ControllerTrait;
-use app\http\responder\JsonResponder;
 use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -29,7 +29,7 @@ class SettingsController
      * SettingsController constructor.
      * @param SettingService $service
      */
-    public function __construct(SettingService $settingService, JsonResponder $responder)
+    public function __construct(SettingService $settingService, ResponderInterface $responder)
     {
         $this->settingService = $settingService;
         $this->responder = $responder;
@@ -43,7 +43,7 @@ class SettingsController
     public function all(ServerRequestInterface $request): ResponseInterface
     {
         $settings = $this->settingService->findAll();
-        return $this->responder($settings);
+        return $this->responder->success($settings);
     }
 
     /**
@@ -55,7 +55,7 @@ class SettingsController
     {
         $group = RequestUtils::getPathSegment($request, 3);
         $settings = $this->settingService->findByGroup($group);
-        return $this->responder($settings);
+        return $this->responder->success($settings);
     }
 
     /**
@@ -70,6 +70,6 @@ class SettingsController
         if ($setting === null) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, ['Setting not found.']);
         }
-        return $this->responder($setting);
+        return $this->responder->success($setting);
     }
 }

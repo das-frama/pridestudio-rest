@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace app\domain\setting;
 
 use app\entity\Setting;
-use app\storage\mongodb\SettingRepository;
 
 class SettingService
 {
@@ -14,7 +13,7 @@ class SettingService
      */
     private $settingRepo;
 
-    public function __construct(SettingRepository $repo)
+    public function __construct(SettingRepositoryInterface $repo)
     {
         $this->settingRepo = $repo;
     }

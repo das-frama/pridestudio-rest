@@ -6,14 +6,13 @@ namespace app\domain\hall;
 
 use app\entity\Hall;
 use app\entity\Service;
-use app\storage\mongodb\HallRepository;
 
 class HallService
 {
     /** @var HallRepositoryInterface */
-    public $hallRepo;
+    private $hallRepo;
 
-    public function __construct(HallRepository $hallRepo)
+    public function __construct(HallRepositoryInterface $hallRepo)
     {
         $this->hallRepo = $hallRepo;
     }

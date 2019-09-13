@@ -21,7 +21,7 @@ class HomeController
     /** @var ResponderInterface */
     private $responder;
 
-    public function __construct(JsonResponder $responder)
+    public function __construct(ResponderInterface $responder)
     {
         $this->responder = $responder;
     }

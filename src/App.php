@@ -7,7 +7,7 @@ namespace app;
 use app\http\router\Router;
 use app\http\router\RouterInterface;
 use app\http\middleware\CorsMiddleware;
-use app\http\responder\JsonResponder;
+use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Dice\Dice;
@@ -18,6 +18,9 @@ class App
     /** @var RouterInterface */
     private $router;
 
+    /** @var ResponderInterface */
+    private $responder;
+
     /**
      * App constructor.
      * @param array $config
@@ -25,11 +28,11 @@ class App
     public function __construct(array $config)
     {
         // DI.
-        $dice = new Dice();
-        $dice->addRules($config['rules']);
-
+        $dice = (new Dice())->addRules($config['rules']);
+        // Responder.
+        $this->responder = $dice->create(ResponderInterface::class);
         // Router.
-        $this->router = new Router($dice, new JsonResponder);
+        $this->router = new Router($dice, $this->responder);
         $this->router->load(new CorsMiddleware);
         foreach ($config['routes'] as $route) {
             $this->router->register($route[0], $route[1], $route[2]);
@@ -45,8 +48,7 @@ class App
         try {
             $response = $this->router->handle($this->addParsedBody($request));
         } catch (RuntimeException $e) {
-            $response = ResponseFactory::fromObject(ResponseFactory::INTERNAL_SERVER_ERROR, ['errors' => [$e->getMessage()]]);
-            $response = $response->withHeader('Access-Control-Allow-Origin', 'http://localhost:8080');
+            $response = $this->responder->error(ResponseFactory::INTERNAL_SERVER_ERROR, $e->getTrace());
         }
 
         $this->emit($response);

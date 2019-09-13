@@ -7,8 +7,6 @@ namespace app\domain\calendar;
 use app\domain\record\RecordRepositoryInterface;
 use app\domain\setting\SettingRepositoryInterface;
 use app\entity\Reservation;
-use app\storage\mongodb\RecordRepository;
-use app\storage\mongodb\SettingRepository;
 use MongoDB\BSON\ObjectId;
 use DateTime;
 
@@ -24,7 +22,7 @@ class CalendarService
     /** @var RecordRepositoryInterface */
     private $recordsRepo;
 
-    public function __construct(RecordRepository $recordsRepo, SettingRepository $settingsRepo)
+    public function __construct(RecordRepositoryInterface $recordsRepo, SettingRepositoryInterface $settingsRepo)
     {
         $this->recordsRepo = $recordsRepo;
         $this->settingsRepo = $settingsRepo;

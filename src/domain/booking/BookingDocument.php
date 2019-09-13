@@ -7,14 +7,8 @@ namespace app\domain\booking;
 class BookingDocument
 {
     /** @var int */
-    public $price;
+    public $price = 0;
 
     /** @var int */
-    public $prepayment;
-
-    public function __construct()
-    {
-        $this->price = 0;
-        $this->prepayment = 0;
-    }
+    public $prepayment = 0;
 }

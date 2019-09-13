@@ -6,7 +6,6 @@ namespace app\domain\system;
 
 use app\domain\setting\SettingRepositoryInterface;
 use app\entity\Setting;
-use app\storage\mongodb\SettingRepository;
 
 /**
  * SystemService class
@@ -16,7 +15,7 @@ class SystemService
     /** @var SettingRepositoryInterface */
     private $settingsRepo;
 
-    public function __construct(SettingRepository $settingsRepo)
+    public function __construct(SettingRepositoryInterface $settingsRepo)
     {
         $this->settingsRepo = $settingsRepo;
     }

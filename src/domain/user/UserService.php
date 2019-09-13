@@ -5,16 +5,13 @@ declare(strict_types=1);
 namespace app\domain\user;
 
 use app\entity\User;
-use app\storage\mongodb\UserRepository;
 
 class UserService
 {
-    /**
-     * @var UserRepositoryInterface
-     */
+    /** @var UserRepositoryInterface */
     private $userRepo;
 
-    public function __construct(UserRepository $userRepo)
+    public function __construct(UserRepositoryInterface $userRepo)
     {
         $this->userRepo = $userRepo;;
     }

@@ -16,14 +16,8 @@ class CalendarDocument
     public $week;
 
     /** @var array */
-    public $dates;
+    public $dates = [];
 
     /** @var array */
-    public $reservations;
-
-    public function __construct()
-    {
-        settype($this->dates, 'array');
-        settype($this->reservations, 'array');
-    }
+    public $reservations = [];
 }
