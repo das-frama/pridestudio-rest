@@ -8,13 +8,20 @@ use app\entity\Record;
 
 interface RecordRepositoryInterface
 {
-    public function findByID(string $id): ?Record;
+    /**
+     * Find record by id.
+     * @param array $filter
+     * @param array $include
+     * @return Record|null
+     */
+    public function findOne(array $filter, array $include = []): ?Record;
 
     /**
-     * @param int $limit
-     * @param int $offset
+     * Find all records by filter.
+     * @param array $filter
+     * @param array $include
      * @return Record[]
      */
-    public function findAll(int $limit, int $offset): array;
+    public function findAll(array $filter = [], array $include = []): array;
     public function save(): bool;
 }

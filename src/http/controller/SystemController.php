@@ -6,7 +6,6 @@ namespace app\http\controller;
 
 use app\domain\system\SystemService;
 use app\http\controller\base\ControllerTrait;
-use app\http\responder\JsonResponder;
 use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -27,8 +26,9 @@ class SystemController
     /**
      * SystemController constructor.
      * @param SystemService $systemService
+     * @param ResponderInterface $responder
      */
-    public function __construct(SystemService $systemService, JsonResponder $responder)
+    public function __construct(SystemService $systemService, ResponderInterface $responder)
     {
         $this->systemService = $systemService;
         $this->responder = $responder;

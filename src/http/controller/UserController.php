@@ -8,7 +8,6 @@ use app\RequestUtils;
 use app\ResponseFactory;
 use app\domain\user\UserService;
 use app\http\controller\base\ControllerTrait;
-use app\http\responder\JsonResponder;
 use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -27,7 +26,7 @@ class UserController
     /** @var ResponderInterface */
     private $responder;
 
-    public function __construct(UserService $userService, JsonResponder $responder)
+    public function __construct(UserService $userService, ResponderInterface $responder)
     {
         $this->userService = $userService;
         $this->responder = $responder;

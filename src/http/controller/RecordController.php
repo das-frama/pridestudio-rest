@@ -12,7 +12,7 @@ use app\domain\booking\BookingDocument;
 use app\domain\hall\HallService;
 use app\domain\validation\ValidationService;
 use app\http\controller\base\ControllerTrait;
-use app\http\responder\JsonResponder;
+use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -29,10 +29,10 @@ class RecordController
     /** @var HallService */
     private $hallService;
 
-    /** @var JsonResponder */
+    /** @var ResponderInterface */
     private $responder;
 
-    public function __construct(RecordService $recordService, HallService $hallService, JsonResponder $responder)
+    public function __construct(RecordService $recordService, HallService $hallService, ResponderInterface $responder)
     {
         $this->recordService = $recordService;
         $this->hallService = $hallService;
@@ -47,7 +47,8 @@ class RecordController
      */
     public function all(ServerRequestInterface $request): ResponseInterface
     {
-        $records = $this->recordService->findAll(0, 0);
+        $params = $this->getQueryParams($request);
+        $records = $this->recordService->findAll($params['include'] ?? []);
         return $this->responder->success($records);
     }
 
@@ -60,7 +61,8 @@ class RecordController
     public function read(ServerRequestInterface $request): ResponseInterface
     {
         $id = RequestUtils::getPathSegment($request, 2);
-        $record = $this->recordService->findByID($id);
+        $params = $this->getQueryParams($request);
+        $record = $this->recordService->findByID($id, $params['include'] ?? []);
         if ($record === null) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, ["Record not found."]);
         }
@@ -90,27 +92,24 @@ class RecordController
             'service_ids.$' => ['required', 'string:24:24'],
             'hall_id' => ['required', 'string:24:24'],
         ]);
-        // Throw exception if there are errors due to validation.
+        // Return errors if validation fails.
         if (!empty($errors)) {
             return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, $errors);
         }
         // Find hall.
-        $hall = $this->hallService->findByID($body->hall_id, [
-            'include' => '_id,base_price,prices'
-        ]);
+        $hall = $this->hallService->findByID($body->hall_id, ['id', 'base_price', 'prices']);
         if ($hall === null) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, ['Hall not found.']);
         }
         // Compose record entity.
         $record = new Record;
         $record->hall_id = $hall->id;
-        $record->hall = $hall;
         $record->reservations = $body->reservations;
         $record->service_ids = $body->service_ids;
 
         // Response with document. 
         $bookingDoc = new BookingDocument;
-        $bookingDoc->price = $this->recordService->calculatePrice($record);
+        $bookingDoc->price = $this->recordService->calculatePrice($record, $hall);
         // $bookingDoc->prepayment = $bookingDoc->price * 0.5;
         return $this->responder->success($bookingDoc);
     }

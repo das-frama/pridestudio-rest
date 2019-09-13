@@ -8,7 +8,6 @@ use app\RequestUtils;
 use app\domain\calendar\CalendarService;
 use app\domain\hall\HallService;
 use app\http\controller\base\ControllerTrait;
-use app\http\responder\JsonResponder;
 use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -33,9 +32,9 @@ class CalendarController
      * CalendarController constructor.
      * @param CalendarService $calendarService
      * @param HallService $hallService
-     * @param JsonResponder $responder
+     * @param ResponderInterface $responder
      */
-    public function __construct(CalendarService $calendarService, HallService $hallService, JsonResponder $responder)
+    public function __construct(CalendarService $calendarService, HallService $hallService, ResponderInterface $responder)
     {
         $this->calendarService = $calendarService;
         $this->hallService = $hallService;

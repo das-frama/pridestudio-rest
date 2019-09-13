@@ -42,7 +42,8 @@ class SettingsController
      */
     public function all(ServerRequestInterface $request): ResponseInterface
     {
-        $settings = $this->settingService->findAll();
+        $params = $this->getQueryParams($request);
+        $settings = $this->settingService->findAll($params['include'] ?? []);
         return $this->responder->success($settings);
     }
 
@@ -54,7 +55,8 @@ class SettingsController
     public function group(ServerRequestInterface $request): ResponseInterface
     {
         $group = RequestUtils::getPathSegment($request, 3);
-        $settings = $this->settingService->findByGroup($group);
+        $params = $this->getQueryParams($request);
+        $settings = $this->settingService->findByGroup($group, $params['include'] ?? []);
         return $this->responder->success($settings);
     }
 
@@ -66,7 +68,8 @@ class SettingsController
     public function read(ServerRequestInterface $request): ResponseInterface
     {
         $key = RequestUtils::getPathSegment($request, 2);
-        $setting = $this->settingService->findByKey($key);
+        $params = $this->getQueryParams($request);
+        $setting = $this->settingService->findByKey($key, $params['include'] ?? []);
         if ($setting === null) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, ['Setting not found.']);
         }

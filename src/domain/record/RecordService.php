@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\domain\record;
 
+use app\entity\Hall;
 use app\entity\PriceRule;
 use app\entity\Record;
 use app\entity\Reservation;
@@ -22,47 +23,48 @@ class RecordService
     /**
      * Get record by id.
      * @param string $id
+     * @param array $include
      * @return Record|null
      */
-    public function findByID(string $id): ?Record
+    public function findByID(string $id, array $include = []): ?Record
     {
-        return $this->recordRepo->findByID($id);
+        return $this->recordRepo->findOne(['id' => $id], $include);
     }
 
     /**
      * Get all records.
-     * @param int $limit
-     * @param int $offset
+     * @param array $include
      * @return Record[]
      */
-    public function findAll(int $limit, int $offset): array
+    public function findAll(array $include = []): array
     {
-        return $this->recordRepo->findAll($limit, $offset);
+        return $this->recordRepo->findAll([], $include);
     }
 
     /**
      * Calculate price for reservations.
      * @param Records $record
+     * @param Hall $hall
      * @return int
      */
-    public function calculatePrice(Record $record): int
+    public function calculatePrice(Record $record, Hall $hall): int
     {
-        if ($record->hall === null || empty($record->reservations)) {
+        if (empty($record->reservations)) {
             return 0;
         }
         $amount = 0;
         $totalLength = 0;
-        $calculdateBasePrice = empty($record->hall->prices);
+        $calculateBasePrice = empty($hall->prices);
 
         // Calculate reservations.
         foreach ($record->reservations as $reservation) {
             $totalLength += $reservation->length;
-            if ($calculdateBasePrice) {
-                $amount += $record->hall->base_price * intval($reservation->length / 60);
+            if ($calculateBasePrice) {
+                $amount += $hall->base_price * intval($reservation->length / 60);
                 continue;
             }
 
-            foreach ($record->hall->prices as $price) {
+            foreach ($hall->prices as $price) {
                 $serviceIDs = array_intersect($record->service_ids, $price['service_ids']);
                 if (empty($serviceIDs)) {
                     continue;

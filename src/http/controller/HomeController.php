@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace app\http\controller;
 
 use app\http\controller\base\ControllerTrait;
-use app\http\responder\JsonResponder;
 use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;

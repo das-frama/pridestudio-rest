@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace app\storage\mongodb;
 
 use app\entity\Record;
-use app\domain\record\RecordRepositoryInterface;
 use app\entity\Reservation;
-use MongoDB\BSON\ObjectId;
+use app\domain\record\RecordRepositoryInterface;
 use MongoDB\Collection;
 use MongoDB\Client;
 
@@ -17,16 +16,18 @@ use MongoDB\Client;
  */
 class RecordRepository implements RecordRepositoryInterface
 {
+    use RepositoryTrait;
+
     /** @var Collection */
     private $collection;
 
     /** @var array */
-    private $options = [];
+    private $defaultOptions = [];
 
     public function __construct(Client $client)
     {
         $this->collection = $client->selectDatabase('pridestudio')->selectCollection('records');
-        $this->options = [
+        $this->defaultOptions = [
             'typeMap' => [
                 'root' => Record::class,
                 'document' => 'array',
@@ -38,29 +39,22 @@ class RecordRepository implements RecordRepositoryInterface
     }
 
     /**
-     * Find a record from storage by id.
-     * @param string $id
-     * @return Record|null
+     * {@inheritDoc}
      */
-    public function findByID(string $id): ?Record
+    public function findOne(array $filter, array $include = []): ?Record
     {
-        $record = $this->collection->findOne(['_id' => new ObjectId($id)], $this->options);
-        if ($record instanceof Record) {
-            return $record;
-        }
-
-        return null;
+        return $this->internalFindOne($filter, $this->defaultOptions, $include);
     }
 
     /**
      * Find all records from storage.
-     * @param int $limit
-     * @param int $offset
+     * @param array $filter
+     * @param array $include
      * @return Record[]
      */
-    public function findAll(int $limit, int $offset): array
+    public function findAll(array $filter = [], array $include = []): array
     {
-        return [];
+        return $this->internalFindAll($filter, $this->defaultOptions, $include);
     }
 
     /**
@@ -70,16 +64,12 @@ class RecordRepository implements RecordRepositoryInterface
      */
     public function findReservations(array $filter): array
     {
-        $result = [];
-        $this->options['projection'] = ['reservations' => 1];
-        $cursor = $this->collection->find($filter, $this->options);
-        foreach ($cursor as $record) {
-            if ($record instanceof Record) {
-                $result = array_merge($result, $record->reservations);
-            }
-        }
-
-        return $result;
+        $options = $this->defaultOptions;
+        $options['projection'] = ['reservations' => 1];
+        $cursor = $this->collection->find($this->convertFilter($filter), $options);
+        return array_map(function (Record $record) {
+            return $record->reservations;
+        }, $cursor->toArray());
     }
 
     /**

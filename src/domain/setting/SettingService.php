@@ -20,11 +20,12 @@ class SettingService
 
     /**
      * Get all settings.
+     * @param array $include
      * @return Setting[]
      */
-    public function findAll(): array
+    public function findAll(array $include = []): array
     {
-        return $this->settingRepo->findAll(true);
+        return $this->settingRepo->findAll([], $include);
     }
 
     /**
@@ -32,18 +33,19 @@ class SettingService
      * @param string $name
      * @return Setting[]
      */
-    public function findByGroup(string $name): array
+    public function findByGroup(string $name, array $include = []): array
     {
-        return $this->settingRepo->findByRegEx("^{$name}\_", true);
+        return $this->settingRepo->findByRegEx("^{$name}\_", true, $include);
     }
 
     /**
      * Get setting by key.
      * @param string $key
+     * @param array $include
      * @return Setting|null
      */
-    public function findByKey(string $key): ?Setting
+    public function findByKey(string $key, array $include = []): ?Setting
     {
-        return $this->settingRepo->findByKey($key, true);
+        return $this->settingRepo->findOne(['key' => $key], $include);
     }
 }

@@ -23,18 +23,15 @@ class SystemService
     public function initSettings(): bool
     {
         // Prepare settings.
-        $array = require(APP_DIR . '/data/init/settings.php');
-        $settings = [];
-        foreach ($array as $item) {
+        $settings = array_map(function ($item) {
             $setting = new Setting;
             $setting->key = $item['key'];
             $setting->value = $item['value'];
             $setting->is_active = true;
-            $settings[] = $setting;
-        }
+            return $setting;
+        }, require(APP_DIR . '/data/init/settings.php'));
         // Check if settings already exists.
         $inserted = $this->settingsRepo->insertManyIfNotExists($settings);
-
         return $inserted > 0;
     }
 }

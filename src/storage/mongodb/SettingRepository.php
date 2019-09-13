@@ -16,11 +16,13 @@ use MongoDB\BSON\Regex;
  */
 class SettingRepository implements SettingRepositoryInterface
 {
+    use RepositoryTrait;
+
     /** @var Collection */
     private $collection;
 
     /** @var array */
-    private $options;
+    private $defaultOptions;
 
     /**
      * SettingRepository constructor.
@@ -29,7 +31,7 @@ class SettingRepository implements SettingRepositoryInterface
     public function __construct(Client $client)
     {
         $this->collection = $client->selectDatabase('pridestudio')->selectCollection('settings');
-        $this->options = [
+        $this->defaultOptions = [
             'typeMap' => [
                 'root' => Setting::class,
                 'document' => 'array',
@@ -41,68 +43,32 @@ class SettingRepository implements SettingRepositoryInterface
      * Find a setting by regular expression.
      * @param string $regex
      * @param bool $onlyActive
+     * @param array $include
      * @return Setting[]
      */
-    public function findByRegEx(string $regex, bool $onlyActive): array
+    public function findByRegEx(string $regex, bool $onlyActive, array $include = []): array
     {
         $filter = ['key' => new Regex($regex, 'i')];
         if ($onlyActive) {
             $filter['is_active'] = true;
         }
-
-        $result = [];
-        $cursor = $this->collection->find($filter, $this->options);
-        foreach ($cursor as $setting) {
-            if ($setting instanceof Setting) {
-                $result[] = $setting;
-            }
-        }
-
-        return $result;
+        return $this->internalFindAll($filter, $this->defaultOptions, $include);
     }
 
     /**
-     * Find a setting by key.
-     * @param string $key
-     * @param bool $onlyActive
-     * @return Setting|null
+     * {@inheritDoc}
      */
-    public function findByKey(string $key, bool $onlyActive): ?Setting
+    public function findOne(array $filter, array $include = []): ?Setting
     {
-        $filter = ['key' => $key];
-        if ($onlyActive) {
-            $filter['is_active'] = true;
-        }
-
-        $setting = $this->collection->findOne($filter, $this->options);
-        if ($setting instanceof Setting) {
-            return $setting;
-        }
-
-        return null;
+        return $this->internalFindOne($filter, $this->defaultOptions, $include);
     }
 
     /**
-     * Find all settings.
-     * @param bool $onlyActive
-     * @return Setting[]
+     * {@inheritDoc}
      */
-    public function findAll(bool $onlyActive): array
+    public function findAll(array $filter = [], array $include = []): array
     {
-        $filter = [];
-        if ($onlyActive) {
-            $filter['is_active'] = true;
-        }
-
-        $result = [];
-        $cursor = $this->collection->find($filter, $this->options);
-        foreach ($cursor as $setting) {
-            if ($setting instanceof Setting) {
-                $result[] = $setting;
-            }
-        }
-
-        return $result;
+        return $this->internalFindAll($filter, $this->defaultOptions, $include);
     }
 
     /**

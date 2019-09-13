@@ -20,10 +20,10 @@ class HallRepository implements HallRepositoryInterface
     use RepositoryTrait;
 
     /** @var Collection */
-    public $collection;
+    private $collection;
 
     /** @var array */
-    public $defaultOptions = [];
+    private $defaultOptions = [];
 
     /** 
      * @param Client $client

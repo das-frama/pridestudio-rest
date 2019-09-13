@@ -8,7 +8,6 @@ use app\RequestUtils;
 use app\ResponseFactory;
 use app\domain\hall\HallService;
 use app\http\controller\base\ControllerTrait;
-use app\http\responder\JsonResponder;
 use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -29,9 +28,9 @@ class HallController
     /**
      * HallController constructor.
      * @param HallService $hallService
-     * @param JsonResponder $responder
+     * @param ResponderInterface $responder
      */
-    public function __construct(HallService $hallService, JsonResponder $responder)
+    public function __construct(HallService $hallService, ResponderInterface $responder)
     {
         $this->hallService = $hallService;
         $this->responder = $responder;
