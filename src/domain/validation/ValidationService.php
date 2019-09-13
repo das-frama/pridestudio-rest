@@ -4,18 +4,21 @@ declare(strict_types=1);
 
 namespace app\domain\validation;
 
+use Mongodb\BSON\ObjectId;
+
 class ValidationService
 {
-    const VALIDATION_REQUIRED = 'Отсутствует обязательное поле {property}.';
-    const VALIDATION_STRING = 'Поле {property} должно быть строкой.';
-    const VALIDATION_STRING_MIN = 'Минимальная длина значения {min}.';
-    const VALIDATION_STRING_MAX = 'Максимальная длина значения {max}.';
-    const VALIDATION_INT = 'Поле {property} должно быть числом.';
-    const VALIDATION_INT_MIN = 'Минимальная длина значения {min}.';
-    const VALIDATION_INT_MAX = 'Максимальная длина значения {max}.';
-    const VALIDATION_ARRAY = 'Поле {property} должно быть массивом.';
-    const VALIDATION_ARRAY_MIN = 'Минимальная длина массива {min}.';
-    const VALIDATION_ARRAY_MAX = 'Максимальная длина массива {max}.';
+    const VALIDATION_REQUIRED = "Отсутствует обязательное поле '%s'.";
+    const VALIDATION_STRING = "Поле '%s' должно быть строкой.";
+    const VALIDATION_STRING_MIN = "Минимальная допустимая длина строки должна быть не меньше %d символов.";
+    const VALIDATION_STRING_MAX = "Максимальная допустимая длина строки должна быть не больше %d символов.";
+    const VALIDATION_INT = "Поле '%s' должно быть числом.";
+    const VALIDATION_INT_MIN = "Минимальная допустимая длина значения должна быть не меньше %d.";
+    const VALIDATION_INT_MAX = "Максимальная допустимая длина значения должна быть не больше %d.";
+    const VALIDATION_ARRAY = "Поле '%s' должно быть массивом.";
+    const VALIDATION_ARRAY_MIN = "Минимальная допустимая длина массива должна быть не меньше %d элементов.";
+    const VALIDATION_ARRAY_MAX = "Максимальная допустимая длина массива должна быть не больше %d элементов.";
+    const VALIDATION_MONGO_ID = "Некорректный id.";
 
     public function validate(object $entity, array $rules): array
     {
@@ -58,73 +61,75 @@ class ValidationService
         return $errors;
     }
 
-    public function validateArray($value, array $params): string
+    /**
+     * Validate array value.
+     * @param array $value
+     * @param int $min
+     * @param int $max
+     * @return string|null
+     */
+    public function validateArray(array $value, int $min = 0, int $max = 0): ?string
     {
-        if (!is_array($value)) {
-            return static::VALIDATION_ARRAY;
+        $len = count($value);
+        if ($min > 0 && $len < $min) {
+            return sprintf(static::VALIDATION_ARRAY_MIN, $min);
         }
-
-        $count = count($params);
-        if ($count == 1) {
-            if (count($value) > $params[0]) {
-                return static::VALIDATION_ARRAY_MAX;
-            }
-        } elseif ($count == 2) {
-            if (count($value) < $params[0]) {
-                return static::VALIDATION_ARRAY_MIN;
-            }
-            if (count($value) > $params[1]) {
-                return static::VALIDATION_ARRAY_MAX;
-            }
+        if ($max > 0 && $len > $max) {
+            return sprintf(static::VALIDATION_ARRAY_MAX, $max);
         }
-
-        return "";
+        return null;
     }
 
-    public function validateString($value, array $params): string
+    /**
+     * Validate string with params.
+     * @param string $value
+     * @param int $min
+     * @param int $max
+     * @return string|null
+     */
+    public function validateString(string $value, int $min = 0, int $max = 0): ?string
     {
-        if (!is_string($value)) {
-            return static::VALIDATION_STRING;
+        $len = strlen($value);
+        if ($min > 0 && $len < $min) {
+            return sprintf(static::VALIDATION_STRING_MIN, $min);
         }
-
-        $count = count($params);
-        if ($count == 1) {
-            if (strlen($value) > $params[0]) {
-                return static::VALIDATION_STRING_MAX;
-            }
-        } elseif ($count == 2) {
-            if (strlen($value) < $params[0]) {
-                return static::VALIDATION_STRING_MIN;
-            }
-            if (strlen($value) > $params[1]) {
-                return static::VALIDATION_STRING_MAX;
-            }
+        if ($max > 0 && $len > $max) {
+            return sprintf(static::VALIDATION_STRING_MAX, $max);
         }
-
-        return "";
+        return null;
     }
 
-    public function validateInt($value, array $params): string
+    /**
+     * Valdate mongodb id.
+     * @param string $id
+     * @return string|null
+     */
+    public function validateMongoId(string $id): ?string
     {
-        if (!is_int($value)) {
-            return static::VALIDATION_INT;
+        try {
+            new ObjectId($id);
+            return null;
+        } catch (\Exception $e) {
+            return static::VALIDATION_MONGO_ID;
         }
+    }
 
-        $count = count($params);
-        if ($count == 1) {
-            if (count($value) > $params[0]) {
-                return static::VALIDATION_INT_MAX;
-            }
-        } elseif ($count == 2) {
-            if (count($value) < $params[0]) {
-                return static::VALIDATION_INT_MIN;
-            }
-            if (count($value) > $params[1]) {
-                return static::VALIDATION_INT_MAX;
-            }
+    /**
+     * Validate integer value.
+     * @param int $value
+     * @param int $min
+     * @param int $max
+     * @return string|null
+     */
+    public function validateInt(int $value, int $min = 0, int $max = 0): ?string
+    {
+        if ($min > 0 && $value < $min) {
+            return sprintf(static::VALIDATION_INT_MIN, $min);
         }
-
-        return "";
+        if ($max > 0 && $value > $max) {
+            return sprintf(static::VALIDATION_INT_MAX, $max);
+        }
+        return null;
     }
 
     private function validateVar($variable, array $rules): array

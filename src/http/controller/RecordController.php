@@ -61,6 +61,13 @@ class RecordController
     public function read(ServerRequestInterface $request): ResponseInterface
     {
         $id = RequestUtils::getPathSegment($request, 2);
+        $validation = new ValidationService;
+        $errors = $validation->validateMongoId($id);
+        // Return errors if validation fails.
+        if (!empty($errors)) {
+            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, [$errors]);
+        }
+
         $params = $this->getQueryParams($request);
         $record = $this->recordService->findByID($id, $params['include'] ?? []);
         if ($record === null) {
