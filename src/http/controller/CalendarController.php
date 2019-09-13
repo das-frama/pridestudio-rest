@@ -8,8 +8,8 @@ use app\RequestUtils;
 use app\domain\calendar\CalendarService;
 use app\domain\hall\HallService;
 use app\http\controller\base\ControllerTrait;
-use app\http\exception\RouteNotFoundException;
 use app\http\responder\JsonResponder;
+use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -21,10 +21,13 @@ class CalendarController
     use ControllerTrait;
 
     /** @var CalendarService */
-    public $calendarService;
+    private $calendarService;
 
     /** @var HallService */
-    public $hallService;
+    private $hallService;
+
+    /** @var ResponderInterface */
+    private $reponder;
 
     /**
      * CalendarController constructor.
@@ -49,7 +52,7 @@ class CalendarController
         $hallSlug = RequestUtils::getPathSegment($request, 2);
         $hallID = $this->hallService->getIDBySlug($hallSlug);
         if ($hallID === null) {
-            throw new RouteNotFoundException();
+            return $this->responder->error(ResponseFactory::NOT_FOUND, ["Hall not found."]);
         }
         $document = $this->calendarService->weekdays($hallID);
         return $this->responder->success($document);
@@ -65,7 +68,7 @@ class CalendarController
         $hallSlug = RequestUtils::getPathSegment($request, 2);
         $hallID = $this->hallService->getIDBySlug($hallSlug);
         if ($hallID === null) {
-            throw new RouteNotFoundException();
+            return $this->responder->error(ResponseFactory::NOT_FOUND, ["Hall not found."]);
         }
         $year = (int) RequestUtils::getPathSegment($request, 3);
         $document = $this->calendarService->weekdays($hallID, $year);
@@ -82,7 +85,7 @@ class CalendarController
         $hallSlug = RequestUtils::getPathSegment($request, 2);
         $hallID = $this->hallService->getIDBySlug($hallSlug);
         if ($hallID === null) {
-            throw new RouteNotFoundException();
+            return $this->responder->error(ResponseFactory::NOT_FOUND, ["Hall not found."]);
         }
         $year = (int) RequestUtils::getPathSegment($request, 3);
         $week = (int) RequestUtils::getPathSegment($request, 4);

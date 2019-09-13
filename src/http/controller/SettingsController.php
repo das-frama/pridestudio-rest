@@ -7,8 +7,8 @@ namespace app\http\controller;
 use app\RequestUtils;
 use app\domain\setting\SettingService;
 use app\http\controller\base\ControllerTrait;
-use app\http\exception\RouteNotFoundException;
 use app\http\responder\JsonResponder;
+use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -20,7 +20,10 @@ class SettingsController
     use ControllerTrait;
 
     /** @var SettingService */
-    public $settingService;
+    private $settingService;
+
+    /** @var ResponderInterface */
+    private $responder;
 
     /**
      * SettingsController constructor.
@@ -65,7 +68,7 @@ class SettingsController
         $key = RequestUtils::getPathSegment($request, 2);
         $setting = $this->settingService->findByKey($key);
         if ($setting === null) {
-            throw new RouteNotFoundException();
+            return $this->responder->error(ResponseFactory::NOT_FOUND, ['Setting not found.']);
         }
         return $this->responder($setting);
     }

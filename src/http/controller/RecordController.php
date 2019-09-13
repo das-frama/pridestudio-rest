@@ -5,16 +5,13 @@ declare(strict_types=1);
 namespace app\http\controller;
 
 use app\RequestUtils;
+use app\ResponseFactory;
+use app\entity\Record;
 use app\domain\record\RecordService;
 use app\domain\booking\BookingDocument;
 use app\domain\hall\HallService;
 use app\domain\validation\ValidationService;
-use app\entity\Record;
 use app\http\controller\base\ControllerTrait;
-use app\http\exception\BadRequestException;
-use app\http\exception\ResourceNotFoundException;
-use app\http\exception\RouteNotFoundException;
-use app\http\exception\UprocessableEntityException;
 use app\http\responder\JsonResponder;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -27,10 +24,13 @@ class RecordController
     use ControllerTrait;
 
     /** @var RecordService */
-    public $recordService;
+    private $recordService;
 
     /** @var HallService */
-    public $hallService;
+    private $hallService;
+
+    /** @var JsonResponder */
+    private $responder;
 
     public function __construct(RecordService $recordService, HallService $hallService, JsonResponder $responder)
     {
@@ -62,7 +62,7 @@ class RecordController
         $id = RequestUtils::getPathSegment($request, 2);
         $record = $this->recordService->findByID($id);
         if ($record === null) {
-            throw new RouteNotFoundException();
+            return $this->responder->error(ResponseFactory::NOT_FOUND, ["Record not found."]);
         }
         return $this->responder->success($record);
     }
@@ -78,7 +78,7 @@ class RecordController
         // Get body from request.
         $body = $request->getParsedBody();
         if ($body === null) {
-            throw new BadRequestException();
+            return $this->responder->error(ResponseFactory::BAD_REQUEST, ["Very bad request."]);
         }
         // Validate data.
         $validator = new ValidationService;
@@ -92,16 +92,14 @@ class RecordController
         ]);
         // Throw exception if there are errors due to validation.
         if (!empty($errors)) {
-            $key = array_key_first($errors);
-            $message = implode(', ', $errors[$key]);
-            throw new UprocessableEntityException($message);
+            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, $errors);
         }
         // Find hall.
         $hall = $this->hallService->findByID($body->hall_id, [
             'include' => '_id,base_price,prices'
         ]);
         if ($hall === null) {
-            throw new ResourceNotFoundException("Hall not found.");
+            return $this->responder->error(ResponseFactory::NOT_FOUND, ['Hall not found.']);
         }
         // Compose record entity.
         $record = new Record;

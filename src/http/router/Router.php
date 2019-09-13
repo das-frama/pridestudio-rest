@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace app\http\router;
 
 use app\RequestUtils;
-use app\http\exception\RouteNotFoundException;
+use app\ResponseFactory;
+use app\http\responder\JsonResponder;
+use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -30,9 +32,13 @@ class Router implements RouterInterface
     /** @var Dice */
     private $dice;
 
-    public function __construct(Dice $dice)
+    /** @var ResponderInterface */
+    private $responder;
+
+    public function __construct(Dice $dice, JsonResponder $responder)
     {
         $this->dice = $dice;
+        $this->responder = $responder;
         $this->routes = $this->loadPathTree();
     }
 
@@ -88,8 +94,8 @@ class Router implements RouterInterface
         }
 
         $routeNumbers = $this->getRouteNumbers($request);
-        if (count($routeNumbers) == 0) {
-            throw new RouteNotFoundException();
+        if (count($routeNumbers) === 0) {
+            return $this->responder->error(ResponseFactory::NOT_FOUND, ['Route not found.']);
         }
 
         try {
@@ -97,7 +103,7 @@ class Router implements RouterInterface
             $controller = $this->dice->create($class);
             $response = call_user_func([$controller, $method], $request);
         } catch (\MongoDB\Exception\RuntimeException $e) {
-            throw new RuntimeException($e->getMessage(), $e->getCode(), $e);
+            throw new RuntimeException($e->getMessage(), $e->getCode());
         }
 
         return $response;

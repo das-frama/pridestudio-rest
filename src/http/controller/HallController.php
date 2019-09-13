@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace app\http\controller;
 
 use app\RequestUtils;
+use app\ResponseFactory;
 use app\domain\hall\HallService;
 use app\http\controller\base\ControllerTrait;
-use app\http\exception\ResourceNotFoundException;
 use app\http\responder\JsonResponder;
+use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -20,7 +21,10 @@ class HallController
     use ControllerTrait;
 
     /** @var HallService */
-    public $hallService;
+    private $hallService;
+
+    /** @var ResponderInterface */
+    private $responder;
 
     /**
      * HallController constructor.
@@ -58,7 +62,7 @@ class HallController
         $params = $this->getQueryParams($request);
         $hall = $this->hallService->findBySlug($slug, $params['include'] ?? []);
         if ($hall === null) {
-            throw new ResourceNotFoundException("Hall not found.");
+            return $this->responder->error(ResponseFactory::NOT_FOUND, ["Hall not found."]);
         }
         return $this->responder->success($hall);
     }
@@ -73,7 +77,7 @@ class HallController
     {
         $slug = RequestUtils::getPathSegment($request, 2);
         if (!$this->hallService->isExists($slug)) {
-            throw new ResourceNotFoundException("Hall not found.");
+            return $this->responder->error(ResponseFactory::NOT_FOUND, ["Hall not found."]);
         }
         $params = $this->getQueryParams($request);
         $services = $this->hallService->findServices(

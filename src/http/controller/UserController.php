@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace app\http\controller;
 
 use app\RequestUtils;
+use app\ResponseFactory;
 use app\domain\user\UserService;
 use app\http\controller\base\ControllerTrait;
-use app\http\exception\RouteNotFoundException;
 use app\http\responder\JsonResponder;
+use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -21,7 +22,10 @@ class UserController
     use ControllerTrait;
 
     /** @var UserService */
-    public $userService;
+    private $userService;
+
+    /** @var ResponderInterface */
+    private $responder;
 
     public function __construct(UserService $userService, JsonResponder $responder)
     {
@@ -37,7 +41,7 @@ class UserController
     public function all(ServerRequestInterface $request): ResponseInterface
     {
         $users = $this->userService->findAll(0, 0);
-        return $this->responder($users);
+        return $this->responder->success($users);
     }
 
     /**
@@ -50,8 +54,8 @@ class UserController
         $id = RequestUtils::getPathSegment($request, 2);
         $user = $this->userService->findByID($id);
         if ($user === null) {
-            throw new RouteNotFoundException();
+            return $this->responder->error(ResponseFactory::NOT_FOUND, ['User not found.']);
         }
-        return $this->responder($user);
+        return $this->responder->success($user);
     }
 }

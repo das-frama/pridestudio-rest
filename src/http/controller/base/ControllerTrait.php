@@ -9,9 +9,6 @@ use Psr\Http\Message\ServerRequestInterface;
 
 trait ControllerTrait
 {
-    /** @var ResponderInterface */
-    public $responder;
-
     protected function getQueryParams(ServerRequestInterface $request): array
     {
         $params = $request->getQueryParams();

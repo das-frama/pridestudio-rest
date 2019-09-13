@@ -7,7 +7,6 @@ namespace app\http\controller;
 use app\RequestUtils;
 use app\ResponseFactory;
 use app\domain\file\FileService;
-use app\http\exception\RouteNotFoundException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -17,7 +16,7 @@ use Psr\Http\Message\ServerRequestInterface;
 class FileController
 {
     /** @var FileService */
-    public $fileService;
+    private $fileService;
 
     public function __construct(FileService $fileService)
     {
@@ -37,7 +36,7 @@ class FileController
 
         $file = $this->fileService->findByPath(join(DIRECTORY_SEPARATOR, [$type, $entity, $name]));
         if ($file === null) {
-            throw new RouteNotFoundException();
+            return ResponseFactory::fromStatus(ResponseFactory::NOT_FOUND);
         }
 
         return ResponseFactory::fromFile($file);

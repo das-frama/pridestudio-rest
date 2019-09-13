@@ -7,6 +7,7 @@ namespace app\http\controller;
 use app\domain\system\SystemService;
 use app\http\controller\base\ControllerTrait;
 use app\http\responder\JsonResponder;
+use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -18,7 +19,10 @@ class SystemController
     use ControllerTrait;
 
     /** @var SystemService */
-    public $systemService;
+    private $systemService;
+
+    /** @var ResponderInterface */
+    private $responder;
 
     /**
      * SystemController constructor.
@@ -40,6 +44,6 @@ class SystemController
         $system = [
             'settings' => $this->service->initSettings()
         ];
-        return $this->responder($system);
+        return $this->responder->success($system);
     }
 }

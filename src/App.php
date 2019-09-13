@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace app;
 
-use app\http\exception\base\HttpException;
 use app\http\router\Router;
 use app\http\router\RouterInterface;
 use app\http\middleware\CorsMiddleware;
+use app\http\responder\JsonResponder;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Dice\Dice;
@@ -29,7 +29,7 @@ class App
         $dice->addRules($config['rules']);
 
         // Router.
-        $this->router = new Router($dice);
+        $this->router = new Router($dice, new JsonResponder);
         $this->router->load(new CorsMiddleware);
         foreach ($config['routes'] as $route) {
             $this->router->register($route[0], $route[1], $route[2]);
@@ -44,11 +44,8 @@ class App
     {
         try {
             $response = $this->router->handle($this->addParsedBody($request));
-        } catch (HttpException $e) {
-            $response = ResponseFactory::fromObject($e->getCode(), ['error' => $e->getMessage()]);
-            $response = $response->withHeader('Access-Control-Allow-Origin', 'http://localhost:8080');
         } catch (RuntimeException $e) {
-            $response = ResponseFactory::fromObject(500, $e->getMessage());
+            $response = ResponseFactory::fromObject(ResponseFactory::INTERNAL_SERVER_ERROR, ['errors' => [$e->getMessage()]]);
             $response = $response->withHeader('Access-Control-Allow-Origin', 'http://localhost:8080');
         }
 
@@ -62,7 +59,6 @@ class App
     public function emit(ResponseInterface $response): void
     {
         // Emit headers iteratively:
-
         foreach ($response->getHeaders() as $name => $values) {
             foreach ($values as $value) {
                 header(sprintf('%s: %s', $name, $value), false);
