@@ -48,7 +48,7 @@ class App
         try {
             $response = $this->router->handle($this->addParsedBody($request));
         } catch (RuntimeException $e) {
-            $response = $this->responder->error(ResponseFactory::INTERNAL_SERVER_ERROR, $e->getTrace());
+            $response = $this->responder->error(ResponseFactory::INTERNAL_SERVER_ERROR, [$e->getMessage()]);
         }
 
         $this->emit($response);
