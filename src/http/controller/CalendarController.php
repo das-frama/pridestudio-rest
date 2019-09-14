@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\http\controller;
 
 use app\RequestUtils;
+use app\ResponseFactory;
 use app\domain\calendar\CalendarService;
 use app\domain\hall\HallService;
 use app\http\controller\base\ControllerTrait;
