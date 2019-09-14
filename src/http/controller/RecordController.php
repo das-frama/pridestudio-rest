@@ -62,10 +62,10 @@ class RecordController
     {
         $id = RequestUtils::getPathSegment($request, 2);
         $validation = new ValidationService;
-        $errors = $validation->validateMongoId($id);
+        $err = $validation->validateMongoId($id);
         // Return errors if validation fails.
-        if (!empty($errors)) {
-            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, [$errors]);
+        if (!empty($err)) {
+            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, [$err]);
         }
 
         $params = $this->getQueryParams($request);
@@ -92,12 +92,12 @@ class RecordController
         // Validate data.
         $validator = new ValidationService;
         $errors = $validator->validate($body, [
-            'reservations' => ['required', 'array'],
+            'reservations' => ['required', 'array:1:24'],
             'reservations.$.start_at' => ['required', 'int'],
             'reservations.$.length' => ['required', 'int'],
-            'service_ids' => ['required', 'array'],
-            'service_ids.$' => ['required', 'string:24:24'],
-            'hall_id' => ['required', 'string:24:24'],
+            'service_ids' => ['array'],
+            'service_ids.$' => ['mongoid'],
+            'hall_id' => ['required', 'mongoid'],
         ]);
         // Return errors if validation fails.
         if (!empty($errors)) {

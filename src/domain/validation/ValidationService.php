@@ -20,45 +20,106 @@ class ValidationService
     const VALIDATION_ARRAY_MAX = "Максимальная допустимая длина массива должна быть не больше %d элементов.";
     const VALIDATION_MONGO_ID = "Некорректный id.";
 
+    /**
+     * Validate an object against rules.
+     * @param object $entity
+     * @param array $rules
+     * @return array
+     */
     public function validate(object $entity, array $rules): array
     {
         $errors = [];
         foreach ($rules as $property => $rule) {
-            // Arrays of object.
-            if (strpos($property, '.$.') !== false) {
-                $parts = explode('.$.', $property);
-                foreach ($entity->{$parts[0]} as $element) {
-                    $err = $this->validateVar($element->{$parts[1]} ?? null, $rule);
-                    if (!empty($err)) {
-                        $errors[$property] = $err;
-                    }
+            $err = $this->validateRule($entity, $property, $rule);
+            if ($err !== null) {
+                $errors[] = $err;
+            }
+        }
+        return $errors;
+    }
+
+    /**
+     * Validate an object against single rule.
+     * @param object $entity
+     * @param string $property
+     * @param array $rules
+     * @return string|null
+     */
+    public function validateRule(object $entity, string $property, array $rules): ?string
+    {
+        // Array of objects.
+        if (strpos($property, '.$.') !== false) {
+            list($left, $right) = explode('.$.', $property, 2);
+            if (!isset($entity->{$left}) || !is_array($entity->{$left})) {
+                return null;
+            }
+            foreach ($entity->{$left} as $e) {
+                $err = $this->validateType($e->{$right} ?? null, $property, $rules);
+                if ($err !== null) {
+                    return $err;
                 }
-                // Array.
-            } elseif (strpos($property, '.$') !== false) {
-                $parts = explode('.$', $property);
-                foreach ($entity->{$parts[0]} as $element) {
-                    $err = $this->validateVar($element, $rule);
-                    if (!empty($err)) {
-                        $errors[$property] = $err;
-                    }
+            }
+        } elseif (strpos($property, '.$') !== false) {
+            // Array.
+            $left = strstr($property, '.$', true);
+            if (!isset($entity->{$left})) {
+                return in_array('required', $rules) ? sprintf(static::VALIDATION_REQUIRED, $property) : null;
+            }
+            if (!is_array($entity->{$left})) {
+                return null;
+            }
+            foreach ($entity->{$left} as $item) {
+                $err = $this->validateType($item, $property, $rules);
+                if ($err !== null) {
+                    return $err;
                 }
-                // Object.
-            } elseif (strpos($property, '.') !== false) {
-                $parts = explode('.', $property);
-                $err = $this->validateVar($entity->{$parts[0]}->{$parts[1]} ?? null, $rule);
-                if (!empty($err)) {
-                    $errors[$property] = $err;
-                }
-            } else {
-                // Plain value.
-                $err = $this->validateVar($entity->{$property} ?? null, $rule);
-                if (!empty($err)) {
-                    $errors[$property] = $err;
-                }
+            }
+        } elseif (strpos($property, '.') !== false) {
+            // Object.
+            list($left, $right) = explode('.', $property, 2);
+            $err = $this->validateType($entity->{$left} ?? null, $property, $rules);
+            if ($err !== null) {
+                return $err;
+            }
+        } else {
+            // Plain value.
+            $err = $this->validateType($entity->{$property} ?? null, $property, $rules);
+            if ($err !== null) {
+                return $err;
             }
         }
 
-        return $errors;
+        return null;
+    }
+
+    /**
+     * Validate type of property.
+     * @param mixed $value
+     * @param array $rules
+     * @return string|null
+     */
+    public function validateType($value, string $property, array $rules): ?string
+    {
+        if ($value === null) {
+            return in_array('required', $rules) ? sprintf(static::VALIDATION_REQUIRED, $property) : null;
+        }
+        foreach ($rules as $rule) {
+            if (strpos($rule, ':') !== false) {
+                list($ruleName, $min, $max) = explode(':', $rule, 3);
+                if (gettype($value) !== $ruleName) {
+                    $const = 'VALIDATION_' . strtoupper($value);
+                    return sprintf(static::$const, $property);
+                }
+            } else {
+                $ruleName = $rule;
+                $min = $max = 0;
+            }
+            $method = 'validate' . ucfirst($ruleName);
+            if (method_exists($this, $method)) {
+                return call_user_func([$this, $method], $value, $min, $max);
+            }
+        }
+        return null;
     }
 
     /**
@@ -99,12 +160,12 @@ class ValidationService
         return null;
     }
 
-    /**
+    /** 
      * Valdate mongodb id.
      * @param string $id
      * @return string|null
      */
-    public function validateMongoId(string $id): ?string
+    public function validateMongoid(string $id): ?string
     {
         try {
             new ObjectId($id);
@@ -130,33 +191,5 @@ class ValidationService
             return sprintf(static::VALIDATION_INT_MAX, $max);
         }
         return null;
-    }
-
-    private function validateVar($variable, array $rules): array
-    {
-        $errors = [];
-        if ($variable === null) {
-            if (in_array('required', $rules)) {
-                $errors['required'] = static::VALIDATION_REQUIRED;
-            }
-            return $errors;
-        }
-
-        if (empty($variable)) {
-            return [];
-        }
-
-        foreach ($rules as $ruleStr) {
-            $ruleArr = explode(':', $ruleStr);
-            $params = array_slice($ruleArr, 1);
-            $method = 'validate' . ucfirst($ruleArr[0]);
-            if (method_exists($this, $method)) {
-                $error = call_user_func([$this, $method], $variable, $params);
-                if (!empty($error)) {
-                    $errors[$ruleArr[0]] = $error;
-                }
-            }
-        }
-        return $errors;
     }
 }
