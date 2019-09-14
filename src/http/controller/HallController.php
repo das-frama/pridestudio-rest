@@ -7,6 +7,7 @@ namespace app\http\controller;
 use app\RequestUtils;
 use app\ResponseFactory;
 use app\domain\hall\HallService;
+use app\domain\validation\ValidationService;
 use app\http\controller\base\ControllerTrait;
 use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -79,11 +80,18 @@ class HallController
             return $this->responder->error(ResponseFactory::NOT_FOUND, ["Hall not found."]);
         }
         $params = $this->getQueryParams($request);
-        $services = $this->hallService->findServices(
-            $slug,
-            $params['selected'] ?? [],
-            $params['include'] ?? []
-        );
+        $selected = [];
+        if (isset($params['selected'])) {
+            $selected = $params['selected'];
+            $validationServices = new ValidationService;
+            foreach ($selected as $id) {
+                $err = $validationServices->validateMongoid($id);
+                if ($err !== null) {
+                    return $this->responder->error(ResponseFactory::BAD_REQUEST, ['Wrong id.']);
+                }
+            }
+        }
+        $services = $this->hallService->findServices($slug, $selected, $params['include'] ?? []);
         return $this->responder->success($services);
     }
 }

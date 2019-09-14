@@ -17,9 +17,9 @@ trait RepositoryTrait
     private function internalFindOne(array $filter, array $options, array $include = []): ?Entity
     {
         // Prepare projection.
-        $projection = empty($include) ? array_fill_keys($include, 1) : [];
+        $projection = empty($include) ? [] : array_fill_keys($include, 1);
         if (isset($projection['id'])) {
-            $projection['_id'] = $options['projection']['id'];
+            $projection['_id'] = $projection['id'];
             unset($projection['id']);
         }
         // Process result.
