@@ -76,3 +76,4 @@ class SettingsController
         return $this->responder->success($setting);
     }
 }
+        // Return errors if validation fails.

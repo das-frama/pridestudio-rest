@@ -61,14 +61,14 @@ class RecordController
     public function read(ServerRequestInterface $request): ResponseInterface
     {
         $id = RequestUtils::getPathSegment($request, 2);
-        $validation = new ValidationService;
-        $err = $validation->validateMongoId($id);
-        // Return errors if validation fails.
-        if (!empty($err)) {
+        // Validate id.
+        $err = (new ValidationService)->validateMongoId($id);
+        if ($err !== null) {
             return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, [$err]);
         }
-
+        // Get query params.
         $params = $this->getQueryParams($request);
+        // Find a record.
         $record = $this->recordService->findByID($id, $params['include'] ?? []);
         if ($record === null) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, ["Record not found."]);
@@ -89,9 +89,8 @@ class RecordController
         if ($body === null) {
             return $this->responder->error(ResponseFactory::BAD_REQUEST, ["Very bad request."]);
         }
-        // Validate data.
-        $validator = new ValidationService;
-        $errors = $validator->validate($body, [
+        // Validate incoming data.
+        $errors = (new ValidationService)->validate($body, [
             'reservations' => ['required', 'array:1:24'],
             'reservations.$.start_at' => ['required', 'int'],
             'reservations.$.length' => ['required', 'int'],
@@ -99,11 +98,10 @@ class RecordController
             'service_ids.$' => ['mongoid'],
             'hall_id' => ['required', 'mongoid'],
         ]);
-        // Return errors if validation fails.
         if (!empty($errors)) {
             return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, $errors);
         }
-        // Find hall.
+        // Find a hall.
         $hall = $this->hallService->findByID($body->hall_id, ['id', 'base_price', 'prices']);
         if ($hall === null) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, ['Hall not found.']);

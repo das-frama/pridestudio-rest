@@ -7,6 +7,7 @@ namespace app\http\controller;
 use app\RequestUtils;
 use app\ResponseFactory;
 use app\domain\user\UserService;
+use app\domain\validation\ValidationService;
 use app\http\controller\base\ControllerTrait;
 use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -51,6 +52,12 @@ class UserController
     public function read(ServerRequestInterface $request): ResponseInterface
     {
         $id = RequestUtils::getPathSegment($request, 2);
+        // Validate id.
+        $err = (new ValidationService)->validateMongoid($id);
+        if ($err !== null) {
+            return $this->responder->error(ResponseFactory::BAD_REQUEST, ['Wrong user id.']);
+        }
+        // Find a user.
         $user = $this->userService->findByID($id);
         if ($user === null) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, ['User not found.']);
