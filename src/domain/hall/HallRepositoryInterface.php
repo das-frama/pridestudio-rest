@@ -41,4 +41,9 @@ interface HallRepositoryInterface
      */
     public function isExists(array $filter): bool;
     public function save(): bool;
+
+    /**
+     * @return bool
+     */
+    public function init(): bool;
 }

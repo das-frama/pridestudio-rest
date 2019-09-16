@@ -10,6 +10,8 @@ use app\entity\ServiceChild;
 use app\entity\PriceRule;
 use app\domain\hall\HallRepositoryInterface;
 use MongoDB\Client;
+use MongoDB\Collection;
+use MongoDB\Database;
 
 /**
  * Class HallRepository
@@ -22,6 +24,9 @@ class HallRepository implements HallRepositoryInterface
     /** @var Collection */
     private $collection;
 
+    /** @var Database */
+    private $database;
+
     /** @var array */
     private $defaultOptions = [];
 
@@ -30,7 +35,8 @@ class HallRepository implements HallRepositoryInterface
      */
     public function __construct(Client $client)
     {
-        $this->collection = $client->selectDatabase('pridestudio')->selectCollection("halls");
+        $this->database = $client->selectDatabase('pridestudio');
+        $this->collection = $this->database->selectCollection("halls");
         $this->defaultOptions = [
             'typeMap' => [
                 'root' => Hall::class,
@@ -102,7 +108,10 @@ class HallRepository implements HallRepositoryInterface
             ['$project' => $project],
             ['$match' => [
                 '$or' => [
-                    ['services.children' => ['$in' => $objectIDs]],
+                    ['$and' => [
+                        ['services.children' => ['$in' => $objectIDs]],
+                        ['services.parents' => ['$exists' => false]]
+                    ]],
                     ['services.parents' => ['$in' => $objectIDs]],
                 ]
             ]],
@@ -138,5 +147,89 @@ class HallRepository implements HallRepositoryInterface
     public function isExists(array $filter): bool
     {
         return (bool) $this->collection->count($this->convertFilter($filter), []);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function init(): bool
+    {
+        // Create index.
+        $this->collection->createIndex(['slug' => 1]);
+        // Create schema validation.
+        return $this->createSchemaValidation();
+    }
+
+    /**
+     * Create schema validation.
+     * @return bool
+     */
+    private function createSchemaValidation(): bool
+    {
+        $result = $this->database->command([
+            'collMod' => 'halls',
+            'validator' => [
+                '$jsonSchema' => [
+                    'bsonType' => 'object',
+                    'required' => ['name', 'slug', 'base_price', 'sort', 'is_active'],
+                    'properties' => [
+                        'name' => [
+                            'bsonType' => 'string',
+                            'description' => 'must be a string and is required'
+                        ],
+                        'slug' => [
+                            'bsonType' => 'string',
+                            'description' => 'must be a string and is required'
+                        ],
+                        'description' => [
+                            'bsonType' => 'string',
+                            'description' => 'must be a string'
+                        ],
+                        'base_price' => [
+                            'bsonType' => 'int',
+                            'description' => 'must be an integer'
+                        ],
+                        'preview_image' => [
+                            'bsonType' => 'string',
+                            'description' => 'must be a string'
+                        ],
+                        'detail_image' => [
+                            'bsonType' => 'string',
+                            'description' => 'must be a string'
+                        ],
+                        'services' => [
+                            'bsonType' => 'array',
+                            'description' => 'must be a array'
+                        ],
+                        'prices' => [
+                            'bsonType' => 'array',
+                            'description' => 'must be a array'
+                        ],
+                        'sort' => [
+                            'bsonType' => 'int',
+                            'description' => 'must be an integer'
+                        ],
+                        'is_active' => [
+                            'bsonType' => 'bool',
+                            'description' => 'must be an bool'
+                        ],
+                        'updated_at' => [
+                            'bsonType' => 'int',
+                            'description' => 'must be an integer'
+                        ],
+                        'created_by' => [
+                            'bsonType' => 'objectId',
+                            'description' => 'must be an objectid'
+                        ],
+                        'updated_by' => [
+                            'bsonType' => 'objectId',
+                            'description' => 'must be an objectid'
+                        ],
+                    ]
+                ]
+            ]
+        ]);
+
+        return (bool) $result;
     }
 }

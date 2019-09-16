@@ -20,10 +20,16 @@ class InitCommand
     {
         $data = $this->getData('settings.php');
         if ($this->systemService->initSettings($data)) {
-            fwrite(STDOUT, "Init successfull.");
+            fwrite(STDOUT, "Settings init successfull.\n");
         } else {
-            fwrite(STDOUT, "The system already initiated.");
+            fwrite(STDOUT, "Settings already initiated.\n");
         }
+        if ($this->systemService->initHalls()) {
+            fwrite(STDOUT, "Halls init successfull.\n");
+        } else {
+            fwrite(STDOUT, "Halls already initiated.\n");
+        }
+
         return 0;
     }
 
