@@ -18,13 +18,18 @@ class InitCommand
 
     public function main(): int
     {
-        $path = join(DIRECTORY_SEPARATOR, ['data', 'init', 'settings.php']);
-        $data = require(APP_DIR . DIRECTORY_SEPARATOR . $path);
+        $data = $this->getData('settings.php');
         if ($this->systemService->initSettings($data)) {
             fwrite(STDOUT, "Init successfull.");
         } else {
             fwrite(STDOUT, "The system already initiated.");
         }
         return 0;
+    }
+
+    private function getData(string $filename): array
+    {
+        $path = join(DIRECTORY_SEPARATOR, ['data', 'init', $filename]);
+        return require(APP_DIR . DIRECTORY_SEPARATOR . $path);
     }
 }
