@@ -37,7 +37,7 @@ class App
             return 0;
         }
         $command = $this->dice->create($class);
-        return call_user_func([$command, 'main'], array_slice($argv, 2));
+        return call_user_func([$command, 'main'], ...array_slice($argv, 2));
     }
 
     private function parseCmd(array $argv): ?string
