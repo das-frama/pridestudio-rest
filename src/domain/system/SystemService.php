@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\domain\system;
 
+use app\domain\hall\HallRepositoryInterface;
 use app\entity\Setting;
 use app\domain\setting\SettingRepositoryInterface;
 
@@ -12,14 +13,34 @@ use app\domain\setting\SettingRepositoryInterface;
  */
 class SystemService
 {
+    /** @var HallRepositoryInterface */
+    private $hallRepo;
+
     /** @var SettingRepositoryInterface */
     private $settingsRepo;
 
-    public function __construct(SettingRepositoryInterface $settingsRepo)
-    {
+    public function __construct(
+        HallRepositoryInterface $hallRepo,
+        SettingRepositoryInterface $settingsRepo
+    ) {
+        $this->hallRepo = $hallRepo;
         $this->settingsRepo = $settingsRepo;
     }
 
+    /**
+     * Init halls collection.
+     * @return bool
+     */
+    public function initHalls(): bool
+    {
+        return $this->hallRepo->init();
+    }
+
+    /**
+     * Init settings collection.
+     * @param array $data
+     * @return bool
+     */
     public function initSettings(array $data): bool
     {
         // Prepare settings.
