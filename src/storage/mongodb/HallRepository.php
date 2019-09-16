@@ -108,7 +108,10 @@ class HallRepository implements HallRepositoryInterface
             ['$project' => $project],
             ['$match' => [
                 '$or' => [
-                    ['services.children' => ['$in' => $objectIDs]],
+                    ['$and' => [
+                        ['services.children' => ['$in' => $objectIDs]],
+                        ['services.parents' => ['$exists' => false]]
+                    ]],
                     ['services.parents' => ['$in' => $objectIDs]],
                 ]
             ]],
