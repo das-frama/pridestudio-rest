@@ -8,7 +8,7 @@ use app\RequestUtils;
 use app\ResponseFactory;
 use app\entity\Record;
 use app\domain\record\RecordService;
-use app\domain\booking\BookingDocument;
+use app\domain\booking\PaymentDocument;
 use app\domain\hall\HallService;
 use app\domain\validation\ValidationService;
 use app\http\controller\base\ControllerTrait;
@@ -113,9 +113,9 @@ class RecordController
         $record->service_ids = $body->service_ids;
 
         // Response with document. 
-        $bookingDoc = new BookingDocument;
-        $bookingDoc->price = $this->recordService->calculatePrice($record, $hall);
+        $paymentDoc = new PaymentDocument;
+        $paymentDoc->price = $this->recordService->calculatePrice($record, $hall);
         // $bookingDoc->prepayment = $bookingDoc->price * 0.5;
-        return $this->responder->success($bookingDoc);
+        return $this->responder->success($paymentDoc);
     }
 }

@@ -3,6 +3,9 @@
 return [
     'home' => ['GET', '/', ['app\http\controller\HomeController', 'index']],
 
+    'booking' => ['GET', '/booking', ['app\http\controller\BookingController', 'index']],
+    'booking.hall' => ['GET', '/booking/*', ['app\http\controller\BookingController', 'hall']],
+
     'users.all'  => ['GET', '/users', ['app\http\controller\UserController', 'all']],
     'users.read' => ['GET', '/users/*', ['app\http\controller\UserController', 'read']],
 
