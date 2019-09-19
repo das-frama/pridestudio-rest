@@ -26,37 +26,29 @@ class App
 
     public function run(array $argv): int
     {
-        $cmd = $this->parseCmd($argv);
-        if ($cmd === null) {
+        $commandName = $this->commandFromArgs($argv);
+        if ($commandName === null) {
             $this->printHelp();
             return 0;
         }
-        $class = sprintf('%s\%sCommand', static::COMMAND_PATH, ucfirst($cmd));
-        if (!class_exists($class)) {
+        $className = sprintf('%s\%sCommand', static::COMMAND_PATH, $this->toCamelCase($commandName));
+        if (!class_exists($className)) {
             $this->printHelp();
             return 0;
         }
-        $command = $this->dice->create($class);
+        $command = $this->dice->create($className);
         return call_user_func([$command, 'main'], ...array_slice($argv, 2));
     }
 
-    private function parseCmd(array $argv): ?string
-    {
-        if (count($argv) <= 1) {
-            return null;
-        }
-        return strtolower($argv[1]);
-    }
-
-    private function printHelp(): void
+    public function printHelp(): void
     {
         fwrite(STDOUT, "Pridestudio app 0.1.0\n\n");
-        fwrite(STDOUT, $this->getColoredString("Usage:\n", static::COLOR_YELLOW));
+        fwrite(STDOUT, $this->coloredString("Usage:\n", static::COLOR_YELLOW));
         fwrite(STDOUT, "  command [options] [arguments]\n");
-        fwrite(STDOUT, $this->getColoredString("Available commands:\n", static::COLOR_YELLOW));
+        fwrite(STDOUT, $this->coloredString("Available commands:\n", static::COLOR_YELLOW));
         $commands = $this->availableCommands();
         foreach ($commands as $command) {
-            $cmdStr = $this->getColoredString($command, static::COLOR_GREEN);
+            $cmdStr = $this->coloredString($command, static::COLOR_GREEN);
             fwrite(STDOUT, sprintf("  %s\t%s\n", $cmdStr, "Description"));
         }
     }
@@ -75,13 +67,32 @@ class App
             if ($name === '.' || $name === '..') {
                 continue;
             }
-            $commands[] = strtolower(strstr($name, 'Command.php', true));
+            $commandName = strstr($name, 'Command.php', true);
+            $commands[] = $this->toKebabCase($commandName);
         }
         return $commands;
     }
 
-    private function getColoredString(string $str, string $fg): string
+    private function coloredString(string $str, string $fg): string
     {
         return "\033[" . $fg . "m" . $str . "\033[0m";
+    }
+
+    private function toKebabCase(string $string)
+    {
+        return strtolower(preg_replace('/([a-zA-Z])(?=[A-Z])/', '$1-', $string));
+    }
+
+    private function toCamelCase(string $string)
+    {
+        return str_replace(' ', '', ucwords(str_replace('-', ' ', $string)));
+    }
+
+    private function commandFromArgs(array $argv): ?string
+    {
+        if (count($argv) <= 1) {
+            return null;
+        }
+        return strtolower($argv[1]);
     }
 }

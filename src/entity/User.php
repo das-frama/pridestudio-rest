@@ -8,29 +8,49 @@ use app\storage\mongodb\Entity;
 
 class User extends Entity
 {
+    /** @var string */
     public $id;
+
+    /** @var string */
     public $email;
-    public $auth_key;
-    public $access_token;
+
+    /** @var string */
+    public $name;
+
+    /** @var string */
+    public $phone;
+
+    /** @var string */
     public $password_hash;
-    public $password_reset_token;
+
+    /** @var string */
     public $role;
-    public $status;
+
+    /** @var bool */
+    public $is_active;
+
+    /** @var int */
     public $created_at;
+
+    /** @var int */
     public $updated_at;
+
+    /** @var string */
     public $created_by;
+
+    /** @var string */
     public $updated_by;
 
-    public function __construct()
-    {
-        settype($this->id, 'int');
-        settype($this->role, 'int');
-        settype($this->status, 'boolean');
-        settype($this->created_at, 'int');
-        settype($this->updated_at, 'int');
-        settype($this->created_by, 'int');
-        settype($this->updated_by, 'int');
-    }
+    // public function __construct()
+    // {
+    // settype($this->id, 'int');
+    // settype($this->role, 'int');
+    // settype($this->status, 'boolean');
+    // settype($this->created_at, 'int');
+    // settype($this->updated_at, 'int');
+    // settype($this->created_by, 'string');
+    // settype($this->updated_by, 'string');
+    // }
 
     /**
      * @param string $password
@@ -52,27 +72,5 @@ class User extends Entity
     public function verifyPassword(string $password): bool
     {
         return password_verify($password, $this->password_hash);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function bsonSerialize(): array
-    {
-        return [
-            '_id' => $this->id,
-            'email' => $this->email,
-            'status' => $this->status,
-        ];
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function bsonUnserialize(array $data): void
-    {
-        parent::bsonUnserialize($data);
-        $this->email = $data['email'];
-        $this->status = $data['status'];
     }
 }

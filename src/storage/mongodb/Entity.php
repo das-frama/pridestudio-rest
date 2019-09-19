@@ -62,9 +62,41 @@ abstract class Entity implements Persistable, JsonSerializable
      */
     public function bsonSerialize(): array
     {
-        return [
-            '_id' => $this->id,
-        ];
+        $properties = static::publicProperties();
+        $bson = [];
+
+        foreach ($properties as $property) {
+            // if ($this->{$property} === null) {
+
+            // }
+            switch ($property) {
+                case 'id':
+                    if (!empty($this->id)) {
+                        $bson['_id'] = new ObjectId($this->id);
+                    }
+                    break;
+
+                case 'created_by':
+                case 'updated_by':
+                    if (!empty($this->{$property})) {
+                        $bson[$property] = new ObjectId($this->{$property});
+                    }
+                    break;
+
+                case 'created_at':
+                    continue 2;
+                case 'updated_at':
+                    if ($this->{$property} === null) {
+                        $bson[$property] = time();
+                    }
+                    break;
+
+                default:
+                    $bson[$property] = $this->{$property};
+            }
+        }
+
+        return $bson;
     }
 
     /**
