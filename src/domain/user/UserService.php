@@ -22,7 +22,7 @@ class UserService
      * @param array $include
      * @return User|null
      */
-    public function findByID(string $id, array $include): ?User
+    public function findByID(string $id, array $include = []): ?User
     {
         return $this->userRepo->findOne(['id' => $id], $include);
     }
@@ -44,7 +44,7 @@ class UserService
      * @param array $include
      * @return User[]
      */
-    public function findAll(array $filter, array $include = []): array
+    public function findAll(array $filter = [], array $include = []): array
     {
         return $this->userRepo->findAll($filter, $include);
     }

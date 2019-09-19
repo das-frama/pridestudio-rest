@@ -40,7 +40,8 @@ class UserController
      */
     public function all(ServerRequestInterface $request): ResponseInterface
     {
-        $users = $this->userService->findAll(0, 0);
+        $params = $this->getQueryParams($request);
+        $users = $this->userService->findAll([], $params['include'] ?? []);
         return $this->responder->success($users);
     }
 
@@ -58,7 +59,8 @@ class UserController
             return $this->responder->error(ResponseFactory::BAD_REQUEST, ['Wrong user id.']);
         }
         // Find a user.
-        $user = $this->userService->findByID($id);
+        $params = $this->getQueryParams($request);
+        $user = $this->userService->findByID($id, $params['include'] ?? []);
         if ($user === null) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, ['User not found.']);
         }
