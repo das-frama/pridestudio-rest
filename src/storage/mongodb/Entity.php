@@ -66,9 +66,9 @@ abstract class Entity implements Persistable, JsonSerializable
         $bson = [];
 
         foreach ($properties as $property) {
-            // if ($this->{$property} === null) {
-
-            // }
+            if ($this->{$property} === null) {
+                continue;
+            }
             switch ($property) {
                 case 'id':
                     if (!empty($this->id)) {
@@ -85,11 +85,6 @@ abstract class Entity implements Persistable, JsonSerializable
 
                 case 'created_at':
                     continue 2;
-                case 'updated_at':
-                    if ($this->{$property} === null) {
-                        $bson[$property] = time();
-                    }
-                    break;
 
                 default:
                     $bson[$property] = $this->{$property};
