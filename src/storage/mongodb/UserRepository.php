@@ -55,11 +55,6 @@ class UserRepository implements UserRepositoryInterface
      */
     public function insert(User $user): ?string
     {
-        // Set default value if updated_at is empty.
-        if ($user->updated_at === null) {
-            $user->updated_at = time();
-        }
-
         $result = $this->collection->insertOne($user, [
             'bypassDocumentValidation' => true,
         ]);

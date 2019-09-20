@@ -8,6 +8,7 @@ return [
 
     'users.all'  => ['GET', '/users', ['app\http\controller\UserController', 'all']],
     'users.read' => ['GET', '/users/*', ['app\http\controller\UserController', 'read']],
+    'users.create' => ['POST', '/users', ['app\http\controller\UserController', 'create']],
 
     'records.price' => ['POST', '/records/price', ['app\http\controller\RecordController', 'price']],
     'records.read' => ['GET', '/records/*', ['app\http\controller\RecordController', 'read']],

@@ -8,6 +8,7 @@ use app\RequestUtils;
 use app\ResponseFactory;
 use app\domain\user\UserService;
 use app\domain\validation\ValidationService;
+use app\entity\User;
 use app\http\controller\base\ControllerTrait;
 use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -47,6 +48,7 @@ class UserController
 
     /**
      * Read one specific user.
+     * @method GET
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      */
@@ -65,5 +67,41 @@ class UserController
             return $this->responder->error(ResponseFactory::NOT_FOUND, ['User not found.']);
         }
         return $this->responder->success($user);
+    }
+
+    /**
+     * Create a user.
+     * @method POST
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
+     */
+    public function create(ServerRequestInterface $request): ResponseInterface
+    {
+        // Get body from request.
+        $body = $request->getParsedBody();
+        if ($body === null) {
+            return $this->responder->error(ResponseFactory::BAD_REQUEST, ["Very bad request."]);
+        }
+        // Validate incoming data.
+        $errors = (new ValidationService)->validate($body, [
+            'email' => ['required', 'string:1:24', 'email'],
+            'name' => ['required', 'string:1:64'],
+            'role' => ['required', 'string:1:10'],
+            'phone' => ['string:1:32'],
+        ]);
+        if (!empty($errors)) {
+            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, $errors);
+        }
+
+        $user = new User;
+        $user->email = $body->email;
+        $user->name = $body->name;
+        $user->role = $body->role;
+        $user->phone = $body->phone ?? null;
+        $id = $this->userService->create($user);
+        if ($id === null) {
+            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, ['Error during saving a record.']);
+        }
+        return $this->responder->success($id);
     }
 }

@@ -9,6 +9,8 @@ use Mongodb\BSON\ObjectId;
 class ValidationService
 {
     const VALIDATION_REQUIRED = "Отсутствует обязательное поле '%s'.";
+    const VALIDATION_ENUM = "Значение '%s' не присутствует в списке допустимых значений.";
+    const VALIDATION_EMAIL = "Значение '%s' должно быть правильным email адресом.";
     const VALIDATION_STRING = "Поле '%s' должно быть строкой.";
     const VALIDATION_STRING_MIN = "Минимальная допустимая длина строки должна быть не меньше %d символов.";
     const VALIDATION_STRING_MAX = "Максимальная допустимая длина строки должна быть не больше %d символов.";
@@ -157,6 +159,43 @@ class ValidationService
         if ($max > 0 && $len > $max) {
             return sprintf(static::VALIDATION_STRING_MAX, $max);
         }
+        return null;
+    }
+
+    /**
+     * Validate email with params.
+     * @param string $value
+     * @param int $min
+     * @param int $max
+     * @return string|null
+     */
+    public function validateEmail(string $value, int $min = 0, int $max = 0): ?string
+    {
+        if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+            return sprintf(static::VALIDATION_EMAIL, $value);
+        }
+        $len = strlen($value);
+        if ($min > 0 && $len < $min) {
+            return sprintf(static::VALIDATION_STRING_MIN, $min);
+        }
+        if ($max > 0 && $len > $max) {
+            return sprintf(static::VALIDATION_STRING_MAX, $max);
+        }
+        return null;
+    }
+
+    /**
+     * Validate enum with params.
+     * @param string $value
+     * @param array $values
+     * @return string|null
+     */
+    public function validateEnum(string $value, array $values): ?string
+    {
+        if (!in_array($value, $values)) {
+            return sprintf(static::VALIDATION_ENUM, $value);
+        }
+
         return null;
     }
 

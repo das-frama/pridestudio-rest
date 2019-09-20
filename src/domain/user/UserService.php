@@ -62,6 +62,7 @@ class UserService
         $user->email = $email;
         $user->role = 'super';
         $user->is_active = true;
+        $user->updated_at = time();
         $user->setPassword($password);
 
         $id = $this->userRepo->insert($user);
@@ -71,5 +72,13 @@ class UserService
         $user->id = $id;
 
         return $user;
+    }
+
+    public function create(User $user): ?string
+    {
+        if ($user->updated_at === null) {
+            $user->updated_at = time();
+        }
+        return $this->userRepo->insert($user);
     }
 }
