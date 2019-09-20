@@ -80,28 +80,37 @@ class UserController
         // Get body from request.
         $body = $request->getParsedBody();
         if ($body === null) {
-            return $this->responder->error(ResponseFactory::BAD_REQUEST, ["Very bad request."]);
+            return $this->responder->error(ResponseFactory::BAD_REQUEST, ['Empty body.']);
         }
-        // Validate incoming data.
-        $errors = (new ValidationService)->validate($body, [
-            'email' => ['required', 'string:1:24', 'email'],
+        $validationService = new ValidationService;
+        $rules = [
+            'email' => ['required', 'email:1:64'],
+            'password' => ['required', 'string:6:0'],
             'name' => ['required', 'string:1:64'],
-            'role' => ['required', 'string:1:10'],
+            'role' => ['required', 'string', 'enum:user,manager,admin'],
             'phone' => ['string:1:32'],
-        ]);
-        if (!empty($errors)) {
+        ];
+        // Sanitize incoming data.
+        $body = $validationService->sanitize($body, $rules);
+        // Validate data.
+        $errors = $validationService->validate($body, $rules);
+        if ($errors !== []) {
             return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, $errors);
         }
-
+        // Prepare user entity.
         $user = new User;
         $user->email = $body->email;
         $user->name = $body->name;
         $user->role = $body->role;
-        $user->phone = $body->phone ?? null;
+        $user->phone = $body->phone;
+        $user->setPassword($body->password);
+
+        // Create user.
         $id = $this->userService->create($user);
         if ($id === null) {
             return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, ['Error during saving a record.']);
         }
+
         return $this->responder->success($id);
     }
 }

@@ -150,19 +150,19 @@ class HallRepository implements HallRepositoryInterface
         }
         // Create schema validation.
         return $this->createSchemaValidation('halls', [
-            'name' => 'string',
-            'slug' => 'string',
-            'description' => 'string',
-            'base_price' => 'int',
-            'preview_image' => 'string',
-            'detail_image' => 'string',
-            'services' => 'array',
-            'prices' => 'array',
-            'sort' => 'int',
-            'is_active' => 'bool',
-            'updated_at' => 'int',
-            'created_by' => 'objectId',
-            'updated_by' => 'objectId',
+            'name' => ['bsonType' => 'string'],
+            'slug' => ['bsonType' => 'string'],
+            'description' => ['bsonType' => 'string'],
+            'base_price' => ['bsonType' => 'int'],
+            'preview_image' => ['bsonType' => 'string'],
+            'detail_image' => ['bsonType' => 'string'],
+            'services' => ['bsonType' => 'array'],
+            'prices' => ['bsonType' => 'array'],
+            'sort' => ['bsonType' => 'int'],
+            'is_active' => ['bsonType' => 'bool'],
+            'updated_at' => ['bsonType' => 'int64'],
+            'created_by' => ['bsonType' => 'objectId'],
+            'updated_by' => ['bsonType' => 'objectId'],
         ], ['name', 'slug', 'base_price', 'sort', 'is_active']);
     }
 }

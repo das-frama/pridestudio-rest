@@ -11,6 +11,7 @@ use app\domain\record\RecordService;
 use app\domain\booking\PaymentDocument;
 use app\domain\hall\HallService;
 use app\domain\validation\ValidationService;
+use app\entity\Reservation;
 use app\http\controller\base\ControllerTrait;
 use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -89,16 +90,20 @@ class RecordController
         if ($body === null) {
             return $this->responder->error(ResponseFactory::BAD_REQUEST, ["Very bad request."]);
         }
-        // Validate incoming data.
-        $errors = (new ValidationService)->validate($body, [
+        $validationService = new ValidationService;
+        $rules = [
             'reservations' => ['required', 'array:1:24'],
             'reservations.$.start_at' => ['required', 'int'],
             'reservations.$.length' => ['required', 'int'],
             'service_ids' => ['array'],
             'service_ids.$' => ['mongoid'],
             'hall_id' => ['required', 'mongoid'],
-        ]);
-        if (!empty($errors)) {
+        ];
+        // Sanitze incoming data.
+        $body = $validationService->sanitize($body, $rules);
+        // Validate incoming data.
+        $errors = $validationService->validate($body, $rules);
+        if ($errors !== []) {
             return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, $errors);
         }
         // Find a hall.

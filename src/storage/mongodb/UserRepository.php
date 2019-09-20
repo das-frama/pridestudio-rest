@@ -71,15 +71,18 @@ class UserRepository implements UserRepositoryInterface
             $this->collection->createIndex(['email' => 1], ['unique' => true]);
         }
         return $this->createSchemaValidation('users', [
-            'email' => 'string',
-            'name' => 'string',
-            'phone' => 'string',
-            'password_hash' => 'string',
-            'role' => 'string',
-            'is_active' => 'bool',
-            'updated_at' => 'int',
-            'created_by' => 'objectId',
-            'updated_by' => 'objectId',
+            'email' => ['bsonType' => 'string'],
+            'name' => ['bsonType' => 'string'],
+            'phone' => ['bsonType' => 'string'],
+            'password_hash' => ['bsonType' => 'string'],
+            'role' => [
+                'enum' => ['user', 'manager', 'admin', 'super'],
+                'description' => 'can only be one of the enum values and is required',
+            ],
+            'is_active' => ['bsonType' => 'bool'],
+            'updated_at' => ['bsonType' => 'int64'],
+            'created_by' => ['bsonType' => 'objectId'],
+            'updated_by' => ['bsonType' => 'objectId'],
         ], ['email', 'name', 'password_hash', 'role', 'is_active']);
     }
 

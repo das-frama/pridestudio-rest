@@ -145,19 +145,12 @@ trait RepositoryTrait
     /**
      * Create schema validation.
      * @param string $collection
-     * @param array $fields
+     * @param array $properties
      * @param array $required
      * @return bool
      */
-    private function createSchemaValidation(string $collection, array $fields, array $required = []): bool
+    private function createSchemaValidation(string $collection, array $properties, array $required = []): bool
     {
-        $properties = [];
-        foreach ($fields as $field => $type) {
-            $properties[$field] = [
-                'bsonType' => $type,
-                'description' => 'must be a ' . $field,
-            ];
-        }
         $result = $this->database->command([
             'collMod' => $collection,
             'validator' => [
