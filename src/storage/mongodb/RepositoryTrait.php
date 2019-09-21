@@ -5,9 +5,20 @@ declare(strict_types=1);
 namespace app\storage\mongodb;
 
 use Mongodb\BSON\ObjectId;
+use MongoDB\Collection;
+use MongoDB\Database;
 
 trait RepositoryTrait
 {
+    /** @var Database */
+    private $database;
+
+    /** @var Collection */
+    private $collection;
+
+    /** @var array */
+    private $defaultOptions = [];
+
     /**
      * Finds an entity from storage by filter.
      * @param array $filter
@@ -81,7 +92,7 @@ trait RepositoryTrait
      * @param array $include
      * @return Entity[]
      */
-    private function internalFindAll(array $filter = [], array $options, array $include = []): array
+    private function internalFindAll(array $filter = [], array $options = [], array $include = []): array
     {
         // Prepare projection.
         $projection = [];
@@ -120,7 +131,7 @@ trait RepositoryTrait
     }
 
     /**
-     * Convert array of string ids to array of ObjectId
+     * Convert array of string ids to array of ObjectId.
      * @param array $ids
      * @return ObjectId[]
      */
@@ -129,5 +140,45 @@ trait RepositoryTrait
         return array_map(function ($id) {
             return new ObjectId($id);
         }, $ids);
+    }
+
+    /**
+     * Create schema validation.
+     * @param string $collection
+     * @param array $properties
+     * @param array $required
+     * @return bool
+     */
+    private function createSchemaValidation(string $collection, array $properties, array $required = []): bool
+    {
+        $result = $this->database->command([
+            'collMod' => $collection,
+            'validator' => [
+                '$jsonSchema' => [
+                    'bsonType' => 'object',
+                    'required' => $required,
+                    'properties' => $properties,
+                ]
+            ]
+        ]);
+
+        return (bool) $result;
+    }
+
+    /**
+     * Check if collection has given index.
+     * @param string $key
+     * @return bool
+     */
+    private function hasIndex(string $key): bool
+    {
+        $indexes = $this->collection->listIndexes();
+        foreach ($indexes as $index) {
+            $k = $index->getKey();
+            if (isset($k[$key])) {
+                return true;
+            }
+        }
+        return false;
     }
 }

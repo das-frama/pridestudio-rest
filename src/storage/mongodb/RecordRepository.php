@@ -7,7 +7,6 @@ namespace app\storage\mongodb;
 use app\entity\Record;
 use app\entity\Reservation;
 use app\domain\record\RecordRepositoryInterface;
-use MongoDB\Collection;
 use MongoDB\Client;
 
 /**
@@ -18,15 +17,10 @@ class RecordRepository implements RecordRepositoryInterface
 {
     use RepositoryTrait;
 
-    /** @var Collection */
-    private $collection;
-
-    /** @var array */
-    private $defaultOptions = [];
-
     public function __construct(Client $client)
     {
-        $this->collection = $client->selectDatabase('pridestudio')->selectCollection('records');
+        $this->database = $client->selectDatabase('pridestudio');
+        $this->collection = $this->database->selectCollection('records');
         $this->defaultOptions = [
             'typeMap' => [
                 'root' => Record::class,

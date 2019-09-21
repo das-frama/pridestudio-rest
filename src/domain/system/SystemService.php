@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace app\domain\system;
 
-use app\domain\hall\HallRepositoryInterface;
 use app\entity\Setting;
+use app\domain\hall\HallRepositoryInterface;
 use app\domain\setting\SettingRepositoryInterface;
 
 /**

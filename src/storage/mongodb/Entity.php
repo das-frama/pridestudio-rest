@@ -62,9 +62,36 @@ abstract class Entity implements Persistable, JsonSerializable
      */
     public function bsonSerialize(): array
     {
-        return [
-            '_id' => $this->id,
-        ];
+        $properties = static::publicProperties();
+        $bson = [];
+
+        foreach ($properties as $property) {
+            if ($this->{$property} === null) {
+                continue;
+            }
+            switch ($property) {
+                case 'id':
+                    if (!empty($this->id)) {
+                        $bson['_id'] = new ObjectId($this->id);
+                    }
+                    break;
+
+                case 'created_by':
+                case 'updated_by':
+                    if (!empty($this->{$property})) {
+                        $bson[$property] = new ObjectId($this->{$property});
+                    }
+                    break;
+
+                case 'created_at':
+                    continue 2;
+
+                default:
+                    $bson[$property] = $this->{$property};
+            }
+        }
+
+        return $bson;
     }
 
     /**
@@ -88,7 +115,7 @@ abstract class Entity implements Persistable, JsonSerializable
             }
             if ($value instanceof ObjectId) {
                 $this->{$property} = (string) $value;
-            } else if ($value instanceof UTCDateTime) {
+            } elseif ($value instanceof UTCDateTime) {
                 if (strpos($property, '_at', -3)) {
                     $this->{$property} = $value->toDateTime()->getTimestamp();
                 } else {
@@ -114,7 +141,7 @@ abstract class Entity implements Persistable, JsonSerializable
         return $value;
     }
 
-    /** 
+    /**
      * Get all public properties of class.
      * @return array
      */
@@ -124,6 +151,6 @@ abstract class Entity implements Persistable, JsonSerializable
         $reflectionProperties = (new ReflectionClass(static::class))->getProperties(ReflectionProperty::IS_PUBLIC);
         return array_map(function (ReflectionProperty $reflectionProperty) {
             return $reflectionProperty->getName();
-        },  $reflectionProperties);
+        }, $reflectionProperties);
     }
 }

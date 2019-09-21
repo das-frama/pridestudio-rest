@@ -7,7 +7,6 @@ namespace app\storage\mongodb;
 use app\entity\Setting;
 use app\domain\setting\SettingRepositoryInterface;
 use MongoDB\Client;
-use MongoDB\Collection;
 use MongoDB\BSON\Regex;
 
 /**
@@ -18,19 +17,14 @@ class SettingRepository implements SettingRepositoryInterface
 {
     use RepositoryTrait;
 
-    /** @var Collection */
-    private $collection;
-
-    /** @var array */
-    private $defaultOptions;
-
     /**
      * SettingRepository constructor.
      * @param Client $client
      */
     public function __construct(Client $client)
     {
-        $this->collection = $client->selectDatabase('pridestudio')->selectCollection('settings');
+        $this->database = $client->selectDatabase('pridestudio');
+        $this->collection = $this->database->selectCollection('settings');
         $this->defaultOptions = [
             'typeMap' => [
                 'root' => Setting::class,
