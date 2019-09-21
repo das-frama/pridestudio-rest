@@ -92,7 +92,7 @@ trait RepositoryTrait
      * @param array $include
      * @return Entity[]
      */
-    private function internalFindAll(array $filter = [], array $options, array $include = []): array
+    private function internalFindAll(array $filter = [], array $options = [], array $include = []): array
     {
         // Prepare projection.
         $projection = [];

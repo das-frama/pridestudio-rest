@@ -115,7 +115,7 @@ abstract class Entity implements Persistable, JsonSerializable
             }
             if ($value instanceof ObjectId) {
                 $this->{$property} = (string) $value;
-            } else if ($value instanceof UTCDateTime) {
+            } elseif ($value instanceof UTCDateTime) {
                 if (strpos($property, '_at', -3)) {
                     $this->{$property} = $value->toDateTime()->getTimestamp();
                 } else {
@@ -141,7 +141,7 @@ abstract class Entity implements Persistable, JsonSerializable
         return $value;
     }
 
-    /** 
+    /**
      * Get all public properties of class.
      * @return array
      */
@@ -151,6 +151,6 @@ abstract class Entity implements Persistable, JsonSerializable
         $reflectionProperties = (new ReflectionClass(static::class))->getProperties(ReflectionProperty::IS_PUBLIC);
         return array_map(function (ReflectionProperty $reflectionProperty) {
             return $reflectionProperty->getName();
-        },  $reflectionProperties);
+        }, $reflectionProperties);
     }
 }

@@ -47,7 +47,7 @@ class HallService
         return $this->hallRepo->findOne($filter, $include);
     }
 
-    /** 
+    /**
      * Find services in hall.
      * @param string $slug
      * @param array $include

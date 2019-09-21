@@ -19,7 +19,7 @@ class HallRepository implements HallRepositoryInterface
 {
     use RepositoryTrait;
 
-    /** 
+    /**
      * @param Client $client
      */
     public function __construct(Client $client)

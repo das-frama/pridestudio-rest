@@ -17,7 +17,7 @@ interface HallRepositoryInterface
      */
     public function findOne(array $filter, array $include = []): ?Hall;
 
-    /** 
+    /**
      * Find hall's services.
      * @param array $filter
      * @param array $selected

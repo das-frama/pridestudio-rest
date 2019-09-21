@@ -116,8 +116,7 @@ class RecordController
         $record->hall_id = $hall->id;
         $record->reservations = $body->reservations;
         $record->service_ids = $body->service_ids;
-
-        // Response with document. 
+        // Response with document.
         $paymentDoc = new PaymentDocument;
         $paymentDoc->price = $this->recordService->calculatePrice($record, $hall);
         // $bookingDoc->prepayment = $bookingDoc->price * 0.5;

@@ -13,7 +13,7 @@ class UserService
 
     public function __construct(UserRepositoryInterface $userRepo)
     {
-        $this->userRepo = $userRepo;;
+        $this->userRepo = $userRepo;
     }
 
     /**

@@ -40,7 +40,7 @@ class PathTree implements \JsonSerializable
         foreach ($path as $key) {
             if (isset($tree->branches->{$key})) {
                 $tree = &$tree->branches->{$key};
-            } else if (isset($tree->branches->{$star})) {
+            } elseif (isset($tree->branches->{$star})) {
                 $tree = &$tree->branches->{$star};
             } else {
                 return [];

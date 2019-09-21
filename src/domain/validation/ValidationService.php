@@ -290,7 +290,7 @@ class ValidationService
         return null;
     }
 
-    /** 
+    /**
      * Valdate mongodb id.
      * @param mixed $id
      * @return string|null

@@ -7,7 +7,6 @@ namespace app\http\controller;
 use app\ResponseFactory;
 use app\domain\booking\BookingDocument;
 use app\domain\setting\SettingService;
-use app\domain\calendar\CalendarService;
 use app\domain\hall\HallService;
 use app\http\controller\base\ControllerTrait;
 use app\http\responder\ResponderInterface;
