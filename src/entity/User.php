@@ -41,17 +41,6 @@ class User extends Entity
     /** @var string */
     public $updated_by;
 
-    // public function __construct()
-    // {
-    // settype($this->id, 'int');
-    // settype($this->role, 'int');
-    // settype($this->status, 'boolean');
-    // settype($this->created_at, 'int');
-    // settype($this->updated_at, 'int');
-    // settype($this->created_by, 'string');
-    // settype($this->updated_by, 'string');
-    // }
-
     /**
      * @param string $password
      */
