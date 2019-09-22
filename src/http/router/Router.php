@@ -35,8 +35,12 @@ class Router implements RouterInterface
     /** @var ResponderInterface */
     private $responder;
 
-    public function __construct(Dice $dice, JsonResponder $responder)
+    /** @var string */
+    private $basePath;
+
+    public function __construct(string $basePath, Dice $dice, JsonResponder $responder)
     {
+        $this->basePath = $basePath;
         $this->dice = $dice;
         $this->responder = $responder;
         $this->routes = $this->loadPathTree();
@@ -87,6 +91,8 @@ class Router implements RouterInterface
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
+        $request = $this->removeBasePath($request);
+
         // middlewares.
         if (count($this->middlewares)) {
             $handler = array_pop($this->middlewares);
@@ -107,6 +113,16 @@ class Router implements RouterInterface
         }
 
         return $response;
+    }
+
+    private function removeBasePath(ServerRequestInterface $request): ServerRequestInterface
+    {
+        $path = $request->getUri()->getPath();
+        if (substr($path, 0, strlen($this->basePath)) == $this->basePath) {
+            $path = substr($path, strlen($this->basePath));
+            $request = $request->withUri($request->getUri()->withPath($path));
+        }
+        return $request;
     }
 
     private function getRouteNumbers(ServerRequestInterface $request): array

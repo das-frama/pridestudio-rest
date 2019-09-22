@@ -9,7 +9,7 @@ return [
     Client::class => [
         'shared' => true,
         'constructParams' => [
-            'mongodb://127.0.0.1:27017',
+            getenv('DB_URI'),
         ]
     ],
     FileService::class => [

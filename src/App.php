@@ -32,7 +32,7 @@ class App
         // Responder.
         $this->responder = $dice->create(ResponderInterface::class);
         // Router.
-        $this->router = new Router($dice, $this->responder);
+        $this->router = new Router(getenv('BASE_PATH'), $dice, $this->responder);
         $this->router->load(new CorsMiddleware);
         foreach ($config['routes'] as $route) {
             $this->router->register($route[0], $route[1], $route[2]);
