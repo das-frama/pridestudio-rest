@@ -7,6 +7,7 @@ namespace app\http\controller;
 use app\ResponseFactory;
 use app\RequestUtils;
 use app\domain\booking\BookingDocument;
+use app\domain\calendar\CalendarService;
 use app\domain\setting\SettingService;
 use app\domain\hall\HallService;
 use app\http\controller\base\ControllerTrait;
@@ -24,16 +25,21 @@ class BookingController
     /** @var HallService */
     private $hallService;
 
+    /** @var CalendarService */
+    private $calendarService;
+
     /** @var ResponderInterface */
     private $responder;
 
     public function __construct(
         SettingService $settingService,
         HallService $hallService,
+        CalendarService $calendarService,
         ResponderInterface $responder
     ) {
         $this->settingService = $settingService;
         $this->hallService = $hallService;
+        $this->calendarService = $calendarService;
         $this->responder = $responder;
     }
 
@@ -61,6 +67,7 @@ class BookingController
         $bookingDoc->settings = $settings;
         $bookingDoc->hall = $hall;
         $bookingDoc->services = $this->hallService->findServices($hall->slug, [], ['id', 'name', 'children']);
+        $bookingDoc->calendar = $this->calendarService->weekdays($hall->id);
 
         return $this->responder->success($bookingDoc);
     }
@@ -87,6 +94,7 @@ class BookingController
         $bookingDoc->settings = $settings;
         $bookingDoc->hall = $hall;
         $bookingDoc->services = $this->hallService->findServices($hall->slug, [], ['id', 'name', 'children']);
+        $bookingDoc->calendar = $this->calendarService->weekdays($hall->id);
 
         return $this->responder->success($bookingDoc);
     }
