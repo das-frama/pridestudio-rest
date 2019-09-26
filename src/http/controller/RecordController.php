@@ -11,7 +11,6 @@ use app\domain\record\RecordService;
 use app\domain\booking\PaymentDocument;
 use app\domain\hall\HallService;
 use app\domain\validation\ValidationService;
-use app\entity\Reservation;
 use app\http\controller\base\ControllerTrait;
 use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -113,7 +112,10 @@ class RecordController
             return $this->responder->error(ResponseFactory::NOT_FOUND, ['Hall not found.']);
         }
         /// Find a coupon.
-        $coupon = $this->recordService->findCouponByCode($body->coupon, ['id', 'factor']);
+        $coupon = null;
+        if (!empty($body->coupon)) {
+            $coupon = $this->recordService->findCouponByCode($body->coupon, ['id', 'factor']);
+        }
 
         // Compose record entity.
         $record = new Record;
@@ -126,5 +128,22 @@ class RecordController
         $paymentDoc->price = $this->recordService->calculatePrice($record, $hall, $coupon);
         // $bookingDoc->prepayment = $bookingDoc->price * 0.5;
         return $this->responder->success($paymentDoc);
+    }
+
+    /**
+     * Check coupon.
+     * @method GET
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
+     */
+    public function coupon(ServerRequestInterface $request): ResponseInterface
+    {
+        $code = RequestUtils::getPathSegment($request, 3);
+        $coupon = $this->recordService->findCouponByCode($code, ['code', 'factor']);
+        if ($coupon === null) {
+            return $this->responder->error(ResponseFactory::NOT_FOUND, ['Coupon not found.']);
+        }
+
+        return $this->responder->success($coupon);
     }
 }

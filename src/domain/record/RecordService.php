@@ -79,7 +79,7 @@ class RecordService
         }
         // Apply coupon discount.
         if ($coupon !== null && $coupon->factor !== null) {
-            $amount -= $amount * $coupon->factor;
+            $amount -= intval($amount * $coupon->factor);
         }
 
         return $amount;
