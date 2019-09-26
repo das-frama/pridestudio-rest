@@ -98,6 +98,7 @@ class RecordController
             'service_ids' => ['array'],
             'service_ids.$' => ['mongoid'],
             'hall_id' => ['required', 'mongoid'],
+            'coupon' => ['string'],
         ];
         // Sanitze incoming data.
         $body = $validationService->sanitize($body, $rules);
@@ -111,14 +112,18 @@ class RecordController
         if ($hall === null) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, ['Hall not found.']);
         }
+        /// Find a coupon.
+        $coupon = $this->recordService->findCouponByCode($body->coupon, ['id', 'factor']);
+
         // Compose record entity.
         $record = new Record;
         $record->hall_id = $hall->id;
         $record->reservations = $body->reservations;
         $record->service_ids = $body->service_ids;
+
         // Response with document.
         $paymentDoc = new PaymentDocument;
-        $paymentDoc->price = $this->recordService->calculatePrice($record, $hall);
+        $paymentDoc->price = $this->recordService->calculatePrice($record, $hall, $coupon);
         // $bookingDoc->prepayment = $bookingDoc->price * 0.5;
         return $this->responder->success($paymentDoc);
     }

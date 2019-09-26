@@ -36,7 +36,7 @@ class Record extends Entity
     public $payment_id;
 
     /** @var string */
-    public $promo_id;
+    public $coupon_id;
 
     /** @var int */
     public $total;

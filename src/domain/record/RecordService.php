@@ -77,8 +77,22 @@ class RecordService
                 $amount += $this->calculatePriceRule($price['price_rule'], $reservation);
             }
         }
+        // Apply coupon discount.
+        if ($coupon !== null && $coupon->factor !== null) {
+            $amount -= $amount * $coupon->factor;
+        }
 
         return $amount;
+    }
+
+    /**
+     * Check coupon and return it's ID.
+     * @param string $code
+     * @return Coupon|null
+     */
+    public function findCouponByCode(string $code, array $include = []): ?Coupon
+    {
+        return $this->couponRepo->findOne(['code' => $code], $include);
     }
 
     /**

@@ -36,4 +36,8 @@ return [
         'instanceOf' => 'app\storage\mongodb\UserRepository',
         'shared' => true
     ],
+    'app\domain\record\CouponRepositoryInterface' => [
+        'instanceOf' => 'app\storage\mongodb\CouponRepository',
+        'shared' => true
+    ],
 ];

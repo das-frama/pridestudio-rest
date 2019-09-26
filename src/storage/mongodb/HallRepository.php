@@ -160,7 +160,7 @@ class HallRepository implements HallRepositoryInterface
             'prices' => ['bsonType' => 'array'],
             'sort' => ['bsonType' => 'int'],
             'is_active' => ['bsonType' => 'bool'],
-            'updated_at' => ['bsonType' => 'int64'],
+            'updated_at' => ['bsonType' => 'long'],
             'created_by' => ['bsonType' => 'objectId'],
             'updated_by' => ['bsonType' => 'objectId'],
         ], ['name', 'slug', 'base_price', 'sort', 'is_active']);
