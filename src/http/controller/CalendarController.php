@@ -35,8 +35,11 @@ class CalendarController
      * @param HallService $hallService
      * @param ResponderInterface $responder
      */
-    public function __construct(CalendarService $calendarService, HallService $hallService, ResponderInterface $responder)
-    {
+    public function __construct(
+        CalendarService $calendarService,
+        HallService $hallService,
+        ResponderInterface $responder
+    ) {
         $this->calendarService = $calendarService;
         $this->hallService = $hallService;
         $this->responder = $responder;

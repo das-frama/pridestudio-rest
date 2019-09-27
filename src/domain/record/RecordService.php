@@ -140,7 +140,8 @@ class RecordService
             if ($hour === "00") {
                 $bottomAt += 24 * 60 * 60;
             }
-            $diff = min($reservation->start_at + $reservation->length * 60, $bottomAt) - max($reservation->start_at, $topAt);
+            $diff = min($reservation->start_at + $reservation->length * 60, $bottomAt) -
+                max($reservation->start_at, $topAt);
             $hoursToCount = $diff > 0 ? $diff / 60 / 60 : 0;
         }
         if ($hoursToCount > 0 && $passLength) {
