@@ -9,6 +9,7 @@ use app\domain\setting\SettingRepositoryInterface;
 use app\entity\Reservation;
 use MongoDB\BSON\ObjectId;
 use DateTime;
+use DateTimeImmutable;
 
 /**
  * Class CalendarService
@@ -22,8 +23,10 @@ class CalendarService
     /** @var RecordRepositoryInterface */
     private $recordsRepo;
 
-    public function __construct(RecordRepositoryInterface $recordsRepo, SettingRepositoryInterface $settingsRepo)
-    {
+    public function __construct(
+        RecordRepositoryInterface $recordsRepo,
+        SettingRepositoryInterface $settingsRepo
+    ) {
         $this->recordsRepo = $recordsRepo;
         $this->settingsRepo = $settingsRepo;
     }
@@ -75,8 +78,46 @@ class CalendarService
             $firstDate->getTimestamp(),
             $lastDate->getTimestamp()
         );
-
+        $document->limitations = $this->findLimitations($dates);
         return $document;
+    }
+
+    /**
+     * Find limitations for passed dates.
+     * @param array $dates
+     * @return array
+     */
+    private function findLimitations(array $dates): array
+    {
+        $setting = $this->settingsRepo->findOne(['key' => 'calendar_max_booking_range']);
+        $deltaMonth = $setting === null ? 1 : (int) $setting->value;
+
+        $nextHour = (int) (new DateTimeImmutable())
+            ->modify('set next hour')
+            ->format('H');
+        $currentDate = (new DateTimeImmutable())
+            ->setTime(0, 0, 0, 0);
+        $futureDate = new DateTimeImmutable("last day of +{$deltaMonth} month");
+
+        $limitations = array_map(function (string $dateStr) use ($currentDate, $futureDate, $nextHour) {
+            $date = new DateTimeImmutable($dateStr);
+            if ($date == $currentDate) {
+                return [
+                    'start_at' => $date->getTimestamp(),
+                    'length' => $nextHour * 60
+                ];
+            } elseif ($date < $currentDate || $date >= $futureDate) {
+                return [
+                    'start_at' => $date->getTimestamp(),
+                    'length' => 24 * 60 // 24 hours
+                ];
+            }
+            return [];
+        }, $dates);
+
+        return array_values(array_filter($limitations, function (array $limitation) {
+            return count($limitation) > 0;
+        }));
     }
 
     /**

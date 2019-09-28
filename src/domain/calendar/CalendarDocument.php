@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace app\domain\calendar;
 
+use app\entity\Reservation;
+
 /**
  * CalendarDocument class.
  */
@@ -18,6 +20,9 @@ class CalendarDocument
     /** @var array */
     public $dates = [];
 
-    /** @var array */
+    /** @var Reservation[] */
     public $reservations = [];
+
+    /** @var array   */
+    public $limitations = [];
 }
