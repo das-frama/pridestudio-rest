@@ -14,7 +14,16 @@ trait ControllerTrait
     {
         $params = $request->getQueryParams();
         return array_map(function ($str) {
-            return empty($str) ? [] : explode(',', $str);
+            if (empty($str)) {
+                return null;
+            }
+            if (strstr($str, ',') !== false) {
+                return explode(',', $str);
+            }
+            if (is_numeric($str)) {
+                return (int) $str;
+            }
+            return $str;
         }, $params);
     }
 

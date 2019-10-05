@@ -32,7 +32,7 @@ interface HallRepositoryInterface
      * @param array $include
      * @return Hall[]
      */
-    public function findAll(array $filter, array $include = []): array;
+    public function findAll(array $filter, int $limit = 0, int $skip = 0, array $include = []): array;
 
     /**
      * Check if hall exists by filter.

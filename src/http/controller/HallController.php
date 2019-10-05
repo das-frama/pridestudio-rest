@@ -46,7 +46,11 @@ class HallController
     public function all(ServerRequestInterface $request): ResponseInterface
     {
         $params = $this->getQueryParams($request);
-        $halls = $this->hallService->findAll($params['include'] ?? []);
+        $halls = $this->hallService->findAll(
+            $params['limit'] ?? 0,
+            $params['page'] ?? 0,
+            $params['include'] ?? []
+        );
         return $this->responder->success($halls);
     }
 

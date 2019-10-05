@@ -92,7 +92,7 @@ trait RepositoryTrait
      * @param array $include
      * @return Entity[]
      */
-    private function internalFindAll(array $filter = [], array $options = [], array $include = []): array
+    private function internalFindAll(array $filter = [], int $limit = 0, int $skip = 0, array $options = [], array $include = []): array
     {
         // Prepare projection.
         $projection = [];
@@ -103,12 +103,24 @@ trait RepositoryTrait
                 unset($projection['projection']['id']);
             }
         }
-        $sort = ['sort' => ['sort' => 1]];
+        // Setup options.
+        $cursorOptions = array_merge($options, $projection);
+        // Limit cursor.
+        if ($limit > 0) {
+            $cursorOptions['limit'] = $limit;
+        }
+        // Skip cursor.
+        if ($skip > 0) {
+            $cursorOptions['skip'] = $skip;
+        }
+        // Sort cursor.
+        $cursorOptions['sort'] = ['sort' => 1];
         // Perform query.
         $cursor = $this->collection->find(
             $this->convertFilter($filter),
-            array_merge($options, $projection, $sort)
+            $cursorOptions
         );
+
         return array_map(function (Entity $entity) use ($include) {
             $entity->setInclude($include);
             return $entity;
