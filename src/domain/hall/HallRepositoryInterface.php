@@ -35,6 +35,12 @@ interface HallRepositoryInterface
     public function findAll(array $filter, int $limit = 0, int $skip = 0, array $include = []): array;
 
     /**
+     * Count halls by filter.
+     * @return int
+     */
+    public function count(array $filter = []): int;
+
+    /**
      * Check if hall exists by filter.
      * @param array $filter
      * @return bool

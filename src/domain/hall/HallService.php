@@ -102,6 +102,15 @@ class HallService
     }
 
     /**
+     * Count halls.
+     * @return int
+     */
+    public function count()
+    {
+        return $this->hallRepo->count();
+    }
+
+    /**
      * Check if hall is exists by provided slug.
      * @param string $slug
      * @param bool $onlyActive

@@ -51,7 +51,8 @@ class HallController
             $params['page'] ?? 0,
             $params['include'] ?? []
         );
-        return $this->responder->success($halls);
+        $count = $this->hallService->count();
+        return $this->responder->success($halls, $count);
     }
 
     /**
@@ -96,6 +97,6 @@ class HallController
             }
         }
         $services = $this->hallService->findServices($slug, $selected, $params['include'] ?? []);
-        return $this->responder->success($services);
+        return $this->responder->success($services, count($services));
     }
 }

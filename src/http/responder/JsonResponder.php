@@ -6,7 +6,6 @@ namespace app\http\responder;
 
 use app\ResponseFactory;
 use Psr\Http\Message\ResponseInterface;
-use Countable;
 
 class JsonResponder implements ResponderInterface
 {
@@ -19,12 +18,8 @@ class JsonResponder implements ResponderInterface
         ]);
     }
 
-    public function success($result): ResponseInterface
+    public function success($result, int $count = 0): ResponseInterface
     {
-        $count = 1;
-        if (is_array($result)) {
-            $count = count($result);
-        }
         return ResponseFactory::fromObject(200, [
             'data' => $result,
             'count' => $count,

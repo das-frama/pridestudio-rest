@@ -126,6 +126,14 @@ class HallRepository implements HallRepositoryInterface
     /**
      * {@inheritDoc}
      */
+    public function count(array $filter = []): int
+    {
+        return $this->collection->count($this->convertFilter($filter));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function save(): bool
     {
         return false;
