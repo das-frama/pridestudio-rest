@@ -92,13 +92,13 @@ class HallService
      * @param array $include
      * @return Hall[]
      */
-    public function findAll(int $limit = 0, int $page = 0, array $include = []): array
+    public function findAll(int $limit = 0, int $page = 0, array $sort = [], array $include = []): array
     {
         $skip = 0;
         if ($page > 0) {
             $skip = $limit * ($page - 1);
         }
-        return $this->hallRepo->findAll(['is_active' => true], $limit, $skip, $include);
+        return $this->hallRepo->findAll(['is_active' => true], $limit, $skip, $sort, $include);
     }
 
     /**

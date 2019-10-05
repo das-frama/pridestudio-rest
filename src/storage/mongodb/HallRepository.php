@@ -118,9 +118,14 @@ class HallRepository implements HallRepositoryInterface
     /**
      * {@inheritDoc}
      */
-    public function findAll(array $filter, int $limit = 0, int $skip = 0, array $include = []): array
+    public function findAll(array $filter, int $limit = 0, int $skip = 0, array $sort = [], array $include = []): array
     {
-        return $this->internalFindAll($filter, $limit, $skip, $this->defaultOptions, $include);
+        $options = array_merge($this->defaultOptions, [
+            'limit' => $limit,
+            'skip' => $skip,
+            'sort' => $sort,
+        ]);
+        return $this->internalFindAll($filter, $options, $include);
     }
 
     /**

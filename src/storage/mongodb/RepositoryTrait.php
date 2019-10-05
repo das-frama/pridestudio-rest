@@ -92,33 +92,33 @@ trait RepositoryTrait
      * @param array $include
      * @return Entity[]
      */
-    private function internalFindAll(array $filter = [], int $limit = 0, int $skip = 0, array $options = [], array $include = []): array
+    private function internalFindAll(array $filter = [], array $options = [], array $include = []): array
     {
         // Prepare projection.
-        $projection = [];
         if (!empty($include)) {
-            $projection = ['projection' => array_fill_keys($include, 1)];
-            if (isset($projection['projection']['id'])) {
-                $projection['projection']['_id'] = $projection['projection']['id'];
-                unset($projection['projection']['id']);
+            $options['projection'] = array_fill_keys($include, 1);
+            if (isset($options['projection']['id'])) {
+                $options['projection']['_id'] = $options['projection']['id'];
+                unset($options['projection']['id']);
             }
         }
-        // Setup options.
-        $cursorOptions = array_merge($options, $projection);
         // Limit cursor.
-        if ($limit > 0) {
-            $cursorOptions['limit'] = $limit;
+        if (isset($options['limit']) && $options['limit'] == 0) {
+            unset($options['limit']);
         }
         // Skip cursor.
-        if ($skip > 0) {
-            $cursorOptions['skip'] = $skip;
+        if (isset($options['skip']) && $options['skip'] == 0) {
+            unset($options['skip']);
         }
         // Sort cursor.
-        $cursorOptions['sort'] = ['sort' => 1];
+        if (isset($options['sort']['id']) && $options['sort']['id']) {
+            $options['sort']['_id'] = $options['sort']['id'];
+            unset($options['sort']['id']);
+        }
         // Perform query.
         $cursor = $this->collection->find(
             $this->convertFilter($filter),
-            $cursorOptions
+            $options
         );
 
         return array_map(function (Entity $entity) use ($include) {
