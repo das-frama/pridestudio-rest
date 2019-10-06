@@ -35,6 +35,14 @@ interface HallRepositoryInterface
     public function findAll(array $filter, int $limit = 0, int $skip = 0, array $sort = [], array $include = []): array;
 
     /**
+     * Search halls by regular expression.
+     * @param array $filter
+     * @param array $include
+     * @return Hall[]
+     */
+    public function search(array $filter, int $limit = 0, int $skip = 0, array $sort = [], array $include = []): array;
+
+    /**
      * Count halls by filter.
      * @return int
      */

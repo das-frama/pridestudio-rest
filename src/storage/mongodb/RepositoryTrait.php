@@ -115,6 +115,7 @@ trait RepositoryTrait
             $options['sort']['_id'] = $options['sort']['id'];
             unset($options['sort']['id']);
         }
+
         // Perform query.
         $cursor = $this->collection->find(
             $this->convertFilter($filter),
@@ -134,10 +135,18 @@ trait RepositoryTrait
     private function convertFilter(array $filter): array
     {
         $bsonFilter = $filter;
-        // Change id => _id.
+        if (isset($filter['$or'])) {
+            $bsonFilter = $filter['$or'];
+        }
+        // Change id to _id.
         if (isset($bsonFilter['id'])) {
             $bsonFilter['_id'] = new ObjectId($bsonFilter['id']);
             unset($bsonFilter['id']);
+        }
+        if (isset($filter['$or'])) {
+            return ['$or' => array_map(function ($key, $column) {
+                return [$key => $column];
+            }, array_keys($bsonFilter), $bsonFilter)];
         }
         return $bsonFilter;
     }

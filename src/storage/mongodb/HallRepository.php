@@ -10,6 +10,7 @@ use app\entity\ServiceChild;
 use app\entity\PriceRule;
 use app\domain\hall\HallRepositoryInterface;
 use MongoDB\Client;
+use MongoDB\BSON\Regex;
 
 /**
  * Class HallRepository
@@ -126,6 +127,34 @@ class HallRepository implements HallRepositoryInterface
             'sort' => $sort,
         ]);
         return $this->internalFindAll($filter, $options, $include);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function search(array $search, int $limit = 0, int $skip = 0, array $sort = [], array $include = []): array
+    {
+        $options = array_merge($this->defaultOptions, [
+            'limit' => $limit,
+            'skip' => $skip,
+            'sort' => $sort,
+        ]);
+        $filter = array_map(function ($value) {
+            $str = (string) $value;
+            $first = substr($value, 0, 1);
+            $last = substr($value, -1);
+            if ($first === '%' && $last === '%') {
+                $str = substr($str, 1, -1);
+            } elseif ($last === '%') {
+                $str = '^' . substr($str, 0, -1);
+            } elseif ($first === '%') {
+                $str = substr($str, 1) . '$';
+            } else {
+                return $str;
+            }
+            return new Regex($str, 'i');
+        }, $search);
+        return $this->internalFindAll(['$or' => $filter], $options, $include);
     }
 
     /**

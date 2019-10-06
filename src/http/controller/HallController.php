@@ -46,17 +46,9 @@ class HallController
     public function all(ServerRequestInterface $request): ResponseInterface
     {
         $params = $this->getQueryParams($request);
-        $sort = [];
-        if (isset($params['orderBy'])) {
-            $sort[$params['orderBy']] = $params['ascending'] == 0 ? -1 : 1;
-        }
-        $halls = $this->hallService->findAll(
-            $params['limit'] ?? 0,
-            $params['page'] ?? 0,
-            $sort,
-            $params['include'] ?? []
-        );
-        $count = $this->hallService->count();
+        $include = $params['include'] ?? [];
+        $halls = $this->hallService->findAll($params, $include);
+        $count = isset($params['query']) ? count($halls) : $this->hallService->count();
         return $this->responder->success($halls, $count);
     }
 

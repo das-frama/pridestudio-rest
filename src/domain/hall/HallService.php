@@ -89,16 +89,37 @@ class HallService
 
     /**
      * Get all halls.
+     * @param array $params (skip, limit, page, query)
      * @param array $include
      * @return Hall[]
      */
-    public function findAll(int $limit = 0, int $page = 0, array $sort = [], array $include = []): array
+    public function findAll(array $params = [], array $include = []): array
     {
+        $page = intval($params['page'] ?? 0);
+        $limit = intval($params['limit'] ?? 0);
+        // Sort.
+        $sort = [];
+        if (isset($params['orderBy'])) {
+            $sort[$params['orderBy']] = $params['ascending'] == 0 ? -1 : 1;
+        }
+        // Skip.
         $skip = 0;
         if ($page > 0) {
             $skip = $limit * ($page - 1);
         }
-        return $this->hallRepo->findAll(['is_active' => true], $limit, $skip, $sort, $include);
+        // Query.
+        $filter = [];
+        if (isset($params['query'])) {
+            $query = $params['query'];
+            $filter = [
+                // 'id' => $query,
+                'name' => '%' . $query . '%',
+                'slug' => '%' . $query . '%',
+                // 'base_price' => $query * 100,
+            ];
+            return $this->hallRepo->search($filter, $limit, $skip, $sort, $include);
+        }
+        return $this->hallRepo->findAll($filter, $limit, $skip, $sort, $include);
     }
 
     /**
