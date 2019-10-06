@@ -11,6 +11,7 @@ use app\entity\PriceRule;
 use app\domain\hall\HallRepositoryInterface;
 use MongoDB\Client;
 use MongoDB\BSON\Regex;
+use MongoDB\BSON\ObjectId;
 
 /**
  * Class HallRepository
@@ -206,5 +207,35 @@ class HallRepository implements HallRepositoryInterface
             'created_by' => ['bsonType' => 'objectId'],
             'updated_by' => ['bsonType' => 'objectId'],
         ], ['name', 'slug', 'base_price', 'sort', 'is_active']);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function insert(Hall $hall): ?string
+    {
+        $result = $this->collection->insertOne($hall, [
+            'bypassDocumentValidation' => true,
+        ]);
+        $id = $result->getInsertedId();
+        return ($id instanceof ObjectId) ? (string) $id : null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function update(Hall $hall): bool
+    {
+        if ($hall->id === null) {
+            return false;
+        }
+        $filter = ['_id' => new ObjectId($hall->id)];
+        $update = [
+            '$set' => $hall
+        ];
+        $result = $this->collection->updateOne($filter, $update, [
+            'bypassDocumentValidation' => true,
+        ]);
+        return $result->getModifiedCount() > 0;
     }
 }

@@ -145,4 +145,27 @@ class HallService
         }
         return $this->hallRepo->isExists($filter);
     }
+
+    /**
+     * Create a new hall.
+     * @param Hall $hall
+     * @return string|null
+     */
+    public function create(Hall $hall): ?string
+    {
+        if ($hall->updated_at === null) {
+            $hall->updated_at = time();
+        }
+        return $this->hallRepo->insert($hall);
+    }
+
+    /**
+     * Create a new hall.
+     * @param Hall $hall
+     * @return string|null
+     */
+    public function update(Hall $hall): ?string
+    {
+        return $this->hallRepo->update($hall) ? null : 'Error during update a record.';
+    }
 }

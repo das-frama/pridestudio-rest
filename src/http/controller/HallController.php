@@ -8,6 +8,7 @@ use app\RequestUtils;
 use app\ResponseFactory;
 use app\domain\hall\HallService;
 use app\domain\validation\ValidationService;
+use app\entity\Hall;
 use app\http\controller\base\ControllerTrait;
 use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -60,9 +61,14 @@ class HallController
      */
     public function read(ServerRequestInterface $request): ResponseInterface
     {
-        $slug = RequestUtils::getPathSegment($request, 2);
+        $key = RequestUtils::getPathSegment($request, 2);
         $params = $this->getQueryParams($request);
-        $hall = $this->hallService->findBySlug($slug, $params['include'] ?? []);
+        $err = (new ValidationService)->validateMongoid($key);
+        if ($err === null) {
+            $hall = $this->hallService->findByID($key, $params['include'] ?? []);
+        } else {
+            $hall = $this->hallService->findBySlug($key, $params['include'] ?? []);
+        }
         if ($hall === null) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, ["Hall not found."]);
         }
@@ -77,8 +83,8 @@ class HallController
      */
     public function services(ServerRequestInterface $request): ResponseInterface
     {
-        $slug = RequestUtils::getPathSegment($request, 2);
-        if (!$this->hallService->isExists($slug)) {
+        $key = RequestUtils::getPathSegment($request, 2);
+        if (!$this->hallService->isExists($key)) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, ["Hall not found."]);
         }
         $params = $this->getQueryParams($request);
@@ -93,7 +99,106 @@ class HallController
                 }
             }
         }
-        $services = $this->hallService->findServices($slug, $selected, $params['include'] ?? []);
+        $services = $this->hallService->findServices($key, $selected, $params['include'] ?? []);
         return $this->responder->success($services, count($services));
+    }
+
+    /**
+     * Create a hall.
+     * @method POST
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
+     */
+    public function create(ServerRequestInterface $request): ResponseInterface
+    {
+        // Get body from request.
+        $body = $request->getParsedBody();
+        if ($body === null) {
+            return $this->responder->error(ResponseFactory::BAD_REQUEST, ['Empty body.']);
+        }
+        $validationService = new ValidationService;
+        $rules = [
+            'name' => ['required', 'string:1:64'],
+            'slug' => ['required', 'string:1:64'],
+            'preview_image' => ['string:1:255'],
+            'base_price' => ['int:0:999999'],
+            'sort' => ['int'],
+            'is_active' => ['bool'],
+        ];
+        // Sanitize incoming data.
+        $body = $validationService->sanitize($body, $rules);
+        // Validate data.
+        $errors = $validationService->validate($body, $rules);
+        if ($errors !== []) {
+            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, $errors);
+        }
+        // Prepare hall entity.
+        $hall = new Hall;
+        $hall->name = $body->name;
+        $hall->slug = $body->slug;
+        $hall->preview_image = $body->preview_image;
+        $hall->base_price = (int) $body->base_price;
+        $hall->sort = (int) $body->sort;
+        $hall->is_active = (bool) $body->is_active;
+
+        // Create hall.
+        $id = $this->hallService->create($hall);
+        if ($id === null) {
+            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, ['Error during saving a record.']);
+        }
+
+        return $this->responder->success($id);
+    }
+
+    /**
+     * Create a hall.
+     * @method POST
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
+     */
+    public function update(ServerRequestInterface $request): ResponseInterface
+    {
+        $id = RequestUtils::getPathSegment($request, 2);
+        // Find hall.
+        $hall = $this->hallService->findByID($id);
+        if ($hall === null) {
+            return $this->responder->error(ResponseFactory::NOT_FOUND, ["Hall not found."]);
+        }
+        // Get body from request.
+        $body = $request->getParsedBody();
+        if ($body === null) {
+            return $this->responder->error(ResponseFactory::BAD_REQUEST, ['Empty body.']);
+        }
+        $validationService = new ValidationService;
+        $rules = [
+            'name' => ['required', 'string:1:64'],
+            'slug' => ['required', 'string:1:64'],
+            'preview_image' => ['string:1:255'],
+            'base_price' => ['int:0:999999'],
+            'sort' => ['int'],
+            'is_active' => ['bool'],
+        ];
+        // Sanitize incoming data.
+        $body = $validationService->sanitize($body, $rules);
+        // Validate data.
+        $errors = $validationService->validate($body, $rules);
+        if ($errors !== []) {
+            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, $errors);
+        }
+        // Prepare hall entity.
+        $hall->name = $body->name;
+        $hall->slug = $body->slug;
+        $hall->preview_image = $body->preview_image;
+        $hall->base_price = (int) $body->base_price;
+        $hall->sort = (int) $body->sort;
+        $hall->is_active = (bool) $body->is_active;
+
+        // Update hall.
+        $error = $this->hallService->update($hall);
+        if ($error !== null) {
+            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, [$error]);
+        }
+
+        return $this->responder->success(true, 1);
     }
 }

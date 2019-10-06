@@ -49,6 +49,20 @@ interface HallRepositoryInterface
     public function count(array $filter = []): int;
 
     /**
+     * Insert a new hall into storage.
+     * @param Hall $hall
+     * @return string|null hall's id.
+     */
+    public function insert(Hall $hall): ?string;
+
+    /**
+     * Update an extisted hall from storage..
+     * @param Hall $hall
+     * @return bool.
+     */
+    public function update(Hall $hall): bool;
+
+    /**
      * Check if hall exists by filter.
      * @param array $filter
      * @return bool

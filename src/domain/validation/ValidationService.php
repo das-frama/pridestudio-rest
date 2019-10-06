@@ -250,7 +250,10 @@ class ValidationService
      */
     public function validateBool($value): ?string
     {
-        return sprintf(static::VALIDATION_BOOL, $value);
+        if (!filter_var($value, FILTER_VALIDATE_BOOLEAN)) {
+            return sprintf(static::VALIDATION_BOOL, $value);
+        }
+        return null;
     }
 
     /**
