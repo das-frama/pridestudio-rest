@@ -173,6 +173,7 @@ class HallController
         $rules = [
             'name' => ['required', 'string:1:64'],
             'slug' => ['required', 'string:1:64'],
+            'description' => ['string:1:1024'],
             'preview_image' => ['string:1:255'],
             'base_price' => ['int:0:999999'],
             'sort' => ['int'],
@@ -188,6 +189,7 @@ class HallController
         // Prepare hall entity.
         $hall->name = $body->name;
         $hall->slug = $body->slug;
+        $hall->description = $body->description;
         $hall->preview_image = $body->preview_image;
         $hall->base_price = (int) $body->base_price;
         $hall->sort = (int) $body->sort;

@@ -203,10 +203,10 @@ class HallRepository implements HallRepositoryInterface
             'prices' => ['bsonType' => 'array'],
             'sort' => ['bsonType' => 'int'],
             'is_active' => ['bsonType' => 'bool'],
-            'updated_at' => ['bsonType' => 'long'],
+            'updated_at' => ['bsonType' => 'int'],
             'created_by' => ['bsonType' => 'objectId'],
             'updated_by' => ['bsonType' => 'objectId'],
-        ], ['name', 'slug', 'base_price', 'sort', 'is_active']);
+        ], ['name', 'slug', 'sort', 'is_active']);
     }
 
     /**
@@ -215,7 +215,7 @@ class HallRepository implements HallRepositoryInterface
     public function insert(Hall $hall): ?string
     {
         $result = $this->collection->insertOne($hall, [
-            'bypassDocumentValidation' => true,
+            'bypassDocumentValidation' => false,
         ]);
         $id = $result->getInsertedId();
         return ($id instanceof ObjectId) ? (string) $id : null;
@@ -234,8 +234,8 @@ class HallRepository implements HallRepositoryInterface
             '$set' => $hall
         ];
         $result = $this->collection->updateOne($filter, $update, [
-            'bypassDocumentValidation' => true,
+            'bypassDocumentValidation' => false,
         ]);
-        return $result->getModifiedCount() > 0;
+        return $result->isAcknowledged();
     }
 }

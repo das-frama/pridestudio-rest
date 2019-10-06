@@ -27,7 +27,6 @@ class HallService
     {
         $filter = [
             'id' => $id,
-            'is_active' => true,
         ];
         return $this->hallRepo->findOne($filter, $include);
     }
@@ -101,6 +100,8 @@ class HallService
         $sort = [];
         if (isset($params['orderBy'])) {
             $sort[$params['orderBy']] = $params['ascending'] == 0 ? -1 : 1;
+        } else {
+            $sort['sort'] = 1;
         }
         // Skip.
         $skip = 0;
@@ -110,13 +111,7 @@ class HallService
         // Query.
         $filter = [];
         if (isset($params['query'])) {
-            $query = $params['query'];
-            $filter = [
-                // 'id' => $query,
-                'name' => '%' . $query . '%',
-                'slug' => '%' . $query . '%',
-                // 'base_price' => $query * 100,
-            ];
+            $filter = array_fill_keys(['name', 'slug'], $params['query']);
             return $this->hallRepo->search($filter, $limit, $skip, $sort, $include);
         }
         return $this->hallRepo->findAll($filter, $limit, $skip, $sort, $include);
@@ -132,14 +127,14 @@ class HallService
     }
 
     /**
-     * Check if hall is exists by provided slug.
-     * @param string $slug
+     * Check if hall is exists.
+     * @param string $id
      * @param bool $onlyActive
      * @return bool
      */
-    public function isExists(string $slug, $onlyActive = true): bool
+    public function isExists(string $id, $onlyActive = true): bool
     {
-        $filter = ['slug' => $slug];
+        $filter = ['id' => $id];
         if ($onlyActive) {
             $filter['is_active'] = true;
         }
