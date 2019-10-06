@@ -98,6 +98,7 @@ class App
                         $parsedBody = $this->parseJSONBody($contents);
                         break;
 
+                    case 'multipart/form-data':
                     case 'application/x-www-form-urlencoded':
                         $parsedBody = $this->parseURLBody($contents);
                         break;
