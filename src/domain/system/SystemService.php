@@ -53,14 +53,15 @@ class SystemService
         if (!$this->couponsRepo->init()) {
             return false;
         }
+        return true;
         // Insert a test coupon.
-        $coupon = new Coupon;
-        $coupon->code = "TESTDUDE";
-        $coupon->factor = 0.25;
-        $coupon->length = 3 * 24 * 60 * 60; // 3 days.
-        $coupon->is_active = true;
-        $id = $this->couponsRepo->insert($coupon);
-        return (bool) $id;
+        // $coupon = new Coupon;
+        // $coupon->code = "TESTDUDE";
+        // $coupon->factor = 0.25;
+        // $coupon->length = 3 * 24 * 60 * 60; // 3 days.
+        // $coupon->is_active = true;
+        // $id = $this->couponsRepo->insert($coupon);
+        // return (bool) $id;
     }
 
     /**
