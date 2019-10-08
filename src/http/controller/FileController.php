@@ -56,7 +56,19 @@ class FileController
     public function upload(ServerRequestInterface $request): ResponseInterface
     {
         $files = $request->getUploadedFiles();
-        $result = $this->fileService->uploadMany($files, '/uploaded');
-        return $this->responder->success($result, count($result));
+        if (count($files) === 0) {
+            return $this->responder->error(ResponseFactory::BAD_REQUEST, ['No files presented.']);
+        }
+
+        $path = $this->fileService->upload(reset($files), '/uploaded');
+        if ($this->fileService->isImage($path)) {
+            if (!$this->fileService->createThumbnail($path, $path)) {
+                return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, [
+                    'Cannot create thumbnail.'
+                ]);
+            }
+        }
+        
+        return $this->responder->success($path, 1);
     }
 }

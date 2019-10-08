@@ -6,6 +6,7 @@ namespace app\domain\file;
 
 use app\entity\File;
 use Psr\Http\Message\UploadedFileInterface;
+use Imagick;
 
 /**
  * Class FileService
@@ -82,6 +83,39 @@ class FileService
             return false;
         }
         return unlink($filePath);
+    }
+
+    public function createThumbnail(string $srcPath, string $destPath): bool
+    {
+        if (!extension_loaded('imagick')) {
+            return false;
+        }
+        $osSrc = $this->toOSPath($srcPath);
+        if (!file_exists($osSrc)) {
+            return false;
+        }
+        $osDest = $this->toOSPath($destPath);
+        if (!is_dir(dirname($osDest))) {
+            return false;
+        }
+
+
+        $imagick = new Imagick($osSrc);
+        $imagick->thumbnailImage(250, 0);
+        $result = $imagick->writeImage($osDest);
+        $imagick->destroy();
+
+        return $result;
+    }
+
+    public function isImage(string $filePath): bool
+    {
+        $osPath = $this->toOSPath($filePath);
+        if (!file_exists($osPath)) {
+            return false;
+        }
+        $mimeType = mime_content_type($osPath);
+        return substr($mimeType, 0, 5) === 'image';
     }
 
     /**
