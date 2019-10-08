@@ -13,11 +13,12 @@ use Psr\Http\Message\UploadedFileInterface;
  */
 class FileService
 {
-    private $fileBasePath;
+    /** @var string */
+    private $storagePath;
 
-    public function __construct()
+    public function __construct(string $path)
     {
-        $this->fileBasePath = ROOT_DIR . DIRECTORY_SEPARATOR . 'storage';
+        $this->storagePath = $path;
     }
 
     /**
@@ -27,14 +28,13 @@ class FileService
      */
     public function findByPath(string $path): ?File
     {
-        $filePath = $this->fileBasePath . DIRECTORY_SEPARATOR . $path;
+        $filePath = $this->toOSPath($this->storagePath . '/' . $path);
         if (!file_exists($filePath)) {
             return null;
         }
         $file = new File;
         $file->path = $filePath;
         $file->mimeType = mime_content_type($filePath);
-
         return $file;
     }
 
@@ -59,13 +59,29 @@ class FileService
      */
     public function upload(UploadedFileInterface $file, string $path): ?string
     {
-        $name = $this->generateFileName($file);
-        $uploadDir = join(DIRECTORY_SEPARATOR, [$this->fileBasePath, substr($path, 1)]);
+        $uploadDir = $this->toOSPath($this->storagePath . '/' . $path);
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir);
         }
+        $name = $this->generateFileName($file);
         $file->moveTo($uploadDir . DIRECTORY_SEPARATOR . $name);
-        return $path . '/' . $name;
+        $url = $this->storagePath . '/' . $path . '/' . $name;
+        $url = str_replace('//', '/', $url);
+        return $url;
+    }
+
+    /**
+     * Remove file.
+     * @param string $path
+     * @return bool
+     */
+    public function remove(string $path): bool
+    {
+        $filePath = $this->toOSPath($path);
+        if (!file_exists($filePath)) {
+            return false;
+        }
+        return unlink($filePath);
     }
 
     /**
@@ -82,5 +98,19 @@ class FileService
         $mimeType = $file->getClientMediaType();
         $ext = $extensions[$mimeType] ?? '';
         return uniqid() . '.' . $ext;
+    }
+
+    /**
+     * Convert web path to os specific path.
+     * @param string $path
+     * @return string
+     */
+    private function toOSPath(string $path): string
+    {
+        if (substr($path, 0, 1) !== '/') {
+            $path = '/' . $path;
+        }
+        $path = str_replace('//', '/', $path);
+        return WEB_ROOT_DIR . str_replace('/', DIRECTORY_SEPARATOR, $path);
     }
 }

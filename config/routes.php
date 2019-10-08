@@ -24,7 +24,7 @@ return [
     'calendar.week'    => ['GET', '/calendar/*/*', ['app\http\controller\CalendarController', 'week']],
     'calendar.read'    => ['GET', '/calendar/*/*/*', ['app\http\controller\CalendarController', 'read']],
 
-    'files.read' => ['GET', '/files/*/*', ['app\http\controller\FileController', 'read']],
+    // 'files.read' => ['GET', '/files/*/*', ['app\http\controller\FileController', 'read']],
     'files.upload' => ['POST', '/files', ['app\http\controller\FileController', 'upload']],
 
     'settings.all'   => ['GET', '/settings', ['app\http\controller\SettingsController', 'all']],

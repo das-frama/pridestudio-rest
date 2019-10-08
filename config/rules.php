@@ -13,7 +13,7 @@ return [
         ]
     ],
     FileService::class => [
-        'constructParams' => ['..\storage']
+        'constructParams' => [getenv('APP_STORAGE_PATH')]
     ],
     ResponderInterface::class => [
         'instanceOf' => JsonResponder::class,
