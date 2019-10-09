@@ -238,4 +238,13 @@ class HallRepository implements HallRepositoryInterface
         ]);
         return $result->isAcknowledged();
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function delete(string $id): bool
+    {
+        $result = $this->collection->deleteOne(['_id' => new ObjectId($id)]);
+        return (bool) $result->getDeletedCount();
+    }
 }

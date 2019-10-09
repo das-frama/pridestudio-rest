@@ -155,12 +155,22 @@ class HallService
     }
 
     /**
-     * Create a new hall.
+     * Update an existing hall.
      * @param Hall $hall
      * @return string|null
      */
     public function update(Hall $hall): ?string
     {
         return $this->hallRepo->update($hall) ? null : 'Error during update a record.';
+    }
+
+    /**
+     * Delete an existing hall.
+     * @param string $id
+     * @return bool
+     */
+    public function delete(string $id): bool
+    {
+        return $this->hallRepo->delete($id);
     }
 }

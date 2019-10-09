@@ -19,6 +19,7 @@ return [
     'halls.services' => ['GET', '/halls/*/services', ['app\http\controller\HallController', 'services']],
     'halls.create' => ['POST', '/halls', ['app\http\controller\HallController', 'create']],
     'halls.update' => ['PUT', '/halls/*', ['app\http\controller\HallController', 'update']],
+    'halls.delete' => ['DELETE', '/halls/*', ['app\http\controller\HallController', 'delete']],
 
     'calendar.index' => ['GET', '/calendar/*', ['app\http\controller\CalendarController', 'index']],
     'calendar.week'    => ['GET', '/calendar/*/*', ['app\http\controller\CalendarController', 'week']],

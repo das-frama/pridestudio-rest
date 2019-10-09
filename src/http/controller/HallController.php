@@ -196,11 +196,24 @@ class HallController
         $hall->is_active = (bool) $body->is_active;
 
         // Update hall.
-        $error = $this->hallService->update($hall);
-        if ($error !== null) {
-            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, [$error]);
+        $err = $this->hallService->update($hall);
+        if ($err !== null) {
+            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, [$err]);
         }
 
         return $this->responder->success(true, 1);
+    }
+
+    /**
+     * Delete hall.
+     * @method DELETE
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
+     */
+    public function delete(ServerRequestInterface $request): ResponseInterface
+    {
+        $id = RequestUtils::getPathSegment($request, 2);
+        $isDeleted = $this->hallService->delete($id);
+        return $this->responder->success($isDeleted, (int) $isDeleted);
     }
 }

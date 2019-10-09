@@ -63,6 +63,13 @@ interface HallRepositoryInterface
     public function update(Hall $hall): bool;
 
     /**
+     * Delet an extisting hall from storage..
+     * @param string $id
+     * @return bool.
+     */
+    public function delete(string $id): bool;
+
+    /**
      * Check if hall exists by filter.
      * @param array $filter
      * @return bool
