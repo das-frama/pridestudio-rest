@@ -87,7 +87,7 @@ class HallRepository implements HallRepositoryInterface
         $objectIDs = $this->convertToObjectId($selected);
         // Perform query.
         $cursor = $this->collection->aggregate([
-            ['$match' => $filter],
+            ['$match' => $this->convertFilter($filter)],
             ['$limit' => 1],
             ['$unwind' => '$services'],
             ['$lookup' => [

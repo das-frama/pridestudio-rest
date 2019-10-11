@@ -48,15 +48,14 @@ class HallService
 
     /**
      * Find services in hall.
-     * @param string $slug
+     * @param string $id
      * @param array $include
      * @return Service[]
      */
-    public function findServices(string $slug, array $selected = [], array $include = []): array
+    public function findServices(string $id, array $selected = [], array $include = []): array
     {
         $filter = [
-            'slug' => $slug,
-            'is_active' => true,
+            'id' => $id,
         ];
         if (empty($selected)) {
             $hall = $this->hallRepo->findOne($filter, ['services']);
