@@ -9,26 +9,18 @@ use app\entity\Service;
 use app\entity\ServiceChild;
 use app\entity\PriceRule;
 use app\domain\hall\HallRepositoryInterface;
+use app\storage\mongodb\base\AbstractRepository;
 use MongoDB\Client;
-use MongoDB\BSON\Regex;
-use MongoDB\BSON\ObjectId;
 
 /**
  * Class HallRepository
  * @package app\storage\mongodb
  */
-class HallRepository implements HallRepositoryInterface
+class HallRepository extends AbstractRepository implements HallRepositoryInterface
 {
-    use RepositoryTrait;
-
-    /**
-     * @param Client $client
-     */
     public function __construct(Client $client)
     {
-        // Inside repository trait.
-        $this->database = $client->selectDatabase('pridestudio');
-        $this->collection = $this->database->selectCollection("halls");
+        parent::__construct(getenv('DB_DATABASE'), 'halls', $client);
         $this->defaultOptions = [
             'typeMap' => [
                 'root' => Hall::class,
@@ -43,9 +35,28 @@ class HallRepository implements HallRepositoryInterface
     /**
      * {@inheritDoc}
      */
-    public function findOne(array $filter, array $include = []): ?Hall
+    public function init(): bool
     {
-        return $this->internalFindOne($filter, $this->defaultOptions, $include);
+        // Create index.
+        if (!$this->hasIndex('slug')) {
+            $this->collection->createIndex(['slug' => 1], ['unique' => true]);
+        }
+        // Create schema validation.
+        return $this->createSchemaValidation('halls', [
+            'name' => ['bsonType' => 'string'],
+            'slug' => ['bsonType' => 'string'],
+            'description' => ['bsonType' => 'string'],
+            'base_price' => ['bsonType' => 'int'],
+            'preview_image' => ['bsonType' => 'string'],
+            'detail_image' => ['bsonType' => 'string'],
+            'services' => ['bsonType' => 'array'],
+            'prices' => ['bsonType' => 'array'],
+            'sort' => ['bsonType' => 'int'],
+            'is_active' => ['bsonType' => 'bool'],
+            'updated_at' => ['bsonType' => 'int'],
+            'created_by' => ['bsonType' => 'objectId'],
+            'updated_by' => ['bsonType' => 'objectId'],
+        ], ['name', 'slug', 'sort', 'is_active']);
     }
 
     /**
@@ -115,136 +126,5 @@ class HallRepository implements HallRepositoryInterface
             $service->setInclude($include);
             return $service;
         }, $cursor->toArray());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function findAll(array $filter, int $limit = 0, int $skip = 0, array $sort = [], array $include = []): array
-    {
-        $options = array_merge($this->defaultOptions, [
-            'limit' => $limit,
-            'skip' => $skip,
-            'sort' => $sort,
-        ]);
-        return $this->internalFindAll($filter, $options, $include);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function search(array $search, int $limit = 0, int $skip = 0, array $sort = [], array $include = []): array
-    {
-        $options = array_merge($this->defaultOptions, [
-            'limit' => $limit,
-            'skip' => $skip,
-            'sort' => $sort,
-        ]);
-        $filter = array_map(function ($value) {
-            $str = (string) $value;
-            $first = substr($value, 0, 1);
-            $last = substr($value, -1);
-            if ($first === '%' && $last === '%') {
-                $str = substr($str, 1, -1);
-            } elseif ($last === '%') {
-                $str = '^' . substr($str, 0, -1);
-            } elseif ($first === '%') {
-                $str = substr($str, 1) . '$';
-            } else {
-                return $str;
-            }
-            return new Regex($str, 'i');
-        }, $search);
-        return $this->internalFindAll(['$or' => $filter], $options, $include);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function count(array $filter = []): int
-    {
-        return $this->collection->count($this->convertFilter($filter));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function save(): bool
-    {
-        return false;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function isExists(array $filter): bool
-    {
-        return (bool) $this->collection->count($this->convertFilter($filter));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function init(): bool
-    {
-        // Create index.
-        if (!$this->hasIndex('slug')) {
-            $this->collection->createIndex(['slug' => 1], ['unique' => true]);
-        }
-        // Create schema validation.
-        return $this->createSchemaValidation('halls', [
-            'name' => ['bsonType' => 'string'],
-            'slug' => ['bsonType' => 'string'],
-            'description' => ['bsonType' => 'string'],
-            'base_price' => ['bsonType' => 'int'],
-            'preview_image' => ['bsonType' => 'string'],
-            'detail_image' => ['bsonType' => 'string'],
-            'services' => ['bsonType' => 'array'],
-            'prices' => ['bsonType' => 'array'],
-            'sort' => ['bsonType' => 'int'],
-            'is_active' => ['bsonType' => 'bool'],
-            'updated_at' => ['bsonType' => 'int'],
-            'created_by' => ['bsonType' => 'objectId'],
-            'updated_by' => ['bsonType' => 'objectId'],
-        ], ['name', 'slug', 'sort', 'is_active']);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function insert(Hall $hall): ?string
-    {
-        $result = $this->collection->insertOne($hall, [
-            'bypassDocumentValidation' => false,
-        ]);
-        $id = $result->getInsertedId();
-        return ($id instanceof ObjectId) ? (string) $id : null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function update(Hall $hall): bool
-    {
-        if ($hall->id === null) {
-            return false;
-        }
-        $filter = ['_id' => new ObjectId($hall->id)];
-        $update = [
-            '$set' => $hall
-        ];
-        $result = $this->collection->updateOne($filter, $update, [
-            'bypassDocumentValidation' => false,
-        ]);
-        return $result->isAcknowledged();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function delete(string $id): bool
-    {
-        $result = $this->collection->deleteOne(['_id' => new ObjectId($id)]);
-        return (bool) $result->getDeletedCount();
     }
 }

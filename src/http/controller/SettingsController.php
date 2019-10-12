@@ -43,8 +43,10 @@ class SettingsController
     public function all(ServerRequestInterface $request): ResponseInterface
     {
         $params = $this->getQueryParams($request);
-        $settings = $this->settingService->findAll($params['include'] ?? []);
-        return $this->responder->success($settings);
+        $include = $params['include'] ?? [];
+        $settings = $this->settingService->findAll($params, $include);
+        $count = isset($params['query']) ? count($settings) : $this->settingService->count();
+        return $this->responder->success($settings, $count);
     }
 
     /**

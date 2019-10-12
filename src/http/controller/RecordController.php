@@ -78,6 +78,7 @@ class RecordController
 
     /**
      * Calculate price for reservations.
+     * POST /records/price
      * @method POST
      * @param ServerRequestInterface $request
      * @return ResponseInterface
@@ -86,7 +87,7 @@ class RecordController
     {
         // Get body from request.
         $body = $request->getParsedBody();
-        if ($body === null) {
+        if ($body === null || $body === []) {
             return $this->responder->error(ResponseFactory::BAD_REQUEST, ["Very bad request."]);
         }
         $validationService = new ValidationService;

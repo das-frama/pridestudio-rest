@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace app\entity;
 
-use app\storage\mongodb\Entity;
+use app\storage\mongodb\base\AbstractEntity;
 use MongoDB\BSON\ObjectId;
 
 /**
  * Hall class.
  */
-class Hall extends Entity
+class Hall extends AbstractEntity
 {
     /** @var string */
     public $id;

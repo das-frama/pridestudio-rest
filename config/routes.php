@@ -21,6 +21,8 @@ return [
     'halls.update' => ['PUT', '/halls/*', ['app\http\controller\HallController', 'update']],
     'halls.delete' => ['DELETE', '/halls/*', ['app\http\controller\HallController', 'delete']],
 
+    'services.all' => ['GET', '/services', ['app\http\controller\ServicesController', 'all']],
+
     'calendar.index' => ['GET', '/calendar/*', ['app\http\controller\CalendarController', 'index']],
     'calendar.week'    => ['GET', '/calendar/*/*', ['app\http\controller\CalendarController', 'week']],
     'calendar.read'    => ['GET', '/calendar/*/*/*', ['app\http\controller\CalendarController', 'read']],

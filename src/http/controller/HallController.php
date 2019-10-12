@@ -40,6 +40,7 @@ class HallController
 
     /**
      * Get all halls.
+     * GET /halls
      * @method GET
      * @param ServerRequestInterface $request
      * @return ResponseInterface
@@ -48,6 +49,9 @@ class HallController
     {
         $params = $this->getQueryParams($request);
         $include = $params['include'] ?? [];
+        if (!is_array($include)) {
+            $include = [$include];
+        }
         $halls = $this->hallService->findAll($params, $include);
         $count = isset($params['query']) ? count($halls) : $this->hallService->count();
         return $this->responder->success($halls, $count);
@@ -61,18 +65,18 @@ class HallController
      */
     public function read(ServerRequestInterface $request): ResponseInterface
     {
-        $key = RequestUtils::getPathSegment($request, 2);
+        $id = RequestUtils::getPathSegment($request, 2);
         $params = $this->getQueryParams($request);
-        $err = (new ValidationService)->validateMongoid($key);
+        $err = (new ValidationService)->validateMongoid($id);
         if ($err === null) {
-            $hall = $this->hallService->findByID($key, $params['include'] ?? []);
+            $hall = $this->hallService->findByID($id, $params['include'] ?? []);
         } else {
-            $hall = $this->hallService->findBySlug($key, $params['include'] ?? []);
+            $hall = $this->hallService->findBySlug($id, $params['include'] ?? []);
         }
         if ($hall === null) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, ["Hall not found."]);
         }
-        return $this->responder->success($hall);
+        return $this->responder->success($hall, 1);
     }
 
     /**
@@ -83,8 +87,8 @@ class HallController
      */
     public function services(ServerRequestInterface $request): ResponseInterface
     {
-        $key = RequestUtils::getPathSegment($request, 2);
-        if (!$this->hallService->isExists($key)) {
+        $id = RequestUtils::getPathSegment($request, 2);
+        if (!$this->hallService->isExists($id)) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, ["Hall not found."]);
         }
         $params = $this->getQueryParams($request);
@@ -99,7 +103,7 @@ class HallController
                 }
             }
         }
-        $services = $this->hallService->findServices($key, $selected, $params['include'] ?? []);
+        $services = $this->hallService->findServices($id, $selected, $params['include'] ?? []);
         return $this->responder->success($services, count($services));
     }
 

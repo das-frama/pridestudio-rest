@@ -28,6 +28,10 @@ return [
         'instanceOf' => 'app\storage\mongodb\HallRepository',
         'shared' => true
     ],
+    'app\domain\service\ServiceRepositoryInterface' => [
+        'instanceOf' => 'app\storage\mongodb\ServiceRepository',
+        'shared' => true
+    ],
     'app\domain\setting\SettingRepositoryInterface' => [
         'instanceOf' => 'app\storage\mongodb\SettingRepository',
         'shared' => true

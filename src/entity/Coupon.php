@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace app\entity;
 
-use app\storage\mongodb\Entity;
+use app\storage\mongodb\base\AbstractEntity;
 
 /**
  * Coupon class.
  */
-class Coupon extends Entity
+class Coupon extends AbstractEntity
 {
     /** @var int */
     public $id;

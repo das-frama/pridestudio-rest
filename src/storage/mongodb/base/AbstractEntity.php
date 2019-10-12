@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\storage\mongodb;
+namespace app\storage\mongodb\base;
 
 use JsonSerializable;
 use ReflectionObject;
@@ -15,7 +15,7 @@ use MongoDB\BSON\Persistable;
 /**
  * Entity is a base class for mongodb records.
  */
-abstract class Entity implements Persistable, JsonSerializable
+abstract class AbstractEntity implements Persistable, JsonSerializable
 {
     protected $include = [];
     protected $exclude = [];

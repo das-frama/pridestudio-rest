@@ -18,8 +18,11 @@ class JsonResponder implements ResponderInterface
         ]);
     }
 
-    public function success($result, int $count = 0): ResponseInterface
+    public function success($result, int $count = null): ResponseInterface
     {
+        if ($count === null) {
+            $count = is_array($result) ? count($result) : 1;
+        }
         return ResponseFactory::fromObject(200, [
             'data' => $result,
             'count' => $count,

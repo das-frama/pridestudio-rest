@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace app\entity;
 
-use app\storage\mongodb\Entity;
+use app\storage\mongodb\base\AbstractEntity;
 
-class User extends Entity
+class User extends AbstractEntity
 {
     /** @var string */
     public $id;

@@ -6,60 +6,28 @@ namespace app\storage\mongodb;
 
 use app\entity\Coupon;
 use app\domain\record\CouponRepositoryInterface;
+use app\storage\mongodb\base\AbstractRepository;
 use MongoDB\Client;
-use MongoDB\BSON\ObjectId;
 
 /**
  * Class CouponRepository
  * @package app\storage\mongodb
  */
-class CouponRepository implements CouponRepositoryInterface
+class CouponRepository extends AbstractRepository implements CouponRepositoryInterface
 {
-    use RepositoryTrait;
-
     /**
      * CouponRepository constructor.
      * @param Client $client
      */
     public function __construct(Client $client)
     {
-        // Inside repository trait.
-        $this->database = $client->selectDatabase('pridestudio');
-        $this->collection = $this->database->selectCollection('coupons');
+        parent::__construct(getenv('DB_DATABASE'), 'coupons', $client);
         $this->defaultOptions = [
             'typeMap' => [
                 'root' => Coupon::class,
                 'document' => 'array',
             ],
         ];
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function findOne(array $filter, array $include = []): ?Coupon
-    {
-        return $this->internalFindOne($filter, $this->defaultOptions, $include);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function findAll(array $filter = [], array $include = []): array
-    {
-        return $this->internalFindAll($filter, $this->defaultOptions, $include);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function insert(Coupon $coupon): ?string
-    {
-        $result = $this->collection->insertOne($coupon, [
-            'bypassDocumentValidation' => true,
-        ]);
-        $id = $result->getInsertedId();
-        return ($id instanceof ObjectId) ? (string) $id : null;
     }
 
     /**
@@ -82,13 +50,5 @@ class CouponRepository implements CouponRepositoryInterface
             'created_by' => ['bsonType' => 'objectId'],
             'updated_by' => ['bsonType' => 'objectId'],
         ], ['code', 'factor', 'is_active']);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function isExists(array $filter): bool
-    {
-        return (bool) $this->collection->count($this->convertFilter($filter));
     }
 }

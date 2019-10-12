@@ -13,18 +13,21 @@ trait ControllerTrait
     private function getQueryParams(ServerRequestInterface $request): array
     {
         $params = $request->getQueryParams();
-        return array_map(function ($str) {
+        return array_map(function ($key, $str) {
             if (empty($str)) {
                 return null;
             }
             if (strstr($str, ',') !== false) {
                 return explode(',', $str);
             }
+            if ($key === 'selected' || $key === 'include') {
+                return [$str];
+            }
             if (is_numeric($str)) {
                 return (int) $str;
             }
             return $str;
-        }, $params);
+        }, array_keys($params), $params);
     }
 
     /**

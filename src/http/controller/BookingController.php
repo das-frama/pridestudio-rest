@@ -45,6 +45,7 @@ class BookingController
 
     /**
      * Get all info at once for booking page.
+     * GET /booking
      * @method GET
      * @param ServerRequestInterface $request
      * @return ResponseInterface
@@ -66,10 +67,10 @@ class BookingController
         $bookingDoc = new BookingDocument;
         $bookingDoc->settings = $settings;
         $bookingDoc->hall = $hall;
-        $bookingDoc->services = $this->hallService->findServices($hall->slug, [], ['id', 'name', 'children']);
+        $bookingDoc->services = $this->hallService->findServices($hall->id, [], ['id', 'name', 'children']);
         $bookingDoc->calendar = $this->calendarService->weekdays($hall->id);
 
-        return $this->responder->success($bookingDoc);
+        return $this->responder->success($bookingDoc, 1);
     }
 
     /**
@@ -93,7 +94,7 @@ class BookingController
         $bookingDoc = new BookingDocument;
         $bookingDoc->settings = $settings;
         $bookingDoc->hall = $hall;
-        $bookingDoc->services = $this->hallService->findServices($hall->slug, [], ['id', 'name', 'children']);
+        $bookingDoc->services = $this->hallService->findServices($hall->id, [], ['id', 'name', 'children']);
         $bookingDoc->calendar = $this->calendarService->weekdays($hall->id);
 
         return $this->responder->success($bookingDoc);

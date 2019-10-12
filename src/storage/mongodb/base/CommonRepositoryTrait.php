@@ -2,28 +2,17 @@
 
 declare(strict_types=1);
 
-namespace app\storage\mongodb;
+namespace app\storage\mongodb\base;
 
 use Mongodb\BSON\ObjectId;
-use MongoDB\Collection;
-use MongoDB\Database;
 
-trait RepositoryTrait
+trait CommonRepositoryTrait
 {
-    /** @var Database */
-    private $database;
-
-    /** @var Collection */
-    private $collection;
-
-    /** @var array */
-    private $defaultOptions = [];
-
     /**
      * Finds an entity from storage by filter.
      * @param array $filter
      * @param array $include
-     * @return Entity|null
+     * @return AbstractEntity|null
      */
     private function internalFindOne(array $filter, array $options, array $include = []): ?Entity
     {
@@ -47,7 +36,7 @@ trait RepositoryTrait
 
     /**
      * @param array $link ['as' => ['localField' => 'foreignCollection.field']
-     * @return Entity[]
+     * @return AbstractEntity[]
      */
     private function internalFindWith(array $links, array $filter, array $options, array $include = []): array
     {
@@ -90,7 +79,7 @@ trait RepositoryTrait
      * @param array $filter
      * @param array $options
      * @param array $include
-     * @return Entity[]
+     * @return AbstractEntity[]
      */
     private function internalFindAll(array $filter = [], array $options = [], array $include = []): array
     {
@@ -126,6 +115,34 @@ trait RepositoryTrait
             $entity->setInclude($include);
             return $entity;
         }, $cursor->toArray());
+    }
+
+    /**
+     * Search enitities.
+     * @param array $search
+     * @param array $include
+     * @param array $options
+     * @return AbstractEntity[]
+     */
+    private function internalSearch(array $search, array $include = [], array $options = []): array
+    {
+        $filter = array_map(function ($value) {
+            $str = (string) $value;
+            $first = substr($value, 0, 1);
+            $last = substr($value, -1);
+            if ($first === '%' && $last === '%') {
+                $str = substr($str, 1, -1);
+            } elseif ($last === '%') {
+                $str = '^' . substr($str, 0, -1);
+            } elseif ($first === '%') {
+                $str = substr($str, 1) . '$';
+            } else {
+                return $str;
+            }
+            return new Regex($str, 'i');
+        }, $search);
+
+        return $this->internalFindAll(['$or' => $filter], $options, $include);
     }
 
     /**

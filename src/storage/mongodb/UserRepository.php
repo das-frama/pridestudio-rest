@@ -6,60 +6,28 @@ namespace app\storage\mongodb;
 
 use app\entity\User;
 use app\domain\user\UserRepositoryInterface;
+use app\storage\mongodb\base\AbstractRepository;
 use MongoDB\Client;
-use MongoDB\BSON\ObjectId;
 
 /**
  * Class UserRepository
  * @package app\storage\mongodb
  */
-class UserRepository implements UserRepositoryInterface
+class UserRepository extends AbstractRepository implements UserRepositoryInterface
 {
-    use RepositoryTrait;
-
     /**
      * UserRepository constructor.
      * @param Client $client
      */
     public function __construct(Client $client)
     {
-        // Inside repository trait.
-        $this->database = $client->selectDatabase('pridestudio');
-        $this->collection = $this->database->selectCollection('users');
+        parent::__construct(getenv('DB_DATABASE'), 'users', $client);
         $this->defaultOptions = [
             'typeMap' => [
                 'root' => User::class,
                 'document' => 'array',
             ],
         ];
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function findOne(array $filter, array $include = []): ?User
-    {
-        return $this->internalFindOne($filter, $this->defaultOptions, $include);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function findAll(array $filter, array $include = []): array
-    {
-        return $this->internalFindAll($filter, $this->defaultOptions, $include);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function insert(User $user): ?string
-    {
-        $result = $this->collection->insertOne($user, [
-            'bypassDocumentValidation' => true,
-        ]);
-        $id = $result->getInsertedId();
-        return ($id instanceof ObjectId) ? (string) $id : null;
     }
 
     /**
@@ -84,13 +52,5 @@ class UserRepository implements UserRepositoryInterface
             'created_by' => ['bsonType' => 'objectId'],
             'updated_by' => ['bsonType' => 'objectId'],
         ], ['email', 'name', 'password_hash', 'role', 'is_active']);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function isExists(array $filter): bool
-    {
-        return (bool) $this->collection->count($this->convertFilter($filter));
     }
 }
