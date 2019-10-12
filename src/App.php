@@ -7,13 +7,15 @@ namespace app;
 use app\http\router\Router;
 use app\http\router\RouterInterface;
 use app\http\middleware\CorsMiddleware;
+use app\http\middleware\LogMiddleware;
 use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Log\LoggerInterface;
 use Dice\Dice;
+use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
-use Psr\Log\LoggerInterface;
 use RuntimeException;
 
 class App
@@ -27,6 +29,12 @@ class App
     /** @var LoggerInterface */
     private $log;
 
+    /** @var string */
+    private $env;
+
+    /** @var bool */
+    private $debug;
+
     /**
      * App constructor.
      * @param array $config
@@ -35,14 +43,23 @@ class App
     {
         // DI.
         $dice = (new Dice())->addRules($config['rules']);
+        // Set level mode.
+        $this->env = getenv('APP_ENV');
+        $this->debug = (bool) getenv('APP_DEBUG');
         // Logger.
-        $this->log = new Logger('app');
-        $logFilePath = join(DIRECTORY_SEPARATOR, ['storage', 'log']);
-        $this->log->pushHandler(new StreamHandler($logFilePath, Logger::DEBUG));
+        $this->log = new Logger($config['logger']['name']);
+        $this->log->pushHandler(
+            (new StreamHandler($config['logger']['path'], $config['logger']['level']))
+                ->setFormatter(new LineFormatter(null, null, true, true))
+        );
         // Responder.
         $this->responder = $dice->create(ResponderInterface::class);
         // Router.
         $this->router = new Router(getenv('APP_BASE_PATH'), $dice, $this->responder);
+        // Load middlewares.
+        if ($this->debug) {
+            $this->router->load(new LogMiddleware($this->log, $this->debug));
+        }
         $this->router->load(new CorsMiddleware);
         foreach ($config['routes'] as $route) {
             $this->router->register($route[0], $route[1], $route[2]);
@@ -87,7 +104,7 @@ class App
 
         echo $response->getBody();
     }
-
+    
     /**
      * Add parsed to request and return it.
      * @param ServerRequestInterface $request

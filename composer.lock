@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f5092021176981b72a4ba63d7b3c76e6",
+    "content-hash": "501d4e65173204910bc2491a02aaf24f",
     "packages": [
         {
             "name": "level-2/dice",
