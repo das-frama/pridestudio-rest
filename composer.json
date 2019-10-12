@@ -16,7 +16,8 @@
     "nyholm/psr7-server": "^0.3.0",
     "php-http/message-factory": "^1.0",
     "level-2/dice": "^4.0",
-    "vlucas/phpdotenv": "^3.6"
+    "vlucas/phpdotenv": "^3.6",
+    "monolog/monolog": "^2.0"
   },
   "authors": [
     {

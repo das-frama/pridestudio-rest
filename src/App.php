@@ -11,6 +11,9 @@ use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Dice\Dice;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
+use Psr\Log\LoggerInterface;
 use RuntimeException;
 
 class App
@@ -21,6 +24,9 @@ class App
     /** @var ResponderInterface */
     private $responder;
 
+    /** @var LoggerInterface */
+    private $log;
+
     /**
      * App constructor.
      * @param array $config
@@ -29,6 +35,10 @@ class App
     {
         // DI.
         $dice = (new Dice())->addRules($config['rules']);
+        // Logger.
+        $this->log = new Logger('app');
+        $logFilePath = join(DIRECTORY_SEPARATOR, ['storage', 'log']);
+        $this->log->pushHandler(new StreamHandler($logFilePath, Logger::DEBUG));
         // Responder.
         $this->responder = $dice->create(ResponderInterface::class);
         // Router.
@@ -48,6 +58,7 @@ class App
         try {
             $response = $this->router->handle($this->addParsedBody($request));
         } catch (RuntimeException $e) {
+            $this->log->error($e->getMessage());
             $response = $this->responder->error(ResponseFactory::INTERNAL_SERVER_ERROR, [$e->getMessage()]);
         }
 
