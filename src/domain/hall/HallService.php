@@ -110,7 +110,7 @@ class HallService
         // Query.
         $filter = [];
         if (isset($params['query'])) {
-            $filter = array_fill_keys(['name', 'slug'], $params['query']);
+            $filter = array_fill_keys(['name', 'slug'], '%' . $params['query'] . '%');
             return $this->hallRepo->search($filter, $limit, $skip, $sort, $include);
         }
         return $this->hallRepo->findAll($filter, $limit, $skip, $sort, $include);

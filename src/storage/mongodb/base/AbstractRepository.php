@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace app\storage\mongodb\base;
 
 use app\domain\CommonRepositoryInterface;
-use Dotenv\Regex\Regex;
 use MongoDB\Client;
 use MongoDB\Collection;
 use MongoDB\Database;
+use MongoDB\BSON\Regex;
 use MongoDB\BSON\ObjectId;
 
 abstract class AbstractRepository implements CommonRepositoryInterface

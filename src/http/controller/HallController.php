@@ -49,9 +49,6 @@ class HallController
     {
         $params = $this->getQueryParams($request);
         $include = $params['include'] ?? [];
-        if (!is_array($include)) {
-            $include = [$include];
-        }
         $halls = $this->hallService->findAll($params, $include);
         $count = isset($params['query']) ? count($halls) : $this->hallService->count();
         return $this->responder->success($halls, $count);
