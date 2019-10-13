@@ -14,11 +14,11 @@ use Psr\Log\LoggerInterface;
 class LogMiddleware implements MiddlewareInterface
 {
     /** @var LoggerInterface */
-    private $log;
+    private $logger;
 
-    public function __construct(LoggerInterface $log)
+    public function __construct(LoggerInterface $logger)
     {
-        $this->log = $log;
+        $this->logger = $logger;
     }
 
     /**
@@ -26,7 +26,7 @@ class LogMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $next): ResponseInterface
     {
-        $this->log->debug(RequestUtils::str($request));
+        $this->logger->debug(RequestUtils::str($request));
         return $next->handle($request);
     }
 }

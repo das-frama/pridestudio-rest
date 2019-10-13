@@ -4,6 +4,8 @@ use app\domain\file\FileService;
 use app\http\responder\JsonResponder;
 use app\http\responder\ResponderInterface;
 use MongoDB\Client;
+use Monolog\Logger;
+use Psr\Log\LoggerInterface;
 
 return [
     Client::class => [
@@ -18,6 +20,11 @@ return [
     ResponderInterface::class => [
         'instanceOf' => JsonResponder::class,
         'shared' => true
+    ],
+    LoggerInterface::class => [
+        'instanceOf' => Logger::class,
+        'constructParams' => ['app', [], [], null],
+        'shared' => true,
     ],
 
     'app\domain\record\RecordRepositoryInterface' => [

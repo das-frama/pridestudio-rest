@@ -11,6 +11,7 @@ use app\entity\PriceRule;
 use app\domain\hall\HallRepositoryInterface;
 use app\storage\mongodb\base\AbstractRepository;
 use MongoDB\Client;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class HallRepository

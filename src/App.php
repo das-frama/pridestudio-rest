@@ -13,10 +13,10 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
 use Dice\Dice;
+use Monolog\ErrorHandler;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
-use Monolog\Logger;
-use RuntimeException;
+use Exception;
 
 class App
 {
@@ -27,7 +27,7 @@ class App
     private $responder;
 
     /** @var LoggerInterface */
-    private $log;
+    private $logger;
 
     /** @var string */
     private $env;
@@ -47,18 +47,19 @@ class App
         $this->env = getenv('APP_ENV');
         $this->debug = (bool) getenv('APP_DEBUG');
         // Logger.
-        $this->log = new Logger($config['logger']['name']);
-        $this->log->pushHandler(
+        $this->logger = $dice->create(LoggerInterface::class);
+        $this->logger->pushHandler(
             (new StreamHandler($config['logger']['path'], $config['logger']['level']))
-                ->setFormatter(new LineFormatter(null, null, true, true))
+            ->setFormatter(new LineFormatter(null, null, true, true))
         );
+        ErrorHandler::register($this->logger);
         // Responder.
         $this->responder = $dice->create(ResponderInterface::class);
         // Router.
         $this->router = new Router(getenv('APP_BASE_PATH'), $dice, $this->responder);
         // Load middlewares.
         if ($this->debug) {
-            $this->router->load(new LogMiddleware($this->log, $this->debug));
+            $this->router->load(new LogMiddleware($this->logger, $this->debug));
         }
         $this->router->load(new CorsMiddleware);
         foreach ($config['routes'] as $route) {
@@ -74,9 +75,10 @@ class App
     {
         try {
             $response = $this->router->handle($this->addParsedBody($request));
-        } catch (RuntimeException $e) {
-            $this->log->error($e->getMessage());
+        } catch (Exception $e) {
             $response = $this->responder->error(ResponseFactory::INTERNAL_SERVER_ERROR, [$e->getMessage()]);
+            $this->emit($response);
+            throw $e;
         }
 
         $this->emit($response);
