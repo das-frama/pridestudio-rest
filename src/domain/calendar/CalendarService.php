@@ -92,19 +92,23 @@ class CalendarService
         $setting = $this->settingsRepo->findOne(['key' => 'calendar_max_booking_range']);
         $deltaMonth = $setting === null ? 1 : (int) $setting->value;
 
-        $nextHour = (int) (new DateTimeImmutable())
-            ->modify('set next hour')
-            ->format('H');
+        $minutes = date('i');
+        $nextHourDate = (new DateTimeImmutable())
+            ->modify('+1 hour')
+            ->modify('-' . $minutes . 'minutes');
         $currentDate = (new DateTimeImmutable())
             ->setTime(0, 0, 0, 0);
         $futureDate = new DateTimeImmutable("last day of +{$deltaMonth} month");
 
-        $limitations = array_map(function (string $dateStr) use ($currentDate, $futureDate, $nextHour) {
+        // Calculate limitations.
+        $limitations = array_map(function (string $dateStr) use ($currentDate, $futureDate, $nextHourDate) {
             $date = new DateTimeImmutable($dateStr);
             if ($date == $currentDate) {
+                $diff = $nextHourDate->diff($date);
+                $length = $diff->days * 24 * 60 + $diff->h * 60 + $diff->i;
                 return [
                     'start_at' => $date->getTimestamp(),
-                    'length' => $nextHour * 60
+                    'length' => $length
                 ];
             } elseif ($date < $currentDate || $date >= $futureDate) {
                 return [
@@ -133,11 +137,11 @@ class CalendarService
             'hall_id' => new ObjectId($hallID),
             'reservations.start_at' => ['$gte' => $startAt, '$lt' => $endAt]
         ];
-        $reservations = $this->recordsRepo->findReservations($filter);
-        $result = [];
-        foreach ($reservations as $r) {
-            $result = array_merge($result, $r);
-        }
-        return $result;
+        return $this->recordsRepo->findReservations($filter);
+        // $result = [];
+        // foreach ($reservations as $r) {
+        //     $result = array_merge($result, $r);
+        // }
+        // return $result;
     }
 }
