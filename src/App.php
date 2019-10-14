@@ -45,7 +45,7 @@ class App
         $dice = (new Dice())->addRules($config['rules']);
         // Set level mode.
         $this->env = getenv('APP_ENV');
-        $this->debug = (bool) getenv('APP_DEBUG');
+        $this->debug = getenv('APP_DEBUG') === 'true';
         // Logger.
         $this->logger = $dice->create(LoggerInterface::class);
         $this->logger->pushHandler(
@@ -76,7 +76,11 @@ class App
         try {
             $response = $this->router->handle($this->addParsedBody($request));
         } catch (Exception $e) {
-            $response = $this->responder->error(ResponseFactory::INTERNAL_SERVER_ERROR, [$e->getMessage()]);
+            $message = 'Internal Server Error';
+            if ($this->debug) {
+                $message = $e->getMessage();
+            }
+            $response = $this->responder->error(ResponseFactory::INTERNAL_SERVER_ERROR, [$message]);
             $this->emit($response);
             throw $e;
         }
