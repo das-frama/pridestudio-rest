@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\storage\mongodb\base;
 
 use app\domain\CommonRepositoryInterface;
+use Exception;
 use MongoDB\Client;
 use MongoDB\Collection;
 use MongoDB\Database;
@@ -188,7 +189,11 @@ abstract class AbstractRepository implements CommonRepositoryInterface
         }
         // Change id to _id.
         if (isset($bsonFilter['id'])) {
-            $bsonFilter['_id'] = new ObjectId($bsonFilter['id']);
+            try {
+                $bsonFilter['_id'] = new ObjectId($bsonFilter['id']);
+            } catch (Exception $e) {
+                return $bsonFilter;
+            }
             unset($bsonFilter['id']);
         }
         if (isset($filter['$or'])) {
