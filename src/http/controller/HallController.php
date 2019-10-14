@@ -89,12 +89,11 @@ class HallController
             return $this->responder->error(ResponseFactory::NOT_FOUND, ["Hall not found."]);
         }
         $params = $this->getQueryParams($request);
-        $selected = [];
-        if (isset($params['selected'])) {
-            $selected = $params['selected'];
+        $selected = $params['selected'] ?? [];
+        if (!empty($selected)) {
             $validationServices = new ValidationService;
-            foreach ($selected as $id) {
-                $err = $validationServices->validateMongoid($id);
+            foreach ($selected as $selectedID) {
+                $err = $validationServices->validateMongoid($selectedID);
                 if ($err !== null) {
                     return $this->responder->error(ResponseFactory::BAD_REQUEST, ['Wrong id.']);
                 }
