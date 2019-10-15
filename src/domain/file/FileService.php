@@ -61,8 +61,8 @@ class FileService
     public function upload(UploadedFileInterface $file, string $path): ?string
     {
         $uploadDir = $this->toOSPath($this->storagePath . '/' . $path);
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir);
+        if (!is_dir(dirname($uploadDir))) {
+            mkdir($uploadDir, 0777, true);
         }
         $name = $this->generateFileName($file);
         $file->moveTo($uploadDir . DIRECTORY_SEPARATOR . $name);
