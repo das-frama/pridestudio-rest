@@ -4,24 +4,14 @@ declare(strict_types=1);
 
 namespace app\domain\record;
 
-use app\entity\Record;
+use app\domain\CommonRepositoryInterface;
 
-interface RecordRepositoryInterface
+interface RecordRepositoryInterface extends CommonRepositoryInterface
 {
     /**
-     * Find record by id.
+     * Find nested reservations in records.
      * @param array $filter
-     * @param array $include
-     * @return Record|null
+     * @return Reservation[]
      */
-    public function findOne(array $filter, array $include = []): ?Record;
-
-    /**
-     * Find all records by filter.
-     * @param array $filter
-     * @param array $include
-     * @return Record[]
-     */
-    public function findAll(array $filter = [], array $include = []): array;
-    public function save(): bool;
+    public function findReservations(array $filter): array;
 }

@@ -7,11 +7,16 @@ namespace app;
 use app\http\router\Router;
 use app\http\router\RouterInterface;
 use app\http\middleware\CorsMiddleware;
+use app\http\middleware\LogMiddleware;
 use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Log\LoggerInterface;
 use Dice\Dice;
-use RuntimeException;
+use Monolog\ErrorHandler;
+use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\StreamHandler;
+use Exception;
 
 class App
 {
@@ -21,6 +26,15 @@ class App
     /** @var ResponderInterface */
     private $responder;
 
+    /** @var LoggerInterface */
+    private $logger;
+
+    /** @var string */
+    private $env;
+
+    /** @var bool */
+    private $debug;
+
     /**
      * App constructor.
      * @param array $config
@@ -29,10 +43,24 @@ class App
     {
         // DI.
         $dice = (new Dice())->addRules($config['rules']);
+        // Set level mode.
+        $this->env = getenv('APP_ENV');
+        $this->debug = getenv('APP_DEBUG') === 'true';
+        // Logger.
+        $this->logger = $dice->create(LoggerInterface::class);
+        $this->logger->pushHandler(
+            (new StreamHandler($config['logger']['path'], $config['logger']['level']))
+            ->setFormatter(new LineFormatter(null, null, true, true))
+        );
+        ErrorHandler::register($this->logger);
         // Responder.
         $this->responder = $dice->create(ResponderInterface::class);
         // Router.
-        $this->router = new Router(getenv('BASE_PATH'), $dice, $this->responder);
+        $this->router = new Router(getenv('APP_BASE_PATH'), $dice, $this->responder);
+        // Load middlewares.
+        if ($this->debug) {
+            $this->router->load(new LogMiddleware($this->logger, $this->debug));
+        }
         $this->router->load(new CorsMiddleware);
         foreach ($config['routes'] as $route) {
             $this->router->register($route[0], $route[1], $route[2]);
@@ -47,8 +75,14 @@ class App
     {
         try {
             $response = $this->router->handle($this->addParsedBody($request));
-        } catch (RuntimeException $e) {
-            $response = $this->responder->error(ResponseFactory::INTERNAL_SERVER_ERROR, [$e->getMessage()]);
+        } catch (Exception $e) {
+            $message = 'Internal Server Error';
+            if ($this->debug) {
+                $message = $e->getMessage();
+            }
+            $response = $this->responder->error(ResponseFactory::INTERNAL_SERVER_ERROR, [$message]);
+            $this->emit($response);
+            throw $e;
         }
 
         $this->emit($response);
@@ -76,7 +110,7 @@ class App
 
         echo $response->getBody();
     }
-
+    
     /**
      * Add parsed to request and return it.
      * @param ServerRequestInterface $request
@@ -98,6 +132,7 @@ class App
                         $parsedBody = $this->parseJSONBody($contents);
                         break;
 
+                    case 'multipart/form-data':
                     case 'application/x-www-form-urlencoded':
                         $parsedBody = $this->parseURLBody($contents);
                         break;

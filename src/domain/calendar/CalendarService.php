@@ -9,6 +9,7 @@ use app\domain\setting\SettingRepositoryInterface;
 use app\entity\Reservation;
 use MongoDB\BSON\ObjectId;
 use DateTime;
+use DateTimeImmutable;
 
 /**
  * Class CalendarService
@@ -22,8 +23,10 @@ class CalendarService
     /** @var RecordRepositoryInterface */
     private $recordsRepo;
 
-    public function __construct(RecordRepositoryInterface $recordsRepo, SettingRepositoryInterface $settingsRepo)
-    {
+    public function __construct(
+        RecordRepositoryInterface $recordsRepo,
+        SettingRepositoryInterface $settingsRepo
+    ) {
         $this->recordsRepo = $recordsRepo;
         $this->settingsRepo = $settingsRepo;
     }
@@ -75,8 +78,50 @@ class CalendarService
             $firstDate->getTimestamp(),
             $lastDate->getTimestamp()
         );
-
+        $document->limitations = $this->findLimitations($dates);
         return $document;
+    }
+
+    /**
+     * Find limitations for passed dates.
+     * @param array $dates
+     * @return array
+     */
+    private function findLimitations(array $dates): array
+    {
+        $setting = $this->settingsRepo->findOne(['key' => 'calendar_max_booking_range']);
+        $deltaMonth = $setting === null ? 1 : (int) $setting->value;
+
+        $minutes = date('i');
+        $nextHourDate = (new DateTimeImmutable())
+            ->modify('+1 hour')
+            ->modify('-' . $minutes . 'minutes');
+        $currentDate = (new DateTimeImmutable())
+            ->setTime(0, 0, 0, 0);
+        $futureDate = new DateTimeImmutable("last day of +{$deltaMonth} month");
+
+        // Calculate limitations.
+        $limitations = array_map(function (string $dateStr) use ($currentDate, $futureDate, $nextHourDate) {
+            $date = new DateTimeImmutable($dateStr);
+            if ($date == $currentDate) {
+                $diff = $nextHourDate->diff($date);
+                $length = $diff->days * 24 * 60 + $diff->h * 60 + $diff->i;
+                return [
+                    'start_at' => $date->getTimestamp(),
+                    'length' => $length
+                ];
+            } elseif ($date < $currentDate || $date >= $futureDate) {
+                return [
+                    'start_at' => $date->getTimestamp(),
+                    'length' => 24 * 60 // 24 hours
+                ];
+            }
+            return [];
+        }, $dates);
+
+        return array_values(array_filter($limitations, function (array $limitation) {
+            return count($limitation) > 0;
+        }));
     }
 
     /**
@@ -92,11 +137,11 @@ class CalendarService
             'hall_id' => new ObjectId($hallID),
             'reservations.start_at' => ['$gte' => $startAt, '$lt' => $endAt]
         ];
-        $reservations = $this->recordsRepo->findReservations($filter);
-        $result = [];
-        foreach ($reservations as $r) {
-            $result = array_merge($result, $r);
-        }
-        return $result;
+        return $this->recordsRepo->findReservations($filter);
+        // $result = [];
+        // foreach ($reservations as $r) {
+        //     $result = array_merge($result, $r);
+        // }
+        // return $result;
     }
 }

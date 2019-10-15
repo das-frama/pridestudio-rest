@@ -7,6 +7,7 @@ namespace app\http\controller;
 use app\ResponseFactory;
 use app\RequestUtils;
 use app\domain\booking\BookingDocument;
+use app\domain\calendar\CalendarService;
 use app\domain\setting\SettingService;
 use app\domain\hall\HallService;
 use app\http\controller\base\ControllerTrait;
@@ -24,21 +25,27 @@ class BookingController
     /** @var HallService */
     private $hallService;
 
+    /** @var CalendarService */
+    private $calendarService;
+
     /** @var ResponderInterface */
     private $responder;
 
     public function __construct(
         SettingService $settingService,
         HallService $hallService,
+        CalendarService $calendarService,
         ResponderInterface $responder
     ) {
         $this->settingService = $settingService;
         $this->hallService = $hallService;
+        $this->calendarService = $calendarService;
         $this->responder = $responder;
     }
 
     /**
      * Get all info at once for booking page.
+     * GET /booking
      * @method GET
      * @param ServerRequestInterface $request
      * @return ResponseInterface
@@ -60,9 +67,10 @@ class BookingController
         $bookingDoc = new BookingDocument;
         $bookingDoc->settings = $settings;
         $bookingDoc->hall = $hall;
-        $bookingDoc->services = $this->hallService->findServices($hall->slug, [], ['id', 'name', 'children']);
+        $bookingDoc->services = $this->hallService->findServices($hall->id, [], ['id', 'name', 'children']);
+        $bookingDoc->calendar = $this->calendarService->weekdays($hall->id);
 
-        return $this->responder->success($bookingDoc);
+        return $this->responder->success($bookingDoc, 1);
     }
 
     /**
@@ -86,7 +94,8 @@ class BookingController
         $bookingDoc = new BookingDocument;
         $bookingDoc->settings = $settings;
         $bookingDoc->hall = $hall;
-        $bookingDoc->services = $this->hallService->findServices($hall->slug, [], ['id', 'name', 'children']);
+        $bookingDoc->services = $this->hallService->findServices($hall->id, [], ['id', 'name', 'children']);
+        $bookingDoc->calendar = $this->calendarService->weekdays($hall->id);
 
         return $this->responder->success($bookingDoc);
     }

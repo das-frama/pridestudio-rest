@@ -7,20 +7,18 @@ namespace app\storage\mongodb;
 use app\entity\Record;
 use app\entity\Reservation;
 use app\domain\record\RecordRepositoryInterface;
+use app\storage\mongodb\base\AbstractRepository;
 use MongoDB\Client;
 
 /**
  * Class RecordRepository
  * @package app\storage\mongodb
  */
-class RecordRepository implements RecordRepositoryInterface
+class RecordRepository extends AbstractRepository implements RecordRepositoryInterface
 {
-    use RepositoryTrait;
-
     public function __construct(Client $client)
     {
-        $this->database = $client->selectDatabase('pridestudio');
-        $this->collection = $this->database->selectCollection('records');
+        parent::__construct(getenv('DB_DATABASE'), 'records', $client);
         $this->defaultOptions = [
             'typeMap' => [
                 'root' => Record::class,
@@ -35,26 +33,27 @@ class RecordRepository implements RecordRepositoryInterface
     /**
      * {@inheritDoc}
      */
-    public function findOne(array $filter, array $include = []): ?Record
+    public function init(): bool
     {
-        return $this->internalFindOne($filter, $this->defaultOptions, $include);
+        // Create schema validation.
+        return $this->createSchemaValidation('records', [
+            'client_id' => ['bsonType' => 'objectId'],
+            'hall_id' => ['bsonType' => 'objectId'],
+            'reservations' => ['bsonType' => 'array'],
+            'service_ids' => ['bsonType' => 'array'],
+            'payment_id' => ['bsonType' => 'objectId'],
+            'promo_id' => ['bsonType' => 'objectId'],
+            'total' => ['bsonType' => 'int'],
+            'comment' => ['bsonType' => 'string'],
+            'status' => ['bsonType' => 'int'],
+            'updated_at' => ['bsonType' => 'int'],
+            'created_by' => ['bsonType' => 'objectId'],
+            'updated_by' => ['bsonType' => 'objectId'],
+        ], ['client_id', 'hall_id', 'reservations', 'status']);
     }
 
     /**
-     * Find all records from storage.
-     * @param array $filter
-     * @param array $include
-     * @return Record[]
-     */
-    public function findAll(array $filter = [], array $include = []): array
-    {
-        return $this->internalFindAll($filter, $this->defaultOptions, $include);
-    }
-
-    /**
-     * Find nested reservations in records.
-     * @param array $filter
-     * @return Reservation[]
+     * {@inheritDoc}
      */
     public function findReservations(array $filter): array
     {
@@ -64,13 +63,5 @@ class RecordRepository implements RecordRepositoryInterface
         return array_map(function (Record $record) {
             return $record->reservations;
         }, $cursor->toArray());
-    }
-
-    /**
-     * @return bool
-     */
-    public function save(): bool
-    {
-        return false;
     }
 }

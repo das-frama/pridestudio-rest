@@ -35,6 +35,12 @@ class InitCommand
         } else {
             fwrite(STDOUT, "Halls already initiated.\n");
         }
+        // Coupons.
+        if ($this->systemService->initCoupons()) {
+            fwrite(STDOUT, "Coupons init successfull.\n");
+        } else {
+            fwrite(STDOUT, "Coupons already initiated.\n");
+        }
 
         return 0;
     }

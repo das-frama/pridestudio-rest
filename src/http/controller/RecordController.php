@@ -11,7 +11,6 @@ use app\domain\record\RecordService;
 use app\domain\booking\PaymentDocument;
 use app\domain\hall\HallService;
 use app\domain\validation\ValidationService;
-use app\entity\Reservation;
 use app\http\controller\base\ControllerTrait;
 use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -79,6 +78,7 @@ class RecordController
 
     /**
      * Calculate price for reservations.
+     * POST /records/price
      * @method POST
      * @param ServerRequestInterface $request
      * @return ResponseInterface
@@ -87,7 +87,7 @@ class RecordController
     {
         // Get body from request.
         $body = $request->getParsedBody();
-        if ($body === null) {
+        if ($body === null || $body === []) {
             return $this->responder->error(ResponseFactory::BAD_REQUEST, ["Very bad request."]);
         }
         $validationService = new ValidationService;
@@ -98,6 +98,7 @@ class RecordController
             'service_ids' => ['array'],
             'service_ids.$' => ['mongoid'],
             'hall_id' => ['required', 'mongoid'],
+            'coupon' => ['string'],
         ];
         // Sanitze incoming data.
         $body = $validationService->sanitize($body, $rules);
@@ -111,15 +112,39 @@ class RecordController
         if ($hall === null) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, ['Hall not found.']);
         }
+        /// Find a coupon.
+        $coupon = null;
+        if (!empty($body->coupon)) {
+            $coupon = $this->recordService->findCouponByCode($body->coupon, ['id', 'factor']);
+        }
+
         // Compose record entity.
         $record = new Record;
         $record->hall_id = $hall->id;
         $record->reservations = $body->reservations;
         $record->service_ids = $body->service_ids;
+
         // Response with document.
         $paymentDoc = new PaymentDocument;
-        $paymentDoc->price = $this->recordService->calculatePrice($record, $hall);
+        $paymentDoc->price = $this->recordService->calculatePrice($record, $hall, $coupon);
         // $bookingDoc->prepayment = $bookingDoc->price * 0.5;
         return $this->responder->success($paymentDoc);
+    }
+
+    /**
+     * Check coupon.
+     * @method GET
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
+     */
+    public function coupon(ServerRequestInterface $request): ResponseInterface
+    {
+        $code = RequestUtils::getPathSegment($request, 3);
+        $coupon = $this->recordService->findCouponByCode($code, ['code', 'factor']);
+        if ($coupon === null) {
+            return $this->responder->error(ResponseFactory::NOT_FOUND, ['Coupon not found.']);
+        }
+
+        return $this->responder->success($coupon);
     }
 }

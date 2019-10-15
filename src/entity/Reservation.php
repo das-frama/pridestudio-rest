@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace app\entity;
 
-use app\storage\mongodb\Entity;
+use app\storage\mongodb\base\AbstractEntity;
 
 /**
- * Reservation entity class.
+ * Reservation AbstractEntity class.
  */
-class Reservation extends Entity
+class Reservation extends AbstractEntity
 {
     /** @var int */
     public $start_at;

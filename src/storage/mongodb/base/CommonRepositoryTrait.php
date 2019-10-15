@@ -2,28 +2,17 @@
 
 declare(strict_types=1);
 
-namespace app\storage\mongodb;
+namespace app\storage\mongodb\base;
 
 use Mongodb\BSON\ObjectId;
-use MongoDB\Collection;
-use MongoDB\Database;
 
-trait RepositoryTrait
+trait CommonRepositoryTrait
 {
-    /** @var Database */
-    private $database;
-
-    /** @var Collection */
-    private $collection;
-
-    /** @var array */
-    private $defaultOptions = [];
-
     /**
      * Finds an entity from storage by filter.
      * @param array $filter
      * @param array $include
-     * @return Entity|null
+     * @return AbstractEntity|null
      */
     private function internalFindOne(array $filter, array $options, array $include = []): ?Entity
     {
@@ -47,7 +36,7 @@ trait RepositoryTrait
 
     /**
      * @param array $link ['as' => ['localField' => 'foreignCollection.field']
-     * @return Entity[]
+     * @return AbstractEntity[]
      */
     private function internalFindWith(array $links, array $filter, array $options, array $include = []): array
     {
@@ -90,29 +79,70 @@ trait RepositoryTrait
      * @param array $filter
      * @param array $options
      * @param array $include
-     * @return Entity[]
+     * @return AbstractEntity[]
      */
     private function internalFindAll(array $filter = [], array $options = [], array $include = []): array
     {
         // Prepare projection.
-        $projection = [];
         if (!empty($include)) {
-            $projection = ['projection' => array_fill_keys($include, 1)];
-            if (isset($projection['projection']['id'])) {
-                $projection['projection']['_id'] = $projection['projection']['id'];
-                unset($projection['projection']['id']);
+            $options['projection'] = array_fill_keys($include, 1);
+            if (isset($options['projection']['id'])) {
+                $options['projection']['_id'] = $options['projection']['id'];
+                unset($options['projection']['id']);
             }
         }
-        $sort = ['sort' => ['sort' => 1]];
+        // Limit cursor.
+        if (isset($options['limit']) && $options['limit'] == 0) {
+            unset($options['limit']);
+        }
+        // Skip cursor.
+        if (isset($options['skip']) && $options['skip'] == 0) {
+            unset($options['skip']);
+        }
+        // Sort cursor.
+        if (isset($options['sort']['id']) && $options['sort']['id']) {
+            $options['sort']['_id'] = $options['sort']['id'];
+            unset($options['sort']['id']);
+        }
+
         // Perform query.
         $cursor = $this->collection->find(
             $this->convertFilter($filter),
-            array_merge($options, $projection, $sort)
+            $options
         );
+
         return array_map(function (Entity $entity) use ($include) {
             $entity->setInclude($include);
             return $entity;
         }, $cursor->toArray());
+    }
+
+    /**
+     * Search enitities.
+     * @param array $search
+     * @param array $include
+     * @param array $options
+     * @return AbstractEntity[]
+     */
+    private function internalSearch(array $search, array $include = [], array $options = []): array
+    {
+        $filter = array_map(function ($value) {
+            $str = (string) $value;
+            $first = substr($value, 0, 1);
+            $last = substr($value, -1);
+            if ($first === '%' && $last === '%') {
+                $str = substr($str, 1, -1);
+            } elseif ($last === '%') {
+                $str = '^' . substr($str, 0, -1);
+            } elseif ($first === '%') {
+                $str = substr($str, 1) . '$';
+            } else {
+                return $str;
+            }
+            return new Regex($str, 'i');
+        }, $search);
+
+        return $this->internalFindAll(['$or' => $filter], $options, $include);
     }
 
     /**
@@ -122,10 +152,18 @@ trait RepositoryTrait
     private function convertFilter(array $filter): array
     {
         $bsonFilter = $filter;
-        // Change id => _id.
+        if (isset($filter['$or'])) {
+            $bsonFilter = $filter['$or'];
+        }
+        // Change id to _id.
         if (isset($bsonFilter['id'])) {
             $bsonFilter['_id'] = new ObjectId($bsonFilter['id']);
             unset($bsonFilter['id']);
+        }
+        if (isset($filter['$or'])) {
+            return ['$or' => array_map(function ($key, $column) {
+                return [$key => $column];
+            }, array_keys($bsonFilter), $bsonFilter)];
         }
         return $bsonFilter;
     }

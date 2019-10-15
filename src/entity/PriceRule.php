@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace app\entity;
 
-use app\storage\mongodb\Entity;
+use app\storage\mongodb\base\AbstractEntity;
 
-class PriceRule extends Entity
+class PriceRule extends AbstractEntity
 {
     const TYPE_PER_HOUR = 1;
     const TYPE_FIXED = 2;

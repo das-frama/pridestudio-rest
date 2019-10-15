@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace app\entity;
 
-use app\storage\mongodb\Entity;
+use app\storage\mongodb\base\AbstractEntity;
 
 /**
- * Record entity class.
+ * Record AbstractEntity class.
  */
-class Record extends Entity
+class Record extends AbstractEntity
 {
     /** @var string */
     public $id;
@@ -36,7 +36,7 @@ class Record extends Entity
     public $payment_id;
 
     /** @var string */
-    public $promo_id;
+    public $coupon_id;
 
     /** @var int */
     public $total;

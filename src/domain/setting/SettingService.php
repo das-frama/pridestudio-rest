@@ -20,12 +20,33 @@ class SettingService
 
     /**
      * Get all settings.
+     * @param array $params
      * @param array $include
      * @return Setting[]
      */
-    public function findAll(array $include = []): array
+    public function findAll(array $params, array $include = []): array
     {
-        return $this->settingRepo->findAll([], $include);
+        $page = intval($params['page'] ?? 0);
+        $limit = intval($params['limit'] ?? 0);
+        // Sort.
+        $sort = [];
+        if (isset($params['orderBy'])) {
+            $sort[$params['orderBy']] = $params['ascending'] == 0 ? -1 : 1;
+        } else {
+            $sort['key'] = 1;
+        }
+        // Skip.
+        $skip = 0;
+        if ($page > 0) {
+            $skip = $limit * ($page - 1);
+        }
+        // Query.
+        $filter = [];
+        if (isset($params['query'])) {
+            $filter = array_fill_keys(['key', 'value'], $params['query']);
+            return $this->settingRepo->search($filter, $limit, $skip, $sort, $include);
+        }
+        return $this->settingRepo->findAll($filter, $limit, $skip, $sort, $include);
     }
 
     /**
@@ -47,5 +68,14 @@ class SettingService
     public function findByKey(string $key, array $include = []): ?Setting
     {
         return $this->settingRepo->findOne(['key' => $key], $include);
+    }
+
+    /**
+     * Count settings.
+     * @return int
+     */
+    public function count()
+    {
+        return $this->settingRepo->count();
     }
 }

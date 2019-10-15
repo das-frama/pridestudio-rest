@@ -4,6 +4,8 @@ use app\domain\file\FileService;
 use app\http\responder\JsonResponder;
 use app\http\responder\ResponderInterface;
 use MongoDB\Client;
+use Monolog\Logger;
+use Psr\Log\LoggerInterface;
 
 return [
     Client::class => [
@@ -13,11 +15,16 @@ return [
         ]
     ],
     FileService::class => [
-        'constructParams' => ['..\storage']
+        'constructParams' => [getenv('APP_STORAGE_PATH')]
     ],
     ResponderInterface::class => [
         'instanceOf' => JsonResponder::class,
         'shared' => true
+    ],
+    LoggerInterface::class => [
+        'instanceOf' => Logger::class,
+        'constructParams' => ['app', [], [], null],
+        'shared' => true,
     ],
 
     'app\domain\record\RecordRepositoryInterface' => [
@@ -28,12 +35,20 @@ return [
         'instanceOf' => 'app\storage\mongodb\HallRepository',
         'shared' => true
     ],
+    'app\domain\service\ServiceRepositoryInterface' => [
+        'instanceOf' => 'app\storage\mongodb\ServiceRepository',
+        'shared' => true
+    ],
     'app\domain\setting\SettingRepositoryInterface' => [
         'instanceOf' => 'app\storage\mongodb\SettingRepository',
         'shared' => true
     ],
     'app\domain\user\UserRepositoryInterface' => [
         'instanceOf' => 'app\storage\mongodb\UserRepository',
+        'shared' => true
+    ],
+    'app\domain\record\CouponRepositoryInterface' => [
+        'instanceOf' => 'app\storage\mongodb\CouponRepository',
         'shared' => true
     ],
 ];

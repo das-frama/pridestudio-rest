@@ -6,7 +6,9 @@ namespace app\domain\system;
 
 use app\entity\Setting;
 use app\domain\hall\HallRepositoryInterface;
+use app\domain\record\CouponRepositoryInterface;
 use app\domain\setting\SettingRepositoryInterface;
+use app\entity\Coupon;
 
 /**
  * SystemService class
@@ -14,16 +16,21 @@ use app\domain\setting\SettingRepositoryInterface;
 class SystemService
 {
     /** @var HallRepositoryInterface */
-    private $hallRepo;
+    private $hallsRepo;
+
+    /** @var CouponRepositoryInterface */
+    private $couponsRepo;
 
     /** @var SettingRepositoryInterface */
     private $settingsRepo;
 
     public function __construct(
-        HallRepositoryInterface $hallRepo,
+        HallRepositoryInterface $hallsRepo,
+        CouponRepositoryInterface $couponsRepo,
         SettingRepositoryInterface $settingsRepo
     ) {
-        $this->hallRepo = $hallRepo;
+        $this->hallsRepo = $hallsRepo;
+        $this->couponsRepo = $couponsRepo;
         $this->settingsRepo = $settingsRepo;
     }
 
@@ -33,7 +40,28 @@ class SystemService
      */
     public function initHalls(): bool
     {
-        return $this->hallRepo->init();
+        return $this->hallsRepo->init();
+    }
+
+    /**
+     * Init coupons collection.
+     * @return bool
+     */
+    public function initCoupons(): bool
+    {
+        // Init schema stuff.
+        if (!$this->couponsRepo->init()) {
+            return false;
+        }
+        return true;
+        // Insert a test coupon.
+        // $coupon = new Coupon;
+        // $coupon->code = "TESTDUDE";
+        // $coupon->factor = 0.25;
+        // $coupon->length = 3 * 24 * 60 * 60; // 3 days.
+        // $coupon->is_active = true;
+        // $id = $this->couponsRepo->insert($coupon);
+        // return (bool) $id;
     }
 
     /**

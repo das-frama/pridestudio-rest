@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace app\entity;
 
-use app\storage\mongodb\Entity;
+use app\storage\mongodb\base\AbstractEntity;
+use MongoDB\BSON\ObjectId;
 
 /**
  * Hall class.
  */
-class Hall extends Entity
+class Hall extends AbstractEntity
 {
     /** @var string */
     public $id;
@@ -62,16 +63,40 @@ class Hall extends Entity
     /**
      * {@inheritDoc}
      */
-    public function bsonUnserialize(array $data): void
+    public function bsonSerialize(): array
     {
-        parent::bsonUnserialize($data);
+        $bson = parent::bsonSerialize();
+        unset($bson['services_join']);
 
-        if ($this->preview_image !== null) {
-            $this->preview_image = HOST . $this->preview_image;
-        }
-        if ($this->detail_image !== null) {
-            $this->detail_image = HOST . $this->detail_image;
-        }
+        // Convert services.
+        $bson['services'] = array_map(function (array $service) {
+            if (isset($service['category_id'])) {
+                $service['category_id'] = new ObjectId($service['category_id']);
+            }
+            if (isset($service['children'])) {
+                $service['children'] = array_map(function (string $child) {
+                    return new ObjectId($child);
+                }, $service['children']);
+            }
+            if (isset($service['parents'])) {
+                $service['parents'] = array_map(function (string $parent) {
+                    return new ObjectId($parent);
+                }, $service['parents']);
+            }
+            return $service;
+        }, $bson['services']);
+
+        // Convert prices.
+        $bson['prices'] = array_map(function (array $price) {
+            if (isset($price['service_ids'])) {
+                $price['service_ids'] = array_map(function (string $serviceID) {
+                    return new ObjectId($serviceID);
+                }, $price['service_ids']);
+            }
+            return $price;
+        }, $bson['prices']);
+
+        return $bson;
     }
 
     /**

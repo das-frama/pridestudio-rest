@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\domain\record;
 
+use app\entity\Coupon;
 use app\entity\Hall;
 use app\entity\PriceRule;
 use app\entity\Record;
@@ -15,9 +16,13 @@ class RecordService
     /** @var RecordRepositoryInterface */
     private $recordRepo;
 
-    public function __construct(RecordRepositoryInterface $recordRepo)
+    /** @var CouponRepositoryInterface */
+    private $couponRepo;
+
+    public function __construct(RecordRepositoryInterface $recordRepo, CouponRepositoryInterface $couponRepo)
     {
         $this->recordRepo = $recordRepo;
+        $this->couponRepo = $couponRepo;
     }
 
     /**
@@ -38,7 +43,7 @@ class RecordService
      */
     public function findAll(array $include = []): array
     {
-        return $this->recordRepo->findAll([], $include);
+        return $this->recordRepo->findAll([], 0, 0, [], $include);
     }
 
     /**
@@ -47,55 +52,53 @@ class RecordService
      * @param Hall $hall
      * @return int
      */
-    public function calculatePrice(Record $record, Hall $hall): int
+    public function calculatePrice(Record $record, Hall $hall, Coupon $coupon = null): int
     {
         if (empty($record->reservations)) {
             return 0;
         }
         $amount = 0;
-        $totalLength = 0;
-        $calculateBasePrice = empty($hall->prices);
-
         // Calculate reservations.
         foreach ($record->reservations as $reservation) {
-            $totalLength += $reservation->length;
-            if ($calculateBasePrice) {
+            if (empty($hall->prices)) {
                 $amount += $hall->base_price * intval($reservation->length / 60);
                 continue;
             }
-
             foreach ($hall->prices as $price) {
                 $serviceIDs = array_intersect($record->service_ids, $price['service_ids']);
                 if (empty($serviceIDs)) {
                     continue;
                 }
-                $amount += $this->calculatePriceRule($price['price_rule'], $reservation);
+                $amount += $this->calculatePriceRule($price['price_rule'], $reservation, $hall->base_price);
             }
+        }
+        // Apply coupon discount.
+        if ($coupon !== null && $coupon->factor !== null) {
+            $amount -= intval($amount * $coupon->factor);
         }
 
         return $amount;
     }
 
     /**
+     * Check coupon and return it's ID.
+     * @param string $code
+     * @return Coupon|null
+     */
+    public function findCouponByCode(string $code, array $include = []): ?Coupon
+    {
+        return $this->couponRepo->findOne(['code' => $code], $include);
+    }
+
+    /**
      * Calculate price for rule by reservation.
      * @param PriceRule $rule
      * @param Reservation $reservation
+     * @param int $base_price
      * @return int
      */
-    private function calculatePriceRule(PriceRule $rule, object $reservation): int
+    private function calculatePriceRule(PriceRule $rule, object $reservation, int $basePrice): int
     {
-        if ($rule->time_from !== null && $rule->time_to !== null) {
-            $startAt = new DateTimeImmutable();
-            $startAt = $startAt->setTimestamp($reservation->start_at);
-            list($hour, $minute) = explode(':', $rule->time_from, 2);
-            $topAt = $startAt->setTime((int) $hour, (int) $minute);
-            list($hour, $minute) = explode(':', $rule->time_to, 2);
-            $bottomAt = $startAt->setTime((int) $hour, (int) $minute);
-            $passTime = $startAt >= $topAt && $startAt < $bottomAt;
-        } else {
-            $passTime = true;
-        }
-
         switch ($rule->comparison) {
             case '=':
                 $passLength = $reservation->length == $rule->from_length;
@@ -118,14 +121,40 @@ class RecordService
             default:
                 $passLength = $reservation->length >= $rule->from_length;
         }
-        if ($passTime && $passLength) {
-            if ($rule->type == PriceRule::TYPE_PER_HOUR) {
-                return $rule->price * intval($reservation->length / 60);
-            } elseif ($rule->type == PriceRule::TYPE_FIXED) {
-                return $rule->price;
+
+        $hours = $reservation->length / 60;
+        if (!$passLength) {
+            return $basePrice * $hours;
+        }
+        // Fixed price.
+        if ($rule->type == PriceRule::TYPE_FIXED) {
+            return $rule->price;
+        }
+        // Price per hour.
+        $hoursToCount = 0;
+        if ($rule->time_from !== null && $rule->time_to !== null) {
+            $date = (new DateTimeImmutable())->setTimestamp($reservation->start_at);
+            list($hour, $minute) = explode(':', $rule->time_from, 2);
+            $topAt = $date->setTime((int) $hour, (int) $minute)->getTimestamp();
+            list($hour, $minute) = explode(':', $rule->time_to, 2);
+            $bottomAt = $date->setTime((int) $hour, (int) $minute)->getTimestamp();
+            if ($hour === "00") {
+                $bottomAt += 24 * 60 * 60;
             }
+            $diff = min($reservation->start_at + $reservation->length * 60, $bottomAt) -
+                max($reservation->start_at, $topAt);
+            $hoursToCount = $diff > 0 ? $diff / 60 / 60 : 0;
         }
 
-        return 0;
+        $amount = 0;
+        if ($hoursToCount > 0) {
+            $amount += $rule->price * $hoursToCount;
+        }
+        $uncountHours = $hours - $hoursToCount;
+        if ($uncountHours > 0) {
+            $amount += $basePrice * $uncountHours;
+        }
+
+        return $amount;
     }
 }

@@ -35,8 +35,11 @@ class CalendarController
      * @param HallService $hallService
      * @param ResponderInterface $responder
      */
-    public function __construct(CalendarService $calendarService, HallService $hallService, ResponderInterface $responder)
-    {
+    public function __construct(
+        CalendarService $calendarService,
+        HallService $hallService,
+        ResponderInterface $responder
+    ) {
         $this->calendarService = $calendarService;
         $this->hallService = $hallService;
         $this->responder = $responder;
@@ -49,8 +52,7 @@ class CalendarController
      */
     public function index(ServerRequestInterface $request): ResponseInterface
     {
-        $hallSlug = RequestUtils::getPathSegment($request, 2);
-        $hallID = $this->hallService->getIDBySlug($hallSlug);
+        $hallID = RequestUtils::getPathSegment($request, 2);
         if ($hallID === null) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, ["Hall not found."]);
         }
@@ -65,8 +67,7 @@ class CalendarController
      */
     public function week(ServerRequestInterface $request): ResponseInterface
     {
-        $hallSlug = RequestUtils::getPathSegment($request, 2);
-        $hallID = $this->hallService->getIDBySlug($hallSlug);
+        $hallID = RequestUtils::getPathSegment($request, 2);
         if ($hallID === null) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, ["Hall not found."]);
         }
@@ -82,8 +83,7 @@ class CalendarController
      */
     public function read(ServerRequestInterface $request): ResponseInterface
     {
-        $hallSlug = RequestUtils::getPathSegment($request, 2);
-        $hallID = $this->hallService->getIDBySlug($hallSlug);
+        $hallID = RequestUtils::getPathSegment($request, 2);
         if ($hallID === null) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, ["Hall not found."]);
         }

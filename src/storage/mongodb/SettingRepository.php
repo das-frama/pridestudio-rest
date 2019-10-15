@@ -6,6 +6,7 @@ namespace app\storage\mongodb;
 
 use app\entity\Setting;
 use app\domain\setting\SettingRepositoryInterface;
+use app\storage\mongodb\base\AbstractRepository;
 use MongoDB\Client;
 use MongoDB\BSON\Regex;
 
@@ -13,24 +14,33 @@ use MongoDB\BSON\Regex;
  * Class SettingRepository
  * @package app\storage\mongodb
  */
-class SettingRepository implements SettingRepositoryInterface
+class SettingRepository extends AbstractRepository implements SettingRepositoryInterface
 {
-    use RepositoryTrait;
-
     /**
      * SettingRepository constructor.
      * @param Client $client
      */
     public function __construct(Client $client)
     {
-        $this->database = $client->selectDatabase('pridestudio');
-        $this->collection = $this->database->selectCollection('settings');
+        parent::__construct(getenv('DB_DATABASE'), 'settings', $client);
         $this->defaultOptions = [
             'typeMap' => [
                 'root' => Setting::class,
                 'document' => 'array',
             ],
         ];
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function init(): bool
+    {
+        // Create schema validation.
+        return $this->createSchemaValidation('settings', [
+            'key' => ['bsonType' => 'string'],
+            'is_active' => ['bsonType' => 'bool'],
+        ], ['key', 'value']);
     }
 
     /**
@@ -46,23 +56,7 @@ class SettingRepository implements SettingRepositoryInterface
         if ($onlyActive) {
             $filter['is_active'] = true;
         }
-        return $this->internalFindAll($filter, $this->defaultOptions, $include);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function findOne(array $filter, array $include = []): ?Setting
-    {
-        return $this->internalFindOne($filter, $this->defaultOptions, $include);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function findAll(array $filter = [], array $include = []): array
-    {
-        return $this->internalFindAll($filter, $this->defaultOptions, $include);
+        return $this->findAll($filter, 0, 0, [], $include);
     }
 
     /**
@@ -88,14 +82,5 @@ class SettingRepository implements SettingRepositoryInterface
         }
 
         return $upsertedCount;
-    }
-
-    /**
-     * Save settings.
-     * @return bool
-     */
-    public function save(): bool
-    {
-        return false;
     }
 }

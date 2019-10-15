@@ -9,24 +9,19 @@ use app\entity\Service;
 use app\entity\ServiceChild;
 use app\entity\PriceRule;
 use app\domain\hall\HallRepositoryInterface;
+use app\storage\mongodb\base\AbstractRepository;
 use MongoDB\Client;
+use Psr\Log\LoggerInterface;
 
 /**
  * Class HallRepository
  * @package app\storage\mongodb
  */
-class HallRepository implements HallRepositoryInterface
+class HallRepository extends AbstractRepository implements HallRepositoryInterface
 {
-    use RepositoryTrait;
-
-    /**
-     * @param Client $client
-     */
     public function __construct(Client $client)
     {
-        // Inside repository trait.
-        $this->database = $client->selectDatabase('pridestudio');
-        $this->collection = $this->database->selectCollection("halls");
+        parent::__construct(getenv('DB_DATABASE'), 'halls', $client);
         $this->defaultOptions = [
             'typeMap' => [
                 'root' => Hall::class,
@@ -41,9 +36,28 @@ class HallRepository implements HallRepositoryInterface
     /**
      * {@inheritDoc}
      */
-    public function findOne(array $filter, array $include = []): ?Hall
+    public function init(): bool
     {
-        return $this->internalFindOne($filter, $this->defaultOptions, $include);
+        // Create index.
+        if (!$this->hasIndex('slug')) {
+            $this->collection->createIndex(['slug' => 1], ['unique' => true]);
+        }
+        // Create schema validation.
+        return $this->createSchemaValidation('halls', [
+            'name' => ['bsonType' => 'string'],
+            'slug' => ['bsonType' => 'string'],
+            'description' => ['bsonType' => 'string'],
+            'base_price' => ['bsonType' => 'int'],
+            'preview_image' => ['bsonType' => 'string'],
+            'detail_image' => ['bsonType' => 'string'],
+            'services' => ['bsonType' => 'array'],
+            'prices' => ['bsonType' => 'array'],
+            'sort' => ['bsonType' => 'int'],
+            'is_active' => ['bsonType' => 'bool'],
+            'updated_at' => ['bsonType' => 'int'],
+            'created_by' => ['bsonType' => 'objectId'],
+            'updated_by' => ['bsonType' => 'objectId'],
+        ], ['name', 'slug', 'sort', 'is_active']);
     }
 
     /**
@@ -85,7 +99,7 @@ class HallRepository implements HallRepositoryInterface
         $objectIDs = $this->convertToObjectId($selected);
         // Perform query.
         $cursor = $this->collection->aggregate([
-            ['$match' => $filter],
+            ['$match' => $this->convertFilter($filter)],
             ['$limit' => 1],
             ['$unwind' => '$services'],
             ['$lookup' => [
@@ -113,56 +127,5 @@ class HallRepository implements HallRepositoryInterface
             $service->setInclude($include);
             return $service;
         }, $cursor->toArray());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function findAll(array $filter, array $include = []): array
-    {
-        return $this->internalFindAll($filter, $this->defaultOptions, $include);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function save(): bool
-    {
-        return false;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function isExists(array $filter): bool
-    {
-        return (bool) $this->collection->count($this->convertFilter($filter));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function init(): bool
-    {
-        // Create index.
-        if (!$this->hasIndex('slug')) {
-            $this->collection->createIndex(['slug' => 1], ['unique' => true]);
-        }
-        // Create schema validation.
-        return $this->createSchemaValidation('halls', [
-            'name' => ['bsonType' => 'string'],
-            'slug' => ['bsonType' => 'string'],
-            'description' => ['bsonType' => 'string'],
-            'base_price' => ['bsonType' => 'int'],
-            'preview_image' => ['bsonType' => 'string'],
-            'detail_image' => ['bsonType' => 'string'],
-            'services' => ['bsonType' => 'array'],
-            'prices' => ['bsonType' => 'array'],
-            'sort' => ['bsonType' => 'int'],
-            'is_active' => ['bsonType' => 'bool'],
-            'updated_at' => ['bsonType' => 'int64'],
-            'created_by' => ['bsonType' => 'objectId'],
-            'updated_by' => ['bsonType' => 'objectId'],
-        ], ['name', 'slug', 'base_price', 'sort', 'is_active']);
     }
 }
