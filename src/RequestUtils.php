@@ -27,10 +27,16 @@ class RequestUtils
         return urldecode($pathSegments[$part]);
     }
 
+    public static function getHeader(ServerRequestInterface $request, string $header): string
+    {
+        $headers = $request->getHeader($header);
+        return $headers[0] ?? '';
+    }
+
     /**
      * Implementation from https://github.com/guzzle/psr7/blob/master/src/functions.php
      */
-    public static function str(MessageInterface $message)
+    public static function str(MessageInterface $message): string
     {
         if ($message instanceof RequestInterface) {
             $msg = trim($message->getMethod() . ' '

@@ -34,4 +34,6 @@ return [
     'settings.read'  => ['GET', '/settings/*', ['app\http\controller\SettingsController', 'read']],
 
     'system.init'  => ['GET', '/system/init', ['app\http\controller\SystemController', 'init']],
+    
+    'auth.login'  => ['POST', '/auth/login', ['app\http\controller\AuthController', 'login']],
 ];

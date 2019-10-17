@@ -1,5 +1,6 @@
 <?php
 
+use app\domain\auth\AuthService;
 use app\domain\file\FileService;
 use app\http\responder\JsonResponder;
 use app\http\responder\ResponderInterface;
@@ -15,7 +16,10 @@ return [
         ]
     ],
     FileService::class => [
-        'constructParams' => [getenv('APP_STORAGE_PATH')]
+        'constructParams' => [getenv('APP_STORAGE_PATH')],
+    ],
+    AuthService::class => [
+        'constructParams' => [getenv('JWT_SECRET'), (int) getenv('JWT_DURATION')],
     ],
     ResponderInterface::class => [
         'instanceOf' => JsonResponder::class,

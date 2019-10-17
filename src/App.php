@@ -13,6 +13,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
 use Dice\Dice;
+use Error;
 use Monolog\ErrorHandler;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
@@ -76,6 +77,14 @@ class App
         try {
             $response = $this->router->handle($this->addParsedBody($request));
         } catch (Exception $e) {
+            $message = 'Internal Server Error';
+            if ($this->debug) {
+                $message = $e->getMessage();
+            }
+            $response = $this->responder->error(ResponseFactory::INTERNAL_SERVER_ERROR, [$message]);
+            $this->emit($response);
+            throw $e;
+        } catch (Error $e) {
             $message = 'Internal Server Error';
             if ($this->debug) {
                 $message = $e->getMessage();
