@@ -6,6 +6,7 @@ namespace app\domain\auth;
 
 use app\domain\user\UserRepositoryInterface;
 use app\entity\User;
+use Exception;
 use Firebase\JWT\JWT;
 
 class AuthService
@@ -15,6 +16,8 @@ class AuthService
 
     /** @var string */
     private $jwtSecret;
+
+    private $jwtAllowedAlgs = ['HS256', 'HS384', 'HS512'];
 
     public function __construct(UserRepositoryInterface $userRepo, string $jwtSecret)
     {
@@ -47,6 +50,25 @@ class AuthService
             $csrf,
             $this->generateJWT($user->id, $this->jwtSecret, $expiresAt, $csrf),
         ];
+    }
+
+    /**
+     * Get user by jwt.
+     * @param string $jwt
+     * @return User|null
+     */
+    public function getUserByJWT(string $jwt): ?User
+    {
+        try {
+            $claims = (array) JWT::decode($jwt, $this->jwtSecret, $this->jwtAllowedAlgs);
+        } catch (Exception $e) {
+            return null;
+        }
+        if (empty($claims['sub'])) {
+            return null;
+        }
+
+        return $this->userRepo->findOne(['id' => $claims['sub']], ['id', 'email', 'name']);
     }
 
     /**

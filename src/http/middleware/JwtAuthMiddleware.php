@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace app\http\middleware;
 
 use app\http\responder\ResponderInterface;
-use app\RequestUtils;
 use app\ResponseFactory;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -45,13 +44,13 @@ class JwtAuthMiddleware implements MiddlewareInterface
         }
 
         try {
-            $claims = (array) JWT::decode($token, $this->secret, ['HS256']);
+            JWT::decode($token, $this->secret, ['HS256']);
             // CSRF validation.
-            $headerCSRF = $request->getHeader('X-CSRF-TOKEN')[0];
-            $tokenCSRF = $claims['csrf'] ?? '';
-            if (empty($headerCSRF) || empty($tokenCSRF) || !hash_equals($headerCSRF, $token)) {
-                return $this->responder->error(ResponseFactory::BAD_REQUEST, ['Wrong or empty CSRF token.']);
-            }
+            // $headerCSRF = $request->getHeader('X-CSRF-TOKEN')[0];
+            // $tokenCSRF = $claims['csrf'] ?? '';
+            // if (empty($headerCSRF) || empty($tokenCSRF) || !hash_equals($headerCSRF, $token)) {
+                // return $this->responder->error(ResponseFactory::BAD_REQUEST, ['Wrong or empty CSRF token.']);
+            // }
         } catch (Exception $e) {
             return $this->responder->error(ResponseFactory::UNAUTHORIZED, [$e->getMessage()]);
         }

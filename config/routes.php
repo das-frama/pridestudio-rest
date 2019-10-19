@@ -36,4 +36,5 @@ return [
     'system.init'  => ['GET', '/system/init', ['app\http\controller\SystemController', 'init']],
     
     'auth.login'  => ['POST', '/auth/login', ['app\http\controller\AuthController', 'login']],
+    'users.me' => ['GET', '/me', ['app\http\controller\AuthController', 'me']],
 ];

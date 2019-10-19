@@ -78,4 +78,25 @@ class AuthController
         ]);
         return $this->responder->success($csrf, 1);
     }
+
+    /**
+     * Get authenticated user.
+     * GET /me
+     * @method GET
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
+     */
+    public function me(ServerRequestInterface $request): ResponseInterface
+    {
+        $cookies = $request->getCookieParams();
+        if (!isset($cookies['jwt'])) {
+            return $this->responder->error(ResponseFactory::UNAUTHORIZED, ['Empty JWT.']);
+        }
+        $user = $this->authService->getUserByJWT($cookies['jwt']);
+        if ($user === null) {
+            return $this->responder->error(ResponseFactory::NOT_FOUND, ['User not found.']);
+        }
+
+        return $this->responder->success($user, 1);
+    }
 }
