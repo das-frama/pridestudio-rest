@@ -23,7 +23,7 @@ class CorsMiddleware implements MiddlewareInterface
             $response = ResponseFactory::fromStatus(200);
             $response = $response->withHeader(
                 'Access-Control-Allow-Headers',
-                'Content-Type, X-XSRF-TOKEN, Authorization'
+                'Content-Type, X-CSRF-TOKEN, Authorization'
             );
             $response = $response->withHeader(
                 'Access-Control-Allow-Methods',
@@ -35,7 +35,8 @@ class CorsMiddleware implements MiddlewareInterface
             $response = $next->handle($request);
         }
 
-        $response = $response->withHeader('Access-Control-Allow-Origin', '*');
+        $response = $response->withHeader('Access-Control-Allow-Origin', 'http://127.0.0.1:8080');
+        $response = $response->withHeader('Access-Control-Allow-Credentials', 'true');
 
         return $response;
     }

@@ -77,13 +77,7 @@ class Router implements RouterInterface
      */
     public function load(MiddlewareInterface $middleware): void
     {
-        array_push($this->middlewares, $middleware);
-    }
-
-    public function route(ServerRequestInterface $request): ResponseInterface
-    {
-        // $data = gzcompress(json_encode($this->routes, JSON_UNESCAPED_UNICODE));
-        return $this->handle($request);
+        $this->middlewares[] = $middleware;
     }
 
     /**
@@ -93,7 +87,7 @@ class Router implements RouterInterface
     {
         $request = $this->removeBasePath($request);
 
-        // middlewares.
+        // Middlewares.
         if (count($this->middlewares)) {
             $handler = array_pop($this->middlewares);
             return $handler->process($request, $this);

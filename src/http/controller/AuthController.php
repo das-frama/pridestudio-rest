@@ -60,11 +60,22 @@ class AuthController
         }
         
         // Login.
-        $token = $this->authService->login($body->username, $body->password);
-        if ($token === null) {
+        $expiresAt = time() + (int) getenv('JWT_DURATION');
+        $data = $this->authService->login($body->username, $body->password, $expiresAt);
+        if (empty($data)) {
             return $this->responder->error(ResponseFactory::UNAUTHORIZED, ['Wrong username or password.']);
         }
-        
-        return $this->responder->success(['token' => $token]);
+
+        list($csrf, $jwt) = $data;
+        // Set Cookie.
+        $secure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on';
+        setcookie('jwt', $jwt, [
+            'expires' => $expiresAt,
+            'path' => '/',
+            'httponly' => true,
+            'secure' => $secure,
+            'samesite' => 'Strict',
+        ]);
+        return $this->responder->success($csrf, 1);
     }
 }

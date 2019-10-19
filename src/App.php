@@ -7,6 +7,7 @@ namespace app;
 use app\http\router\Router;
 use app\http\router\RouterInterface;
 use app\http\middleware\CorsMiddleware;
+use app\http\middleware\JwtAuthMiddleware;
 use app\http\middleware\LogMiddleware;
 use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -62,7 +63,9 @@ class App
         if ($this->debug) {
             $this->router->load(new LogMiddleware($this->logger, $this->debug));
         }
+        $this->router->load(new JwtAuthMiddleware($this->responder, getenv('JWT_SECRET')));
         $this->router->load(new CorsMiddleware);
+        // Load routes.
         foreach ($config['routes'] as $route) {
             $this->router->register($route[0], $route[1], $route[2]);
         }

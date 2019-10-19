@@ -4,18 +4,27 @@ declare(strict_types=1);
 
 namespace app\http\middleware;
 
+use app\http\responder\ResponderInterface;
 use app\RequestUtils;
+use app\ResponseFactory;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Firebase\JWT\JWT;
+use Exception;
 
 class JwtAuthMiddleware implements MiddlewareInterface
 {
-    private $secret;
+    /** @var ResponderInterface */
+    private $responder;
 
-    public function __construct(string $secret)
+    /** @var string */
+    private $secret;
+    
+    public function __construct(ResponderInterface $responder, string $secret)
     {
+        $this->responder = $responder;
         $this->secret = $secret;
     }
 
@@ -24,26 +33,29 @@ class JwtAuthMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $next): ResponseInterface
     {
-        if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
-            session_start();
+        $path = $request->getUri()->getPath();
+        $method = $request->getMethod();
+        if ($method === 'POST' && $path === '/auth/login') {
+            return $next->handle($request);
         }
-        $token = $this->getAuthToken($request);
-        if ($token) {
-            $claims = $this->getClaims($token);
-            $_SESSION['claims'] = $claims;
+        $cookies = $request->getCookieParams();
+        $token = $cookies['jwt'] ?? '';
+        if ($token === '') {
+            return $this->responder->error(ResponseFactory::UNAUTHORIZED, ['Authentication required.']);
         }
-    }
 
-    private function getAuthToken(ServerRequestInterface $request): string
-    {
-        $headerValue = RequestUtils::getHeader($request, 'Authorization');
-        $parts = explode(' ', $headerValue, 2);
-        if (count($parts) !== 2) {
-            return '';
+        try {
+            $claims = (array) JWT::decode($token, $this->secret, ['HS256']);
+            // CSRF validation.
+            $headerCSRF = $request->getHeader('X-CSRF-TOKEN')[0];
+            $tokenCSRF = $claims['csrf'] ?? '';
+            if (empty($headerCSRF) || empty($tokenCSRF) || !hash_equals($headerCSRF, $token)) {
+                return $this->responder->error(ResponseFactory::BAD_REQUEST, ['Wrong or empty CSRF token.']);
+            }
+        } catch (Exception $e) {
+            return $this->responder->error(ResponseFactory::UNAUTHORIZED, [$e->getMessage()]);
         }
-        if ($parts[0] !== 'Bearer') {
-            return '';
-        }
-        return $parts[1];
+
+        return $next->handle($request);
     }
 }
