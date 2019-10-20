@@ -61,7 +61,7 @@ class FileService
     public function upload(UploadedFileInterface $file, string $path): ?string
     {
         $uploadDir = $this->toOSPath($this->storagePath . '/' . $path);
-        if (!is_dir(dirname($uploadDir))) {
+        if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0777, true);
         }
         $name = $this->generateFileName($file);
@@ -98,7 +98,6 @@ class FileService
         if (!is_dir(dirname($osDest))) {
             return false;
         }
-
 
         $imagick = new Imagick($osSrc);
         $imagick->thumbnailImage(250, 0);
