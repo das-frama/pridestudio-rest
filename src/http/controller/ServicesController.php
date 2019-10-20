@@ -42,8 +42,8 @@ class ServicesController
         $params = $this->getQueryParams($request);
         $include = $params['include'] ?? [];
         $halls = $this->serviceService->findAll($params, $include);
-        $count = isset($params['query']) ? count($halls) : $this->hallService->count();
+        $count = isset($params['query']) ? count($halls) : $this->serviceService->count();
 
-        return $this->responder->success(['success' => true]);
+        return $this->responder->success($halls, $count);
     }
 }

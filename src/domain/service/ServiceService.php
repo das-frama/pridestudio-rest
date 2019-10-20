@@ -24,7 +24,7 @@ class ServiceService
      */
     public function find(string $id, array $include = []): ?Service
     {
-        return $this->hallRepo->findOne(['id' => $id], $include);
+        return $this->serviceRepo->findOne(['id' => $id], $include);
     }
 
     /**
@@ -64,6 +64,6 @@ class ServiceService
      */
     public function count()
     {
-        return $this->hallRepo->count();
+        return $this->serviceRepo->count();
     }
 }
