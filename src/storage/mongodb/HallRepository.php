@@ -11,7 +11,6 @@ use app\entity\PriceRule;
 use app\domain\hall\HallRepositoryInterface;
 use app\storage\mongodb\base\AbstractRepository;
 use MongoDB\Client;
-use Psr\Log\LoggerInterface;
 
 /**
  * Class HallRepository
@@ -27,7 +26,7 @@ class HallRepository extends AbstractRepository implements HallRepositoryInterfa
                 'root' => Hall::class,
                 'document' => 'array',
                 'fieldPaths' => [
-                    'prices.$.price_rule' => PriceRule::class
+                    'prices.$' => PriceRule::class
                 ]
             ],
         ];

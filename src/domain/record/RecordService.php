@@ -65,11 +65,11 @@ class RecordService
                 continue;
             }
             foreach ($hall->prices as $price) {
-                $serviceIDs = array_intersect($record->service_ids, $price['service_ids']);
+                $serviceIDs = array_intersect($record->service_ids, $price->service_ids);
                 if (empty($serviceIDs)) {
                     continue;
                 }
-                $amount += $this->calculatePriceRule($price['price_rule'], $reservation, $hall->base_price);
+                $amount += $this->calculatePriceRule($price, $reservation, $hall->base_price);
             }
         }
         // Apply coupon discount.

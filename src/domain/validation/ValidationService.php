@@ -25,48 +25,49 @@ class ValidationService
 
     /**
      * Sanitize data.
-     * @param object $data
+     * @param array $data
      * @param array $rules
-     * @return object
+     * @return array
      */
-    public function sanitize(object $data, array $rules): object
+    public function sanitize(array $data, array $rules): array
     {
         $result = [];
         foreach ($rules as $property => $rule) {
-            if (strpos($property, '.$.') !== false) {
-                // Array of objects.
-                list($left, $right) = explode('.$.', $property, 2);
-                if (!isset($result[$left])) {
-                    $result[$left] = [];
-                }
-                if (!isset($data->{$left}) || !is_array($data->{$left})) {
-                    continue;
-                }
-                foreach ($data->{$left} as $i => $element) {
-                    $result[$left][$i][$right] = $this->sanitizeValue($element->{$right} ?? null, $rule);
-                }
-            } elseif (strpos($property, '.$') !== false) {
-                // Array of scalars.
-                $left = strstr($property, '.$', true);
-                if (!isset($result[$left])) {
-                    $result[$left] = [];
-                }
-                if (!isset($data->{$left}) || !is_array($data->{$left})) {
-                    continue;
-                }
-                foreach ($data->{$left} as $i => $element) {
-                    $result[$left][$i] = $this->sanitizeValue($element, $rule);
-                }
-            } elseif (strpos($property, '.') !== false) {
-                // Object.
-                list($left, $right) = explode('.', $property, 2);
-                $result[$left][$right] = $this->sanitizeValue($data->{$left}->{$right} ?? null, $rule);
-            } else {
-                // Plain value.
-                $result[$property] = $this->sanitizeValue($data->{$property} ?? null, $rule);
-            }
+            $result = $this->sanitizeProperty($property, $rule, $data);
         }
-        return json_decode(json_encode($result));
+        return $result;
+    }
+
+    public function sanitizeProperty(string $property, array $rule, $data)
+    {
+        if (strpos($property, '.$.') !== false) {
+            // Array of objects.
+            list($left, $right) = explode('.$.', $property, 2);
+            if (!is_array($data[$left])) {
+                $data[$left] = [];
+            }
+            foreach ($data[$left] as $i => $d) {
+                $data[$left][$i] = $this->sanitizeProperty($right, $rule, $d);
+            }
+            return $data[$left];
+        } elseif (strpos($property, '.$') !== false) {
+            // Array of scalars.
+            list($left, $right) = explode('.$', $property, 2);
+            if (!is_array($data[$left])) {
+                $data[$left] = [];
+            }
+            foreach ($data[$left] as $i => $d) {
+                $data[$left][$i] = $this->sanitizeProperty((string) $i, $rule, $data[$left]);
+            }
+            return [$left => $data[$left]];
+        } elseif (strpos($property, '.') !== false) {
+            // Object.
+            list($left, $right) = explode('.', $property, 2);
+            return [$left => $this->sanitizeProperty($right, $rule, $data->{$left})];
+        } else {
+            // Plain value.
+            return [$property => $this->sanitizeValue($data[$property], $rule)];
+        }
     }
 
     /**
@@ -77,12 +78,6 @@ class ValidationService
      */
     public function sanitizeValue($value, array $rules)
     {
-        // if ($value === null) {
-        //     return null;
-        // }
-        // if (is_object($value)) {
-        //     $value = (array) $value;
-        // }
         foreach ($rules as $rule) {
             if ($rule === 'required') {
                 continue;
@@ -93,6 +88,7 @@ class ValidationService
                 $ruleName = $rule;
             }
             switch ($ruleName) {
+                case 'mongoid':
                 case 'string':
                     return filter_var($value, FILTER_SANITIZE_STRING);
                 case 'email':
@@ -110,11 +106,11 @@ class ValidationService
 
     /**
      * Validate an object against rules.
-     * @param object $data
+     * @param array $data
      * @param array $rules
      * @return array
      */
-    public function validate(object $data, array $rules): array
+    public function validate(array $data, array $rules): array
     {
         $errors = [];
         foreach ($rules as $property => $rule) {

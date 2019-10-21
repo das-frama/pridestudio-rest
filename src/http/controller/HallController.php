@@ -177,6 +177,7 @@ class HallController
         $hall->preview_image = $body['preview_image'];
         $hall->base_price = (int) $body['base_price'];
         $hall->services = $body['services'];
+        $hall->prices = $body['prices'];
         $hall->sort = (int) $body['sort'];
         $hall->is_active = (bool) $body['is_active'];
 

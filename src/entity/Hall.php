@@ -39,7 +39,7 @@ class Hall extends AbstractEntity
     /** @var Service[] */
     public $services_join = [];
 
-    /** @var array */
+    /** @var PriceRule[] */
     public $prices = [];
 
     /** @var int */

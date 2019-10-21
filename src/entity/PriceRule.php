@@ -28,4 +28,7 @@ class PriceRule extends AbstractEntity
 
     /** @var int */
     public $price;
+
+    /** @var string[] */
+    public $service_ids = [];
 }
