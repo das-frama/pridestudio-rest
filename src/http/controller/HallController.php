@@ -169,31 +169,16 @@ class HallController
         if ($body === null) {
             return $this->responder->error(ResponseFactory::BAD_REQUEST, ['Empty body.']);
         }
-        $validationService = new ValidationService;
-        $rules = [
-            'name' => ['required', 'string:1:64'],
-            'slug' => ['required', 'string:1:64'],
-            'description' => ['string:1:1024'],
-            'preview_image' => ['string:1:255'],
-            'base_price' => ['int:0:999999'],
-            'sort' => ['int'],
-            'is_active' => ['bool'],
-        ];
-        // Sanitize incoming data.
-        $body = $validationService->sanitize($body, $rules);
-        // Validate data.
-        $errors = $validationService->validate($body, $rules);
-        if ($errors !== []) {
-            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, $errors);
-        }
+        // TODO (frama): Добавить валидацию.
         // Prepare hall entity.
-        $hall->name = $body->name;
-        $hall->slug = $body->slug;
-        $hall->description = $body->description;
-        $hall->preview_image = $body->preview_image;
-        $hall->base_price = (int) $body->base_price;
-        $hall->sort = (int) $body->sort;
-        $hall->is_active = (bool) $body->is_active;
+        $hall->name = $body['name'];
+        $hall->slug = $body['slug'];
+        $hall->description = $body['description'];
+        $hall->preview_image = $body['preview_image'];
+        $hall->base_price = (int) $body['base_price'];
+        $hall->services = $body['services'];
+        $hall->sort = (int) $body['sort'];
+        $hall->is_active = (bool) $body['is_active'];
 
         // Update hall.
         $err = $this->hallService->update($hall);

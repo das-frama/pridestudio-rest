@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\storage\mongodb;
 
 use app\entity\Service;
+use app\entity\ServiceChild;
 use app\domain\service\ServiceRepositoryInterface;
 use app\storage\mongodb\base\AbstractRepository;
 use MongoDB\Client;
@@ -18,10 +19,13 @@ class ServiceRepository extends AbstractRepository implements ServiceRepositoryI
             'typeMap' => [
                 'root' => Service::class,
                 'document' => 'array',
+                'fieldPaths' => [
+                    'children.$' => ServiceChild::class
+                ]
             ],
         ];
     }
-    
+
     /**
      * {@inheritDoc}
      */

@@ -52,7 +52,7 @@ class App
         $this->logger = $dice->create(LoggerInterface::class);
         $this->logger->pushHandler(
             (new StreamHandler($config['logger']['path'], $config['logger']['level']))
-            ->setFormatter(new LineFormatter(null, null, true, true))
+                ->setFormatter(new LineFormatter(null, null, true, true))
         );
         ErrorHandler::register($this->logger);
         // Responder.
@@ -122,7 +122,7 @@ class App
 
         echo $response->getBody();
     }
-    
+
     /**
      * Add parsed to request and return it.
      * @param ServerRequestInterface $request
@@ -162,11 +162,11 @@ class App
     /**
      * Parse JSON body to php object.
      * @param string $body
-     * @return object
+     * @return array
      */
-    private function parseJSONBody(string $body): ?object
+    private function parseJSONBody(string $body): ?array
     {
-        $object = json_decode($body);
+        $object = json_decode($body, true);
         $err = json_last_error();
         if ($err !== JSON_ERROR_NONE) {
             $object = null;
