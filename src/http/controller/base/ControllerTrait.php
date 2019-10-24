@@ -6,6 +6,7 @@ namespace app\http\controller\base;
 
 use app\ResponseFactory;
 use app\domain\validation\ValidationService;
+use app\storage\mongodb\base\AbstractEntity;
 use Psr\Http\Message\ServerRequestInterface;
 
 trait ControllerTrait
@@ -37,25 +38,15 @@ trait ControllerTrait
 
     /**
      * Validate incoming request body.
-     * @param ServerRequestInterface $request
-     * @return object
+     * @param array $body
+     * @return array
      */
-    private function validate(ServerRequestInterface $request, array $rules): object
+    private function validate(array $body, array $rules): array
     {
-        // Get body from request.
-        $body = $request->getParsedBody();
-        if ($body === null) {
-            return $this->responder->error(ResponseFactory::BAD_REQUEST, ['Empty body.']);
-        }
         $validationService = new ValidationService;
         // Sanitize input.
         $body = $validationService->sanitize($body, $rules);
         // Validate input.
-        $errors = $validationService->validate($body, $rules);
-        if ($errors !== []) {
-            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, $errors);
-        }
-
-        return $body;
+        return $validationService->validate($body, $rules);
     }
 }

@@ -46,7 +46,7 @@ interface CommonRepositoryInterface
     public function insert(AbstractEntity $entity): ?string;
 
     /**
-     * Update an extisted entity from storage..
+     * Update an extisted entity from storage.
      * @param AbstractEntity $entity
      * @return bool.
      */

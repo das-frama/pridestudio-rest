@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\http\controller;
 
+use app\command\UpdateHallCommand;
 use app\RequestUtils;
 use app\ResponseFactory;
 use app\domain\hall\HallService;
@@ -151,36 +152,27 @@ class HallController
     }
 
     /**
-     * Create a hall.
-     * @method POST
+     * Update hall.
+     * PUT /halls/<id>
+     * @method PUT
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      */
     public function update(ServerRequestInterface $request): ResponseInterface
     {
         $id = RequestUtils::getPathSegment($request, 2);
-        // Find hall.
-        $hall = $this->hallService->findByID($id);
-        if ($hall === null) {
+        // Check if hall exists.
+        if (!$this->hallService->isExists($id)) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, ["Hall not found."]);
         }
-        // Get body from request.
-        $body = $request->getParsedBody();
-        if ($body === null) {
+        // Get body's data from request.
+        $data = $request->getParsedBody();
+        if (empty($data)) {
             return $this->responder->error(ResponseFactory::BAD_REQUEST, ['Empty body.']);
         }
-        // TODO (frama): Добавить валидацию.
-        // Prepare hall entity.
-        $hall->name = $body['name'];
-        $hall->slug = $body['slug'];
-        $hall->description = $body['description'];
-        $hall->preview_image = $body['preview_image'];
-        $hall->base_price = (int) $body['base_price'];
-        $hall->services = $body['services'];
-        $hall->prices = $body['prices'];
-        $hall->sort = (int) $body['sort'];
-        $hall->is_active = (bool) $body['is_active'];
-
+        // Prepare hall for update.
+        $hall = $this->hallService->load($data);
+        $hall->id = $id;
         // Update hall.
         $err = $this->hallService->update($hall);
         if ($err !== null) {

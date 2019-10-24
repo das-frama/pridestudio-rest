@@ -26,6 +26,36 @@ class RecordService
     }
 
     /**
+     * Load data and return proper loaded entity.
+     * @param array $data
+     * @return Record
+     */
+    public function load(array $data): Record
+    {
+        $record = new Record;
+        $record->client_id = $data['client_id'] ?? null;
+        $record->hall_id = $data['hall_id'] ?? null;
+        $record->service_ids = $data['service_ids'] ?? [];
+        $record->payment_id = $data['payment_id'] ?? null;
+        $record->coupon_id = $data['coupon_id'] ?? null;
+        // $record->total = $data['total'] ?? null;
+        $record->comment = $data['comment'] ?? null;
+        $record->status = $data['status'] ?? null;
+        if (isset($data['reservations']) && is_array($data['reservations'])) {
+            $record->reservations = [];
+            foreach ($data['reservations'] as $reservation) {
+                $recordReservation = new Reservation;
+                $recordReservation->start_at = $reservation['start_at'] ?? null;
+                $recordReservation->length = $reservation['length'] ?? null;
+                $recordReservation->comment = $reservation['comment'] ?? null;
+                $record->reservations[] = $recordReservation;
+            }
+        }
+        
+        return $record;
+    }
+
+    /**
      * Get record by id.
      * @param string $id
      * @param array $include
@@ -65,9 +95,12 @@ class RecordService
                 continue;
             }
             foreach ($hall->prices as $price) {
-                $serviceIDs = array_intersect($record->service_ids, $price->service_ids);
-                if (empty($serviceIDs)) {
-                    continue;
+                // If price has services.
+                if (!empty($price->service_ids)) {
+                    // And they should intersect with record services.
+                    if (empty(array_intersect($record->service_ids, $price->service_ids))) {
+                        continue;
+                    }
                 }
                 $amount += $this->calculatePriceRule($price, $reservation, $hall->base_price);
             }
@@ -97,7 +130,7 @@ class RecordService
      * @param int $base_price
      * @return int
      */
-    private function calculatePriceRule(PriceRule $rule, object $reservation, int $basePrice): int
+    private function calculatePriceRule(PriceRule $rule, Reservation $reservation, int $basePrice): int
     {
         switch ($rule->comparison) {
             case '=':

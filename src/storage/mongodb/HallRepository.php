@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace app\storage\mongodb;
 
 use app\entity\Hall;
+use app\entity\HallService;
+use app\entity\PriceRule;
 use app\entity\Service;
 use app\entity\ServiceChild;
-use app\entity\PriceRule;
 use app\domain\hall\HallRepositoryInterface;
 use app\storage\mongodb\base\AbstractRepository;
 use MongoDB\Client;
@@ -26,7 +27,8 @@ class HallRepository extends AbstractRepository implements HallRepositoryInterfa
                 'root' => Hall::class,
                 'document' => 'array',
                 'fieldPaths' => [
-                    'prices.$' => PriceRule::class
+                    'services.$' => HallService::class,
+                    'prices.$' => PriceRule::class,
                 ]
             ],
         ];

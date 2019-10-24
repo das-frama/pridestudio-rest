@@ -63,7 +63,7 @@ class App
         if ($this->debug) {
             $this->router->load(new LogMiddleware($this->logger, $this->debug));
         }
-        $this->router->load(new JwtAuthMiddleware($this->responder, getenv('JWT_SECRET')));
+        // $this->router->load(new JwtAuthMiddleware($this->responder, getenv('JWT_SECRET')));
         $this->router->load(new CorsMiddleware);
         // Load routes.
         foreach ($config['routes'] as $route) {

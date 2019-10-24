@@ -46,18 +46,18 @@ class AuthController
         if (empty($body)) {
             return $this->responder->error(ResponseFactory::BAD_REQUEST, ['Empty body.']);
         }
-        $validationService = new ValidationService;
-        $rules = [
-            'username' => ['required', 'string:1:64'],
-            'password' => ['required', 'string:1:64'],
-        ];
-        // Sanitize incoming data.
-        $body = $validationService->sanitize($body, $rules);
-        // Validate data.
-        $errors = $validationService->validate($body, $rules);
-        if ($errors !== []) {
-            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, $errors);
-        }
+        // $validationService = new ValidationService;
+        // $rules = [
+        //     'username' => ['required', 'string:1:64'],
+        //     'password' => ['required', 'string:1:64'],
+        // ];
+        // // Sanitize incoming data.
+        // $body = $validationService->sanitize($body, $rules);
+        // // Validate data.
+        // $errors = $validationService->validate($body, $rules);
+        // if ($errors !== []) {
+        //     return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, $errors);
+        // }
         
         // Login.
         $expiresAt = time() + (int) getenv('JWT_DURATION');
