@@ -37,13 +37,13 @@ class ClientRepository extends AbstractRepository implements ClientRepositoryInt
         if (!$this->hasIndex('phone')) {
             $this->collection->createIndex(['phone' => 1], ['unique' => true]);
         }
-        return $this->createSchemaValidation('coupons', [
+        return $this->createSchemaValidation('clients', [
             'name' => ['bsonType' => 'string'],
             'email' => ['bsonType' => 'string'],
             'phone' => ['bsonType' => 'string'],
             'sex' => ['bsonType' => 'int'],
             'comment' => ['bsonType' => 'string'],
             'updated_at' => ['bsonType' => 'int'],
-        ], ['code', 'factor', 'is_active']);
+        ], ['name', 'email']);
     }
 }
