@@ -49,7 +49,8 @@ class RecordController
     {
         $params = $this->getQueryParams($request);
         $records = $this->recordService->findAll($params['include'] ?? []);
-        return $this->responder->success($records);
+        $count = isset($params['query']) ? count($records) : $this->recordService->count();
+        return $this->responder->success($records, $count);
     }
 
     /**

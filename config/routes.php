@@ -10,6 +10,7 @@ return [
     'users.read' => ['GET', '/users/*', ['app\http\controller\UserController', 'read']],
     'users.create' => ['POST', '/users', ['app\http\controller\UserController', 'create']],
 
+    'records.all' => ['GET', '/records', ['app\http\controller\RecordController', 'all']],
     'records.price' => ['POST', '/records/price', ['app\http\controller\RecordController', 'price']],
     'records.coupon' => ['GET', '/records/coupon/*', ['app\http\controller\RecordController', 'coupon']],
     'records.read' => ['GET', '/records/*', ['app\http\controller\RecordController', 'read']],
@@ -34,7 +35,7 @@ return [
     'settings.read'  => ['GET', '/settings/*', ['app\http\controller\SettingsController', 'read']],
 
     'system.init'  => ['GET', '/system/init', ['app\http\controller\SystemController', 'init']],
-    
+
     'auth.login'  => ['POST', '/auth/login', ['app\http\controller\AuthController', 'login']],
     'users.me' => ['GET', '/me', ['app\http\controller\AuthController', 'me']],
 ];

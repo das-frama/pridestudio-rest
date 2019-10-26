@@ -47,6 +47,15 @@ class RecordService
     }
 
     /**
+     * Count halls.
+     * @return int
+     */
+    public function count()
+    {
+        return $this->recordRepo->count();
+    }
+
+    /**
      * Calculate price for reservations.
      * @param Records $record
      * @param Hall $hall
