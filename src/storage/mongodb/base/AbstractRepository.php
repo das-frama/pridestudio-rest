@@ -64,6 +64,32 @@ abstract class AbstractRepository implements CommonRepositoryInterface
     /**
      * {@inheritDoc}
      */
+    public function findOneAndUpdate(array $filter, AbstractEntity $entity, array $include = [], bool $returnNew = false): ?AbstractEntity
+    {
+        // Prepare update.
+        $update = [
+            '$set' => $entity,
+        ];
+        $options = $this->defaultOptions;
+        // Prepare projection.
+        $options['projection'] = empty($include) ? [] : array_fill_keys($include, 1);
+        if (isset($options['projection']['id'])) {
+            $options['projection']['_id'] = $options['projection']['id'];
+            unset($options['projection']['id']);
+        }
+        $options['returnNewDocument'] = $returnNew;
+        // Process result.
+        $entity = $this->collection->findOneAndUpdate($this->convertFilter($filter), $update, $options);
+        if (!$entity instanceof AbstractEntity) {
+            return null;
+        }
+        $entity->setInclude($include);
+        return $entity;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function findAll(array $filter, int $limit = 0, int $skip = 0, array $sort = [], array $include = []): array
     {
         $options = array_merge($this->defaultOptions, [
@@ -155,7 +181,7 @@ abstract class AbstractRepository implements CommonRepositoryInterface
     /**
      * {@inheritDoc}
      */
-    public function update(AbstractEntity $entity): bool
+    public function update(AbstractEntity $entity, bool $upsert = false): bool
     {
         if ($entity->id === null) {
             return false;
@@ -164,6 +190,7 @@ abstract class AbstractRepository implements CommonRepositoryInterface
         $update = ['$set' => $entity];
         $result = $this->collection->updateOne($filter, $update, [
             'bypassDocumentValidation' => false,
+            'upsert' => $upsert,
         ]);
         return $result->isAcknowledged();
     }

@@ -52,6 +52,30 @@ class Hall extends AbstractEntity
 
     /** @var string */
     public $updated_by;
+    
+    /**
+     * {@inheritDoc}
+     */
+    public function load(array $data, array $safe = []): void
+    {
+        parent::load($data, $safe);
+        if (isset($data['services']) && is_array($data['services']) && in_array('services', $safe)) {
+            $this->services = [];
+            foreach ($data['services'] as $service) {
+                $hallService = new HallService;
+                $hallService->load($service);
+                $this->services[] = $hallService;
+            }
+        }
+        if (isset($data['prices']) && is_array($data['prices']) && in_array('prices', $safe)) {
+            $this->prices = [];
+            foreach ($data['prices'] as $price) {
+                $priceRule = new PriceRule;
+                $priceRule->load($price);
+                $this->prices[] = $priceRule;
+            }
+        }
+    }
 
     /**
      * Get default selected services.

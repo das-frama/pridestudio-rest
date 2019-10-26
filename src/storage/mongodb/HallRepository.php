@@ -115,7 +115,7 @@ class HallRepository extends AbstractRepository implements HallRepositoryInterfa
                 '$or' => [
                     ['$and' => [
                         ['services.children' => ['$in' => $objectIDs]],
-                        ['services.parents' => ['$exists' => false]]
+                        ['services.parents' => ['$eq' => []]]
                     ]],
                     ['services.parents' => ['$in' => $objectIDs]],
                 ]

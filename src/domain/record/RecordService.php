@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace app\domain\record;
 
+use app\domain\client\ClientRepositoryInterface;
+use app\entity\Client;
 use app\entity\Coupon;
 use app\entity\Hall;
 use app\entity\PriceRule;
@@ -16,43 +18,20 @@ class RecordService
     /** @var RecordRepositoryInterface */
     private $recordRepo;
 
+    /** @var ClientRepositoryInterface */
+    private $clientRepo;
+
     /** @var CouponRepositoryInterface */
     private $couponRepo;
 
-    public function __construct(RecordRepositoryInterface $recordRepo, CouponRepositoryInterface $couponRepo)
-    {
+    public function __construct(
+        RecordRepositoryInterface $recordRepo,
+        ClientRepositoryInterface $clientRepo,
+        CouponRepositoryInterface $couponRepo
+    ) {
         $this->recordRepo = $recordRepo;
+        $this->clientRepo = $clientRepo;
         $this->couponRepo = $couponRepo;
-    }
-
-    /**
-     * Load data and return proper loaded entity.
-     * @param array $data
-     * @return Record
-     */
-    public function load(array $data): Record
-    {
-        $record = new Record;
-        $record->client_id = $data['client_id'] ?? null;
-        $record->hall_id = $data['hall_id'] ?? null;
-        $record->service_ids = $data['service_ids'] ?? [];
-        $record->payment_id = $data['payment_id'] ?? null;
-        $record->coupon_id = $data['coupon_id'] ?? null;
-        // $record->total = $data['total'] ?? null;
-        $record->comment = $data['comment'] ?? null;
-        $record->status = $data['status'] ?? null;
-        if (isset($data['reservations']) && is_array($data['reservations'])) {
-            $record->reservations = [];
-            foreach ($data['reservations'] as $reservation) {
-                $recordReservation = new Reservation;
-                $recordReservation->start_at = $reservation['start_at'] ?? null;
-                $recordReservation->length = $reservation['length'] ?? null;
-                $recordReservation->comment = $reservation['comment'] ?? null;
-                $record->reservations[] = $recordReservation;
-            }
-        }
-        
-        return $record;
     }
 
     /**
@@ -123,6 +102,11 @@ class RecordService
         return $this->couponRepo->findOne(['code' => $code], $include);
     }
 
+    public function findClient()
+    {
+
+    }
+
     /**
      * Calculate price for rule by reservation.
      * @param PriceRule $rule
@@ -177,6 +161,8 @@ class RecordService
             $diff = min($reservation->start_at + $reservation->length * 60, $bottomAt) -
                 max($reservation->start_at, $topAt);
             $hoursToCount = $diff > 0 ? $diff / 60 / 60 : 0;
+        } else {
+            $hoursToCount = $hours;
         }
 
         $amount = 0;
@@ -189,5 +175,38 @@ class RecordService
         }
 
         return $amount;
+    }
+
+    /**
+     * Create a new record.
+     * @param Record $record
+     * @param Client $client
+     * @param string $couponCode
+     * @return string|null
+     */
+    public function create(Record $record, Client $c, string $couponCode = null): ?string
+    {
+        // Find client. If not exist then create one.
+        $filter = ['email' => $c->email, 'phone' => $c->phone];
+        $client = $this->clientRepo->findOneAndUpdate($filter, $c, ['id'], true);
+        if ($client === null) {
+            $client = clone $c;
+            $client->id = $this->clientRepo->insert($client);
+        }
+        if ($client->id !== null) {
+            $record->client_id = $client->id;
+        }
+        // Coupon.
+        if ($couponCode !== null) {
+            $coupon = $this->couponRepo->findOne(['code' => $couponCode], ['id']);
+            if ($coupon !== null) {
+                $record->coupon_id = $coupon->id;
+            }
+        }
+        if ($record->updated_at === null) {
+            $record->updated_at = time();
+        }
+
+        return $this->recordRepo->insert($record);
     }
 }

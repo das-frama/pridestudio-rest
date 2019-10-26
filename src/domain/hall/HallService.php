@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace app\domain\hall;
 
 use app\entity\Hall;
-use app\entity\HallService as AppHallService;
-use app\entity\PriceRule;
 use app\entity\Service;
 
 class HallService
@@ -17,43 +15,6 @@ class HallService
     public function __construct(HallRepositoryInterface $hallRepo)
     {
         $this->hallRepo = $hallRepo;
-    }
-
-    public function load(array $data): Hall
-    {
-        $hall = new Hall;
-        $hall->name = $data['name'] ?? null;
-        $hall->slug = $data['slug'] ?? null;
-        $hall->description = $data['description'] ?? null;
-        $hall->base_price = $data['base_price'] ?? null;
-        $hall->preview_image = $data['preview_image'] ?? null;
-        $hall->sort = $data['sort'] ?? null;
-        $hall->is_active = $data['is_active'] ?? null;
-        if (is_array($data['services'])) {
-            $hall->services = [];
-            foreach ($data['services'] as $service) {
-                $hallService = new AppHallService;
-                $hallService->category_id = $service['category_id'] ?? null;
-                $hallService->children = $service['children'] ?? [];
-                $hall->services[] = $hallService;
-            }
-        }
-        if (is_array($data['prices'])) {
-            $hall->prices = [];
-            foreach ($data['prices'] as $price) {
-                $priceRule = new PriceRule;
-                $priceRule->time_from = $price['time_from'] ?? null;
-                $priceRule->time_to = $price['time_to'] ?? null;
-                $priceRule->type = $price['type'] ?? null;
-                $priceRule->from_length = $price['from_length'] ?? null;
-                $priceRule->comparison = $price['comparison'] ?? null;
-                $priceRule->price = $price['price'] ?? null;
-                $priceRule->service_ids = $price['service_ids'] ?? [];
-                $hall->prices[] = $priceRule;
-            }
-        }
-        
-        return $hall;
     }
 
     /**

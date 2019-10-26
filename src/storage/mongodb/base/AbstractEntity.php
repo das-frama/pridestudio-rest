@@ -21,6 +21,23 @@ abstract class AbstractEntity implements Persistable, JsonSerializable
     protected $exclude = [];
     protected $unserialized = false;
 
+    /**
+     * Load array of data to the entity.
+     * Every entity should reimplement this method to load the data.
+     * @param array $data
+     * @param array $safe
+     * @return void
+     */
+    public function load(array $data, array $safe = []): void
+    { 
+        foreach ($data as $key => $value) {
+            $isSafe = empty($safe) || in_array($key, $safe);
+            if (property_exists($this, $key) && $isSafe) {
+                $this->{$key} = $value;
+            }
+        }
+    }
+
     public function setInclude(array $properties): void
     {
         $this->include = $properties;

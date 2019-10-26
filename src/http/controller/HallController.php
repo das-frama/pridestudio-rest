@@ -162,7 +162,8 @@ class HallController
     {
         $id = RequestUtils::getPathSegment($request, 2);
         // Check if hall exists.
-        if (!$this->hallService->isExists($id)) {
+        $hall = $this->hallService->findByID($id);
+        if ($hall === null) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, ["Hall not found."]);
         }
         // Get body's data from request.
@@ -171,8 +172,9 @@ class HallController
             return $this->responder->error(ResponseFactory::BAD_REQUEST, ['Empty body.']);
         }
         // Prepare hall for update.
-        $hall = $this->hallService->load($data);
-        $hall->id = $id;
+        $hall->load($data, [
+            'name', 'slug', 'description', 'base_price', 'preview_image', 'services', 'prices', 'sort', 'is_active'
+        ]);
         // Update hall.
         $err = $this->hallService->update($hall);
         if ($err !== null) {
