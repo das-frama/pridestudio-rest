@@ -68,7 +68,7 @@ abstract class AbstractRepository implements CommonRepositoryInterface
     {
         // Prepare update.
         if (property_exists($entity, 'updated_at')) {
-            $entity->updated_at = now();
+            $entity->updated_at = time();
         }
         $update = [
             '$set' => $entity,
@@ -175,7 +175,7 @@ abstract class AbstractRepository implements CommonRepositoryInterface
     public function insert(AbstractEntity $entity): ?string
     {
         if (property_exists($entity, 'updated_at')) {
-            $entity->updated_at = now();
+            $entity->updated_at = time();
         }
         $result = $this->collection->insertOne($entity, [
             'bypassDocumentValidation' => false,
@@ -194,7 +194,7 @@ abstract class AbstractRepository implements CommonRepositoryInterface
         }
         $filter = ['_id' => new ObjectId($entity->id)];
         if (property_exists($entity, 'updated_at')) {
-            $entity->updated_at = now();
+            $entity->updated_at = time();
         }
         $update = ['$set' => $entity];
         $result = $this->collection->updateOne($filter, $update, [
