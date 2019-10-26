@@ -64,8 +64,8 @@ class RecordRepository extends AbstractRepository implements RecordRepositoryInt
         $cursor = $this->collection->find($this->convertFilter($filter), $options);
         $records = $cursor->toArray();
         $result = [];
-        foreach ($records as $record) {
-            $result = array_merge($result, $record->reservations);
+        foreach ($cursor as $record) {
+            $result = array_merge($result, (array) $record->reservations);
         }
         return $result;
     }

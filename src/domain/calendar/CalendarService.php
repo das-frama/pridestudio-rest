@@ -67,8 +67,8 @@ class CalendarService
             $dates[] = date('Y-m-d', $time);
         }
 
-        $firstDate = new DateTime($dates[0]);
-        $lastDate = new DateTime($dates[6]);
+        $firstDate = new DateTimeImmutable($dates[0]);
+        $lastDate = (new DateTimeImmutable($dates[6]))->setTime(23, 59, 59);
         $document = new CalendarDocument;
         $document->year = (int) $lastDate->format('Y');
         $document->week = (int) $lastDate->format('W');
@@ -135,13 +135,8 @@ class CalendarService
     {
         $filter = [
             'hall_id' => new ObjectId($hallID),
-            'reservations.start_at' => ['$gte' => $startAt, '$lt' => $endAt]
+            'reservations.start_at' => ['$gte' => $startAt, '$lt' => $endAt],
         ];
         return $this->recordsRepo->findReservations($filter);
-        // $result = [];
-        // foreach ($reservations as $r) {
-        //     $result = array_merge($result, $r);
-        // }
-        // return $result;
     }
 }
