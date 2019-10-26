@@ -12,6 +12,14 @@ use MongoDB\BSON\ObjectId;
  */
 class Record extends AbstractEntity
 {
+    // Statuses.
+    const STATUS_NEW = 1;
+    const STATUS_PREPAID = 2;
+    const STATUS_NOTPAID = 3;
+    const STATUS_PAID = 4;
+    const STATUS_CASH = 5;
+    const STATUS_DONE = 10;
+
     /** @var string */
     public $id;
 
@@ -91,7 +99,7 @@ class Record extends AbstractEntity
         $bson['service_ids'] = array_map(function (string $id) {
             return new ObjectId($id);
         }, $this->service_ids);
-        
+
         return $bson;
     }
 }

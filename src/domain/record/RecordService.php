@@ -196,8 +196,8 @@ class RecordService
      */
     public function create(Record $record, Client $c, string $couponCode = null): ?string
     {
-        // Find client. If not exist then create one.
         $filter = ['email' => $c->email, 'phone' => $c->phone];
+        // Client. If not exist then create one.
         $client = $this->clientRepo->findOneAndUpdate($filter, $c, ['id'], true);
         if ($client === null) {
             $client = clone $c;
@@ -219,10 +219,10 @@ class RecordService
                 $record->coupon_id = $coupon->id;
             }
         }
-        // $hall = $this-> $record->hall_id;
-
+        // Total price.
         $record->total = $this->calculatePrice($record, $hall, $coupon);
-        $record->updated_at = time();
+        $record->status = Record::STATUS_NEW;
+
         return $this->recordRepo->insert($record);
     }
 }
