@@ -34,7 +34,7 @@ abstract class AbstractRepository implements CommonRepositoryInterface
         $this->database = $client->selectDatabase($database);
         $this->collection = $this->database->selectCollection($collection);
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -67,6 +67,9 @@ abstract class AbstractRepository implements CommonRepositoryInterface
     public function findOneAndUpdate(array $filter, AbstractEntity $entity, array $include = [], bool $returnNew = false): ?AbstractEntity
     {
         // Prepare update.
+        if (property_exists($entity, 'updated_at')) {
+            $entity->updated_at = now();
+        }
         $update = [
             '$set' => $entity,
         ];
@@ -165,12 +168,15 @@ abstract class AbstractRepository implements CommonRepositoryInterface
     {
         return (bool) $this->collection->count($this->convertFilter($filter));
     }
-    
+
     /**
      * {@inheritDoc}
      */
     public function insert(AbstractEntity $entity): ?string
     {
+        if (property_exists($entity, 'updated_at')) {
+            $entity->updated_at = now();
+        }
         $result = $this->collection->insertOne($entity, [
             'bypassDocumentValidation' => false,
         ]);
@@ -187,6 +193,9 @@ abstract class AbstractRepository implements CommonRepositoryInterface
             return false;
         }
         $filter = ['_id' => new ObjectId($entity->id)];
+        if (property_exists($entity, 'updated_at')) {
+            $entity->updated_at = now();
+        }
         $update = ['$set' => $entity];
         $result = $this->collection->updateOne($filter, $update, [
             'bypassDocumentValidation' => false,
