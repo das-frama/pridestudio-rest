@@ -46,29 +46,16 @@ class AuthController
         if (empty($body)) {
             return $this->responder->error(ResponseFactory::BAD_REQUEST, ['Empty body.']);
         }
-        $validationService = new ValidationService;
-        $rules = [
-            'username' => ['required', 'string:1:64'],
-            'password' => ['required', 'string:1:64'],
-        ];
-        // Sanitize incoming data.
-        $body = $validationService->sanitize($body, $rules);
-        // Validate data.
-        $errors = $validationService->validate($body, $rules);
-        if ($errors !== []) {
-            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, $errors);
-        }
-        
         // Login.
         $expiresAt = time() + (int) getenv('JWT_DURATION');
-        $data = $this->authService->login($body->username, $body->password, $expiresAt);
+        $data = $this->authService->login($body['username'], $body['password'], $expiresAt);
         if (empty($data)) {
             return $this->responder->error(ResponseFactory::UNAUTHORIZED, ['Wrong username or password.']);
         }
 
         list($csrf, $jwt) = $data;
         // Set Cookie.
-        $secure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on';
+        $secure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on';
         setcookie('jwt', $jwt, [
             'expires' => $expiresAt,
             'path' => '/',

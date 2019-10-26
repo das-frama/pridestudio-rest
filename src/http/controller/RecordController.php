@@ -6,11 +6,12 @@ namespace app\http\controller;
 
 use app\RequestUtils;
 use app\ResponseFactory;
-use app\entity\Record;
 use app\domain\record\RecordService;
 use app\domain\booking\PaymentDocument;
 use app\domain\hall\HallService;
 use app\domain\validation\ValidationService;
+use app\entity\Client;
+use app\entity\Record;
 use app\http\controller\base\ControllerTrait;
 use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -41,6 +42,7 @@ class RecordController
 
     /**
      * Get all records.
+     * GET /records
      * @method GET
      * @param ServerRequestInterface $request
      * @return ResponseInterface
@@ -55,6 +57,7 @@ class RecordController
 
     /**
      * Get one record by id.
+     * GET /records/<id>
      * @method GET
      * @param ServerRequestInterface $request
      * @return ResponseInterface
@@ -87,44 +90,24 @@ class RecordController
     public function price(ServerRequestInterface $request): ResponseInterface
     {
         // Get body from request.
-        $body = $request->getParsedBody();
-        if ($body === null || $body === []) {
-            return $this->responder->error(ResponseFactory::BAD_REQUEST, ["Very bad request."]);
+        $data = $request->getParsedBody();
+        if (empty($data)) {
+            return $this->responder->error(ResponseFactory::BAD_REQUEST, ["Empty body."]);
         }
-        $validationService = new ValidationService;
-        $rules = [
-            'reservations' => ['required', 'array:1:24'],
-            'reservations.$.start_at' => ['required', 'int'],
-            'reservations.$.length' => ['required', 'int'],
-            'service_ids' => ['array'],
-            'service_ids.$' => ['mongoid'],
-            'hall_id' => ['required', 'mongoid'],
-            'coupon' => ['string'],
-        ];
-        // Sanitze incoming data.
-        $body = $validationService->sanitize($body, $rules);
-        // Validate incoming data.
-        $errors = $validationService->validate($body, $rules);
-        if ($errors !== []) {
-            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, $errors);
-        }
-        // Find a hall.
-        $hall = $this->hallService->findByID($body->hall_id, ['id', 'base_price', 'prices']);
+        // Load data from request.
+        $record = new Record;
+        $record->load($data, ['hall_id', 'reservations', 'service_ids', 'payment_id', 'comment']);
+        // Find hall.
+        $hall = $this->hallService->findByID($record->hall_id, ['id', 'base_price', 'prices']);
         if ($hall === null) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, ['Hall not found.']);
         }
         /// Find a coupon.
         $coupon = null;
-        if (!empty($body->coupon)) {
-            $coupon = $this->recordService->findCouponByCode($body->coupon, ['id', 'factor']);
+        $couponCode = $data['coupon']['code'] ?? null;
+        if (!empty($couponCode)) {
+            $coupon = $this->recordService->findCouponByCode($couponCode, ['id', 'factor']);
         }
-
-        // Compose record entity.
-        $record = new Record;
-        $record->hall_id = $hall->id;
-        $record->reservations = $body->reservations;
-        $record->service_ids = $body->service_ids;
-
         // Response with document.
         $paymentDoc = new PaymentDocument;
         $paymentDoc->price = $this->recordService->calculatePrice($record, $hall, $coupon);
@@ -147,5 +130,40 @@ class RecordController
         }
 
         return $this->responder->success($coupon);
+    }
+
+    /**
+     * Post record.
+     * POST /records
+     * @method POST
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
+     */
+    public function create(ServerRequestInterface $request): ResponseInterface
+    {
+        // Get body's data from request.
+        $data = $request->getParsedBody();
+        if (empty($data)) {
+            return $this->responder->error(ResponseFactory::BAD_REQUEST, ['Empty body.']);
+        }
+
+        // Load data.
+        $record = new Record;
+        $record->load($data, ['hall_id', 'reservations', 'service_ids', 'comment']);
+        $client = new Client;
+        $client->load($data['client'], ['name', 'phone', 'email']);
+
+        // Check if hall exists.
+        if (!$this->hallService->isExists($record->hall_id, true)) {
+            return $this->responder->error(ResponseFactory::NOT_FOUND, ["Hall not found."]);
+        }
+
+        // Save record.
+        $id = $this->recordService->create($record, $client, $data['coupon']['code'] ?? null);
+        if ($id === null) {
+            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, ["Errors during create."]);
+        }
+
+        return $this->responder->success($id);
     }
 }

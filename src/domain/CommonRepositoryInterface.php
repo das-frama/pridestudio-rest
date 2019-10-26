@@ -17,6 +17,16 @@ interface CommonRepositoryInterface
     public function findOne(array $filter, array $include = []): ?AbstractEntity;
 
     /**
+     * Find one entity and update by filter.
+     * @param array $filter
+     * @param AbstractEntity $entity
+     * @param array $include
+     * @param bool $returnNew
+     * @return AbstractEntity|null
+     */
+    public function findOneAndUpdate(array $filter, AbstractEntity $entity, array $include = [], bool $returnNew = false): ?AbstractEntity;
+
+    /**
      * Find all entities.
      * @param array $filter
      * @param array $include
@@ -46,11 +56,12 @@ interface CommonRepositoryInterface
     public function insert(AbstractEntity $entity): ?string;
 
     /**
-     * Update an extisted entity from storage..
+     * Update an extisted entity from storage.
      * @param AbstractEntity $entity
+     * @param bool $upsert
      * @return bool.
      */
-    public function update(AbstractEntity $entity): bool;
+    public function update(AbstractEntity $entity, bool $upsert = false): bool;
 
     /**
      * Delet an extisting entity from storage..

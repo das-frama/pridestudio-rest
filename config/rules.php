@@ -35,6 +35,14 @@ return [
         'instanceOf' => 'app\storage\mongodb\RecordRepository',
         'shared' => true
     ],
+    'app\domain\client\ClientRepositoryInterface' => [
+        'instanceOf' => 'app\storage\mongodb\ClientRepository',
+        'shared' => true
+    ],
+    'app\domain\record\CouponRepositoryInterface' => [
+        'instanceOf' => 'app\storage\mongodb\CouponRepository',
+        'shared' => true
+    ],
     'app\domain\hall\HallRepositoryInterface' => [
         'instanceOf' => 'app\storage\mongodb\HallRepository',
         'shared' => true
@@ -49,10 +57,6 @@ return [
     ],
     'app\domain\user\UserRepositoryInterface' => [
         'instanceOf' => 'app\storage\mongodb\UserRepository',
-        'shared' => true
-    ],
-    'app\domain\record\CouponRepositoryInterface' => [
-        'instanceOf' => 'app\storage\mongodb\CouponRepository',
         'shared' => true
     ],
 ];

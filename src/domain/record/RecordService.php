@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace app\domain\record;
 
+use app\domain\client\ClientRepositoryInterface;
+use app\domain\hall\HallRepositoryInterface;
+use app\entity\Client;
 use app\entity\Coupon;
 use app\entity\Hall;
 use app\entity\PriceRule;
@@ -16,13 +19,25 @@ class RecordService
     /** @var RecordRepositoryInterface */
     private $recordRepo;
 
+    /** @var ClientRepositoryInterface */
+    private $clientRepo;
+
     /** @var CouponRepositoryInterface */
     private $couponRepo;
 
-    public function __construct(RecordRepositoryInterface $recordRepo, CouponRepositoryInterface $couponRepo)
-    {
+    /** @var HallRepositoryInterface */
+    private $hallRepo;
+
+    public function __construct(
+        RecordRepositoryInterface $recordRepo,
+        ClientRepositoryInterface $clientRepo,
+        CouponRepositoryInterface $couponRepo,
+        HallRepositoryInterface $hallRepo
+    ) {
         $this->recordRepo = $recordRepo;
+        $this->clientRepo = $clientRepo;
         $this->couponRepo = $couponRepo;
+        $this->hallRepo = $hallRepo;
     }
 
     /**
@@ -74,9 +89,12 @@ class RecordService
                 continue;
             }
             foreach ($hall->prices as $price) {
-                $serviceIDs = array_intersect($record->service_ids, $price->service_ids);
-                if (empty($serviceIDs)) {
-                    continue;
+                // If price has services.
+                if (!empty($price->service_ids)) {
+                    // And they should intersect with record services.
+                    if (empty(array_intersect($record->service_ids, $price->service_ids))) {
+                        continue;
+                    }
                 }
                 $amount += $this->calculatePriceRule($price, $reservation, $hall->base_price);
             }
@@ -106,7 +124,7 @@ class RecordService
      * @param int $base_price
      * @return int
      */
-    private function calculatePriceRule(PriceRule $rule, object $reservation, int $basePrice): int
+    private function calculatePriceRule(PriceRule $rule, Reservation $reservation, int $basePrice): int
     {
         switch ($rule->comparison) {
             case '=':
@@ -153,6 +171,8 @@ class RecordService
             $diff = min($reservation->start_at + $reservation->length * 60, $bottomAt) -
                 max($reservation->start_at, $topAt);
             $hoursToCount = $diff > 0 ? $diff / 60 / 60 : 0;
+        } else {
+            $hoursToCount = $hours;
         }
 
         $amount = 0;
@@ -165,5 +185,44 @@ class RecordService
         }
 
         return $amount;
+    }
+
+    /**
+     * Create a new record.
+     * @param Record $record
+     * @param Client $client
+     * @param string $couponCode
+     * @return string|null
+     */
+    public function create(Record $record, Client $c, string $couponCode = null): ?string
+    {
+        // Find client. If not exist then create one.
+        $filter = ['email' => $c->email, 'phone' => $c->phone];
+        $client = $this->clientRepo->findOneAndUpdate($filter, $c, ['id'], true);
+        if ($client === null) {
+            $client = clone $c;
+            $client->id = $this->clientRepo->insert($client);
+        }
+        if ($client->id !== null) {
+            $record->client_id = $client->id;
+        }
+        // Hall.
+        $hall = $this->hallRepo->findOne(['id' => $record->hall_id], ['id', 'base_price', 'prices']);
+        if ($hall === null) {
+            return null;
+        }
+        // Coupon.
+        $coupon = null;
+        if ($couponCode !== null) {
+            $coupon = $this->couponRepo->findOne(['code' => $couponCode], ['id', 'factor']);
+            if ($coupon !== null) {
+                $record->coupon_id = $coupon->id;
+            }
+        }
+        // $hall = $this-> $record->hall_id;
+
+        $record->total = $this->calculatePrice($record, $hall, $coupon);
+        $record->updated_at = time();
+        return $this->recordRepo->insert($record);
     }
 }

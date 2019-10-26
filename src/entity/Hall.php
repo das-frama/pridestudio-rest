@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace app\entity;
 
 use app\storage\mongodb\base\AbstractEntity;
-use MongoDB\BSON\ObjectId;
 
 /**
  * Hall class.
@@ -30,14 +29,8 @@ class Hall extends AbstractEntity
     /** @var string */
     public $preview_image;
 
-    /** @var string */
-    public $detail_image;
-
-    /** @var array */
+    /** @var HallService[] */
     public $services = [];
-
-    /** @var Service[] */
-    public $services_join = [];
 
     /** @var PriceRule[] */
     public $prices = [];
@@ -59,44 +52,29 @@ class Hall extends AbstractEntity
 
     /** @var string */
     public $updated_by;
-
+    
     /**
      * {@inheritDoc}
      */
-    public function bsonSerialize(): array
+    public function load(array $data, array $safe = []): void
     {
-        $bson = parent::bsonSerialize();
-        unset($bson['services_join']);
-
-        // Convert services.
-        $bson['services'] = array_map(function (array $service) {
-            if (isset($service['category_id'])) {
-                $service['category_id'] = new ObjectId($service['category_id']);
+        parent::load($data, $safe);
+        if (isset($data['services']) && is_array($data['services']) && in_array('services', $safe)) {
+            $this->services = [];
+            foreach ($data['services'] as $service) {
+                $hallService = new HallService;
+                $hallService->load($service);
+                $this->services[] = $hallService;
             }
-            if (isset($service['children'])) {
-                $service['children'] = array_map(function (string $child) {
-                    return new ObjectId($child);
-                }, $service['children']);
+        }
+        if (isset($data['prices']) && is_array($data['prices']) && in_array('prices', $safe)) {
+            $this->prices = [];
+            foreach ($data['prices'] as $price) {
+                $priceRule = new PriceRule;
+                $priceRule->load($price);
+                $this->prices[] = $priceRule;
             }
-            if (isset($service['parents'])) {
-                $service['parents'] = array_map(function (string $parent) {
-                    return new ObjectId($parent);
-                }, $service['parents']);
-            }
-            return $service;
-        }, $bson['services']);
-
-        // Convert prices.
-        $bson['prices'] = array_map(function (array $price) {
-            if (isset($price['service_ids'])) {
-                $price['service_ids'] = array_map(function (string $serviceID) {
-                    return new ObjectId($serviceID);
-                }, $price['service_ids']);
-            }
-            return $price;
-        }, $bson['prices']);
-
-        return $bson;
+        }
     }
 
     /**
@@ -107,13 +85,13 @@ class Hall extends AbstractEntity
     {
         $selected = [];
         foreach ($this->services as $service) {
-            if (isset($service['parents'])) {
-                $common = array_intersect($selected, $service['parents']);
+            if (!empty($service->parents)) {
+                $common = array_intersect($selected, $service->parents);
                 if (!empty($common)) {
-                    $selected[] = reset($service['children']);
+                    $selected[] = reset($service->children);
                 }
             } else {
-                $selected[] = reset($service['children']);
+                $selected[] = reset($service->children);
             }
         }
         return $selected;

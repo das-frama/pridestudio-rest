@@ -9,6 +9,8 @@ use app\entity\Reservation;
 use app\domain\record\RecordRepositoryInterface;
 use app\storage\mongodb\base\AbstractRepository;
 use MongoDB\Client;
+use RecursiveArrayIterator;
+use RecursiveIteratorIterator;
 
 /**
  * Class RecordRepository
@@ -42,7 +44,7 @@ class RecordRepository extends AbstractRepository implements RecordRepositoryInt
             'reservations' => ['bsonType' => 'array'],
             'service_ids' => ['bsonType' => 'array'],
             'payment_id' => ['bsonType' => 'objectId'],
-            'promo_id' => ['bsonType' => 'objectId'],
+            'coupon_id' => ['bsonType' => 'objectId'],
             'total' => ['bsonType' => 'int'],
             'comment' => ['bsonType' => 'string'],
             'status' => ['bsonType' => 'int'],
@@ -60,8 +62,11 @@ class RecordRepository extends AbstractRepository implements RecordRepositoryInt
         $options = $this->defaultOptions;
         $options['projection'] = ['reservations' => 1];
         $cursor = $this->collection->find($this->convertFilter($filter), $options);
-        return array_map(function (Record $record) {
-            return $record->reservations;
-        }, $cursor->toArray());
+        $records = $cursor->toArray();
+        $result = [];
+        foreach ($records as $record) {
+            $result = array_merge($result, $record->reservations);
+        }
+        return $result;
     }
 }

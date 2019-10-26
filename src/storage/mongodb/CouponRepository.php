@@ -46,7 +46,7 @@ class CouponRepository extends AbstractRepository implements CouponRepositoryInt
             'end_at' => ['bsonType' => 'long'],
             'sort' => ['bsonType' => 'int'],
             'is_active' => ['bsonType' => 'bool'],
-            'updated_at' => ['bsonType' => 'long'],
+            'updated_at' => ['bsonType' => 'int'],
             'created_by' => ['bsonType' => 'objectId'],
             'updated_by' => ['bsonType' => 'objectId'],
         ], ['code', 'factor', 'is_active']);

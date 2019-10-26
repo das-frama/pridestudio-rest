@@ -14,10 +14,10 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
 use Dice\Dice;
-use Error;
 use Monolog\ErrorHandler;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
+use Error;
 use Exception;
 
 class App
@@ -63,7 +63,7 @@ class App
         if ($this->debug) {
             $this->router->load(new LogMiddleware($this->logger, $this->debug));
         }
-        $this->router->load(new JwtAuthMiddleware($this->responder, getenv('JWT_SECRET')));
+        // $this->router->load(new JwtAuthMiddleware($this->responder, getenv('JWT_SECRET')));
         $this->router->load(new CorsMiddleware);
         // Load routes.
         foreach ($config['routes'] as $route) {

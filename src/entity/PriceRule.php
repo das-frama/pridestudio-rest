@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\entity;
 
 use app\storage\mongodb\base\AbstractEntity;
+use MongoDB\BSON\ObjectId;
 
 class PriceRule extends AbstractEntity
 {
@@ -31,4 +32,14 @@ class PriceRule extends AbstractEntity
 
     /** @var string[] */
     public $service_ids = [];
+
+    public function bsonSerialize(): array
+    {
+        $bson = parent::bsonSerialize();
+        $bson['service_ids'] = array_map(function (string $id) {
+            return new ObjectId($id);
+        }, $this->service_ids);
+        
+        return $bson;
+    }
 }

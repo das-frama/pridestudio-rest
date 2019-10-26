@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace app\entity;
 
+use app\storage\mongodb\base\AbstractEntity;
+
 /**
  * Client class.
  */
-class Client
+class Client extends AbstractEntity
 {
     /** @var int */
     public $id;
@@ -26,4 +28,10 @@ class Client
 
     /** @var string */
     public $comment;
+
+    /** @var int */
+    public $created_at;
+
+    /** @var int */
+    public $updated_at;
 }
