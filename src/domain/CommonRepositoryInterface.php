@@ -24,7 +24,12 @@ interface CommonRepositoryInterface
      * @param bool $returnNew
      * @return AbstractEntity|null
      */
-    public function findOneAndUpdate(array $filter, AbstractEntity $entity, array $include = [], bool $returnNew = false): ?AbstractEntity;
+    public function findOneAndUpdate(
+        array $filter,
+        AbstractEntity $entity,
+        array $include = [],
+        bool $returnNew = false
+    ): ?AbstractEntity;
 
     /**
      * Find all entities.

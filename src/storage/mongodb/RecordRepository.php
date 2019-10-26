@@ -6,11 +6,10 @@ namespace app\storage\mongodb;
 
 use app\entity\Record;
 use app\entity\Reservation;
+use app\entity\Payment;
 use app\domain\record\RecordRepositoryInterface;
 use app\storage\mongodb\base\AbstractRepository;
 use MongoDB\Client;
-use RecursiveArrayIterator;
-use RecursiveIteratorIterator;
 
 /**
  * Class RecordRepository
@@ -21,12 +20,13 @@ class RecordRepository extends AbstractRepository implements RecordRepositoryInt
     public function __construct(Client $client)
     {
         parent::__construct(getenv('DB_DATABASE'), 'records', $client);
-        $this->defaultOptions = [
+        $this->defaultOptkions = [
             'typeMap' => [
                 'root' => Record::class,
                 'document' => 'array',
                 'fieldPaths' => [
                     'reservations.$' => Reservation::class,
+                    'payment' => Payment::class,
                 ]
             ]
         ];
@@ -43,7 +43,7 @@ class RecordRepository extends AbstractRepository implements RecordRepositoryInt
             'hall_id' => ['bsonType' => 'objectId'],
             'reservations' => ['bsonType' => 'array'],
             'service_ids' => ['bsonType' => 'array'],
-            'payment_id' => ['bsonType' => 'objectId'],
+            'payment' => ['bsonType' => 'object'],
             'coupon_id' => ['bsonType' => 'objectId'],
             'total' => ['bsonType' => 'int'],
             'comment' => ['bsonType' => 'string'],
@@ -62,7 +62,6 @@ class RecordRepository extends AbstractRepository implements RecordRepositoryInt
         $options = $this->defaultOptions;
         $options['projection'] = ['reservations' => 1];
         $cursor = $this->collection->find($this->convertFilter($filter), $options);
-        $records = $cursor->toArray();
         $result = [];
         foreach ($cursor as $record) {
             $result = array_merge($result, (array) $record->reservations);

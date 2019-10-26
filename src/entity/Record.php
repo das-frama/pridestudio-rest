@@ -35,8 +35,8 @@ class Record extends AbstractEntity
     /** @var array */
     public $service_ids = [];
 
-    /** @var string */
-    public $payment_id;
+    /** @var Payment */
+    public $payment;
 
     /** @var string */
     public $coupon_id;
@@ -68,6 +68,10 @@ class Record extends AbstractEntity
     public function load(array $data, array $safe = []): void
     {
         parent::load($data, $safe);
+        if (isset($data['payment']) && in_array('payment', $safe)) {
+            $this->payment = new Payment;
+            $this->payment->load($data['payment'], ['method_id']);
+        }
         if (isset($data['reservations']) && is_array($data['reservations']) && in_array('reservations', $safe)) {
             $this->reservations = [];
             foreach ($data['reservations'] as $d) {
@@ -89,9 +93,6 @@ class Record extends AbstractEntity
         }
         if ($this->hall_id) {
             $bson['hall_id'] = new ObjectId($this->hall_id);
-        }
-        if ($this->payment_id) {
-            $bson['payment_id'] = new ObjectId((string) $this->payment_id);
         }
         if ($this->coupon_id) {
             $bson['coupon_id'] = new ObjectId($this->coupon_id);

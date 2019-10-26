@@ -9,6 +9,7 @@ use app\domain\hall\HallRepositoryInterface;
 use app\entity\Client;
 use app\entity\Coupon;
 use app\entity\Hall;
+use app\entity\Payment;
 use app\entity\PriceRule;
 use app\entity\Record;
 use app\entity\Reservation;
@@ -192,12 +193,12 @@ class RecordService
      * @param Record $record
      * @param Client $client
      * @param string $couponCode
-     * @return string|null
+     * @return Record|null
      */
-    public function create(Record $record, Client $c, string $couponCode = null): ?string
+    public function create(Record $record, Client $c, string $couponCode = null, string $paymentMethod = null): ?Record
     {
-        $filter = ['email' => $c->email, 'phone' => $c->phone];
         // Client. If not exist then create one.
+        $filter = ['email' => $c->email, 'phone' => $c->phone];
         $client = $this->clientRepo->findOneAndUpdate($filter, $c, ['id'], true);
         if ($client === null) {
             $client = clone $c;
@@ -206,11 +207,13 @@ class RecordService
         if ($client->id !== null) {
             $record->client_id = $client->id;
         }
+
         // Hall.
         $hall = $this->hallRepo->findOne(['id' => $record->hall_id], ['id', 'base_price', 'prices']);
         if ($hall === null) {
             return null;
         }
+
         // Coupon.
         $coupon = null;
         if ($couponCode !== null) {
@@ -219,10 +222,38 @@ class RecordService
                 $record->coupon_id = $coupon->id;
             }
         }
+
         // Total price.
         $record->total = $this->calculatePrice($record, $hall, $coupon);
         $record->status = Record::STATUS_NEW;
+        
+        // Payment.
+        if ($record->payment instanceof Payment) {
+            $record->payment->aggregator = Payment::AGGREGATOR_ROBOKASSA;
+            $record->payment->status = Payment::STATUS_NEW;
+            $record->payment->updated_at = time();
+        }
 
-        return $this->recordRepo->insert($record);
+        // Save record.
+        $id = $this->recordRepo->insert($record);
+        if ($id === null) {
+            return null;
+        }
+        $record->id = $id;
+
+        return $record;
+    }
+
+    /**
+     * Get payment url from record.
+     * @param Record $record
+     * @return string
+     */
+    public function getPaymentURL(Record $record): string
+    {
+        if ($record->payment instanceof Payment) {
+            return 'https://test.robokassa.ru/ru';
+        }
+        return '';
     }
 }

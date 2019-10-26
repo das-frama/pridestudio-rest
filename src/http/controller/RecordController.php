@@ -149,7 +149,7 @@ class RecordController
 
         // Load data.
         $record = new Record;
-        $record->load($data, ['hall_id', 'reservations', 'service_ids', 'comment']);
+        $record->load($data, ['hall_id', 'reservations', 'service_ids', 'payment', 'comment']);
         $client = new Client;
         $client->load($data['client'], ['name', 'phone', 'email']);
 
@@ -159,11 +159,11 @@ class RecordController
         }
 
         // Save record.
-        $id = $this->recordService->create($record, $client, $data['coupon']['code'] ?? null);
-        if ($id === null) {
+        $record = $this->recordService->create($record, $client, $data['coupon']['code'] ?? null);
+        if ($record === null) {
             return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, ["Errors during create."]);
         }
-
-        return $this->responder->success($id);
+    
+        return $this->responder->success($this->recordService->getPaymentURL($record), 1);
     }
 }

@@ -4,28 +4,29 @@ declare(strict_types=1);
 
 namespace app\entity;
 
+use app\storage\mongodb\base\AbstractEntity;
+
 /**
  * Payment class.
  */
-class Payment
+class Payment extends AbstractEntity
 {
-    /** @var int */
+    const STATUS_NEW = 1;
+    const STATUS_DONE = 10;
+
+    const AGGREGATOR_ROBOKASSA = 1;
+
+    /** @var string */
     public $id;
 
-    /** @var int */
-    public $record_id;
-
-    /** @var int */
-    public $client_id;
-
-    /** @var int */
+    /** @var string */
     public $method_id;
 
     /** @var int */
-    public $type_id;
+    public $aggregator;
 
-    /** @var float */
-    public $amount;
+    /** @var int */
+    public $total;
 
     /** @var int */
     public $status;
