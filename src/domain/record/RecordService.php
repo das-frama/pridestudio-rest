@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace app\domain\record;
 
 use app\domain\client\ClientRepositoryInterface;
+use app\domain\hall\HallRepositoryInterface;
 use app\entity\Client;
 use app\entity\Coupon;
 use app\entity\Hall;
@@ -24,14 +25,19 @@ class RecordService
     /** @var CouponRepositoryInterface */
     private $couponRepo;
 
+    /** @var HallRepositoryInterface */
+    private $hallRepo;
+
     public function __construct(
         RecordRepositoryInterface $recordRepo,
         ClientRepositoryInterface $clientRepo,
-        CouponRepositoryInterface $couponRepo
+        CouponRepositoryInterface $couponRepo,
+        HallRepositoryInterface $hallRepo
     ) {
         $this->recordRepo = $recordRepo;
         $this->clientRepo = $clientRepo;
         $this->couponRepo = $couponRepo;
+        $this->hallRepo = $hallRepo;
     }
 
     /**
@@ -100,11 +106,6 @@ class RecordService
     public function findCouponByCode(string $code, array $include = []): ?Coupon
     {
         return $this->couponRepo->findOne(['code' => $code], $include);
-    }
-
-    public function findClient()
-    {
-
     }
 
     /**
@@ -196,17 +197,23 @@ class RecordService
         if ($client->id !== null) {
             $record->client_id = $client->id;
         }
+        // Hall.
+        $hall = $this->hallRepo->findOne(['id' => $record->hall_id], ['id', 'base_price', 'prices']);
+        if ($hall === null) {
+            return null;
+        }
         // Coupon.
+        $coupon = null;
         if ($couponCode !== null) {
-            $coupon = $this->couponRepo->findOne(['code' => $couponCode], ['id']);
+            $coupon = $this->couponRepo->findOne(['code' => $couponCode], ['id', 'factor']);
             if ($coupon !== null) {
                 $record->coupon_id = $coupon->id;
             }
         }
-        if ($record->updated_at === null) {
-            $record->updated_at = time();
-        }
+        // $hall = $this-> $record->hall_id;
 
+        $record->total = $this->calculatePrice($record, $hall, $coupon);
+        $record->updated_at = time();
         return $this->recordRepo->insert($record);
     }
 }
