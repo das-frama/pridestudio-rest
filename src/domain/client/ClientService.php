@@ -6,6 +6,5 @@ class ClientService
 {
     public function __construct()
     {
-        
     }
 }

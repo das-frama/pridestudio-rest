@@ -41,7 +41,7 @@ interface CommonRepositoryInterface
      * @return AbstractEntity[]
      */
     public function search(array $search, int $limit = 0, int $skip = 0, array $sort = [], array $include = []): array;
-    
+
     /**
      * Count enities by filter.
      * @return int

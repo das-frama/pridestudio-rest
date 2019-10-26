@@ -29,7 +29,7 @@ abstract class AbstractEntity implements Persistable, JsonSerializable
      * @return void
      */
     public function load(array $data, array $safe = []): void
-    { 
+    {
         foreach ($data as $key => $value) {
             $isSafe = empty($safe) || in_array($key, $safe);
             if (property_exists($this, $key) && $isSafe) {
