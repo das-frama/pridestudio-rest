@@ -225,8 +225,15 @@ abstract class AbstractRepository implements CommonRepositoryInterface
         }
         // Change id to _id.
         if (isset($bsonFilter['id'])) {
+            // $bsonFilter['_id'] = $bsonFilter['id'];
             try {
-                $bsonFilter['_id'] = new ObjectId($bsonFilter['id']);
+                if (is_array($bsonFilter['id'])) {
+                    $bsonFilter['_id'] = ['$in' => array_map(function (string $id) {
+                        return new ObjectId($id);
+                    }, $bsonFilter['id'])];
+                } else {
+                    $bsonFilter['_id'] = new ObjectId($bsonFilter['id']);
+                }
             } catch (Exception $e) {
                 return $bsonFilter;
             }

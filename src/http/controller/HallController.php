@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace app\http\controller;
 
-use app\command\UpdateHallCommand;
 use app\RequestUtils;
 use app\ResponseFactory;
 use app\domain\hall\HallService;

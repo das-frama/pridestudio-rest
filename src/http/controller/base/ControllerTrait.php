@@ -32,6 +32,9 @@ trait ControllerTrait
         if (isset($arr['include']) && !is_array($arr['include'])) {
             $arr['include'] = [$arr['include']];
         }
+        if (isset($arr['expand']) && !is_array($arr['expand'])) {
+            $arr['expand'] = [$arr['expand']];
+        }
         
         return $arr;
     }

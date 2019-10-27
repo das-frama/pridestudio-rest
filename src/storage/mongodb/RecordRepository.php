@@ -20,7 +20,7 @@ class RecordRepository extends AbstractRepository implements RecordRepositoryInt
     public function __construct(Client $client)
     {
         parent::__construct(getenv('DB_DATABASE'), 'records', $client);
-        $this->defaultOptkions = [
+        $this->defaultOptions = [
             'typeMap' => [
                 'root' => Record::class,
                 'document' => 'array',

@@ -57,9 +57,48 @@ class RecordService
      * @param array $include
      * @return Record[]
      */
-    public function findAll(array $include = []): array
+    public function findAll(array $params = [], array $include = [], array $expand = []): array
     {
-        return $this->recordRepo->findAll([], 0, 0, [], $include);
+        $page = intval($params['page'] ?? 0);
+        $limit = intval($params['limit'] ?? 0);
+        // Sort.
+        $sort = [];
+        if (isset($params['orderBy'])) {
+            // Change created_at for id.
+            if ($params['orderBy'] === 'created_at') {
+                $params['orderBy'] = 'id';
+            }
+            $sort[$params['orderBy']] = $params['ascending'] == 0 ? -1 : 1;
+        } else {
+            $sort['id'] = -1;
+        }
+        // Skip.
+        $skip = 0;
+        if ($page > 0) {
+            $skip = $limit * ($page - 1);
+        }
+        // Query.
+        $filter = [];
+        if (isset($params['query'])) {
+            $filter = ['id' => $params['query']];
+            return $this->recordRepo->search($filter, $limit, $skip, $sort, $include);
+        }
+        if (in_array('client', $expand) && !in_array('client_id', $include)) {
+            $include[] = 'client_id';
+        }
+        $items = $this->recordRepo->findAll($filter, $limit, $skip, $sort, $include);
+        // Refrences.
+        if (in_array('client', $expand)) {
+            $clientIDs = array_column($items, 'client_id');
+            $clients = $this->clientRepo->findAll(['id' => $clientIDs], 0, 0, [], ['id', 'name']);
+            $clients = array_column($clients, null, 'id');
+            foreach ($items as $i => $item) {
+                $clientID = $clientIDs[$i];
+                $item->setExpand('client', $clients[$clientID]);
+            }
+        }
+
+        return $items;
     }
 
     /**

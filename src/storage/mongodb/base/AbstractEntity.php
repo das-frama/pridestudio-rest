@@ -18,7 +18,7 @@ use MongoDB\BSON\Persistable;
 abstract class AbstractEntity implements Persistable, JsonSerializable
 {
     protected $include = [];
-    protected $exclude = [];
+    protected $expand = [];
     protected $unserialized = false;
 
     /**
@@ -43,9 +43,9 @@ abstract class AbstractEntity implements Persistable, JsonSerializable
         $this->include = $properties;
     }
 
-    public function setExclude(array $properties): void
+    public function setExpand(string $key, object $expand): void
     {
-        $this->exclude = $properties;
+        $this->expand[$key] = $expand;
     }
 
     /**
@@ -60,10 +60,13 @@ abstract class AbstractEntity implements Persistable, JsonSerializable
             $name = $reflectionProperty->getName();
             $value = $reflectionProperty->getValue($this);
             $isInclude = empty($this->include) || in_array($name, $this->include);
-            $isExclude = !empty($this->exclude) && in_array($name, $this->exclude);
-            if ($isInclude && !$isExclude) {
+            if ($isInclude) {
                 $properties[$name] = $value;
             }
+        }
+        // Display expand properties.
+        foreach ($this->expand as $key => $expand) {
+            $properties[$key] = $expand;
         }
 
         return $properties;

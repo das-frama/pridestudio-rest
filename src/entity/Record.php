@@ -13,6 +13,7 @@ use MongoDB\BSON\ObjectId;
 class Record extends AbstractEntity
 {
     // Statuses.
+    const STATUS_CANCELED = 0;
     const STATUS_NEW = 1;
     const STATUS_PREPAID = 2;
     const STATUS_NOTPAID = 3;

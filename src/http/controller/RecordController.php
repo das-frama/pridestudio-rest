@@ -50,7 +50,7 @@ class RecordController
     public function all(ServerRequestInterface $request): ResponseInterface
     {
         $params = $this->getQueryParams($request);
-        $records = $this->recordService->findAll($params['include'] ?? []);
+        $records = $this->recordService->findAll($params, $params['include'] ?? [], $params['expand'] ?? []);
         $count = isset($params['query']) ? count($records) : $this->recordService->count();
         return $this->responder->success($records, $count);
     }
