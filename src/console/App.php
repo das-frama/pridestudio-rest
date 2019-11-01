@@ -78,12 +78,12 @@ class App
         return "\033[" . $fg . "m" . $str . "\033[0m";
     }
 
-    private function toKebabCase(string $string)
+    private function toKebabCase(string $string): string
     {
         return strtolower(preg_replace('/([a-zA-Z])(?=[A-Z])/', '$1-', $string));
     }
 
-    private function toCamelCase(string $string)
+    private function toCamelCase(string $string): string
     {
         return str_replace(' ', '', ucwords(str_replace('-', ' ', $string)));
     }
