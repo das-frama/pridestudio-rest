@@ -147,9 +147,15 @@ class HallService
      */
     public function create(Hall $hall): ?string
     {
+        // Check uniqueness.
+        if ($this->hallRepo->isExists(['slug' => $hall->slug])) {
+            return null;
+        }
+
         if ($hall->updated_at === null) {
             $hall->updated_at = time();
         }
+        
         return $this->hallRepo->insert($hall);
     }
 
@@ -171,5 +177,11 @@ class HallService
     public function delete(string $id): bool
     {
         return $this->hallRepo->delete($id);
+    }
+
+    private function isUnique(string $slug): bool
+    {
+        $filter = ['slug' => $slug];
+        return $this->hallRepo->isExists($filter);
     }
 }

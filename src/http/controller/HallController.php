@@ -65,12 +65,12 @@ class HallController
     {
         $id = RequestUtils::getPathSegment($request, 2);
         $params = $this->getQueryParams($request);
-        $err = (new ValidationService)->validateMongoid($id);
-        if ($err === null) {
-            $hall = $this->hallService->findByID($id, $params['include'] ?? []);
-        } else {
-            $hall = $this->hallService->findBySlug($id, $params['include'] ?? []);
-        }
+        // $err = (new ValidationService)->validateMongoid($id);
+        // if ($err === null) {
+            // $hall = $this->hallService->findByID($id, $params['include'] ?? []);
+        // } else {
+        $hall = $this->hallService->findBySlug($id, $params['include'] ?? []);
+        // }
         if ($hall === null) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, ["Hall not found."]);
         }
@@ -91,15 +91,15 @@ class HallController
         }
         $params = $this->getQueryParams($request);
         $selected = $params['selected'] ?? [];
-        if (!empty($selected)) {
-            $validationServices = new ValidationService;
-            foreach ($selected as $selectedID) {
-                $err = $validationServices->validateMongoid($selectedID);
-                if ($err !== null) {
-                    return $this->responder->error(ResponseFactory::BAD_REQUEST, ['Wrong id.']);
-                }
-            }
-        }
+        // if (!empty($selected)) {
+        //     // $validationServices = new ValidationService();
+        //     foreach ($selected as $selectedID) {
+        //         $err = $validationServices->validateMongoid($selectedID);
+        //         if ($err !== null) {
+        //             return $this->responder->error(ResponseFactory::BAD_REQUEST, ['Wrong id.']);
+        //         }
+        //     }
+        // }
         $services = $this->hallService->findServices($id, $selected, $params['include'] ?? []);
         return $this->responder->success($services, count($services));
     }
@@ -112,43 +112,45 @@ class HallController
      */
     public function create(ServerRequestInterface $request): ResponseInterface
     {
-        // Get body from request.
-        $body = $request->getParsedBody();
-        if ($body === null) {
-            return $this->responder->error(ResponseFactory::BAD_REQUEST, ['Empty body.']);
-        }
-        $validationService = new ValidationService;
-        $rules = [
+        // Validate body from request.
+        $data = $request->getParsedBody();
+        $validator = new ValidationService($data, [
+            'services' => ['array:0:50'],
+            'services.$.category_id' => ['object_id'],
+            'services.$.children' => ['array:0:16'],
+            'services.$.children.$' => ['object_id'],
+            'services.$.parents' => ['array:0:16'],
+            'services.$.parents.$' => ['object_id'],
+            'prices' => ['array:0:50'],
+            'prices.$.time_from' => ['time'],
+            'prices.$.time_to' => ['time'],
+            'prices.$.type' => ['enum:1,2'],
+            'prices.$.from_length' => ['int:60:1440'],
+            'prices.$.comparison' => ['enum:>,>=,<,<=,=,!='],
+            'prices.$.price' => ['int:0:9999999'],
+            'prices.$.service_ids' => ['array:0:16'],
+            'prices.$.service_ids.$' => ['object_id'],
             'name' => ['required', 'string:1:64'],
             'slug' => ['required', 'string:1:64'],
             'preview_image' => ['string:1:255'],
             'base_price' => ['int:0:999999'],
             'sort' => ['int'],
             'is_active' => ['bool'],
-        ];
-        // Sanitize incoming data.
-        $body = $validationService->sanitize($body, $rules);
-        // Validate data.
-        $errors = $validationService->validate($body, $rules);
-        if ($errors !== []) {
-            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, $errors);
+        ]);
+        if (!$validator->validate()) {
+            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, $validator->getErrors());
         }
         // Prepare hall entity.
         $hall = new Hall;
-        $hall->name = $body->name;
-        $hall->slug = $body->slug;
-        $hall->preview_image = $body->preview_image;
-        $hall->base_price = (int) $body->base_price;
-        $hall->sort = (int) $body->sort;
-        $hall->is_active = (bool) $body->is_active;
-
+        $hall->load($data, ['name', 'slug', 'preview_image', 'base_price', 'sort', 'is_active']);
+    
         // Create hall.
-        $id = $this->hallService->create($hall);
-        if ($id === null) {
+        $hall = $this->hallService->create($hall);
+        if ($hall === null) {
             return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, ['Error during saving a record.']);
         }
 
-        return $this->responder->success($id);
+        return $this->responder->success($hall, 1);
     }
 
     /**
