@@ -24,34 +24,24 @@ class ValidationService
     const VALIDATION_ARRAY_MAX = "Максимальная допустимая длина массива должна быть не больше %d элементов.";
     const VALIDATION_MONGO_ID = "Некорректный id.";
 
-    private $errors = [];
-    private $data = [];
-    private $rules = [];
-
-    public function __construct(array $data, array $rules)
-    {
-        $this->data = $data;
-        $this->rules = $rules;
-    }
-
     /**
      * Validate an object against rules.
      * @param array $data
      * @param array $rules
-     * @return bool
+     * @return array errors
      */
-    public function validate(): bool
+    public function validate(array $data, array $rules): array
     {
-        foreach ($this->rules as $property => $rule) {
+        $errors = [];
+        foreach ($rules as $property => $rule) {
             foreach ($rule as $r) {
-                $err = $this->validateRule($property, $this->data, $r);
+                $err = $this->validateRule($property, $data, $r);
                 if ($err !== []) {
-                    $this->errors[$property] = $err;
+                    $errors[$property] = $err;
                 }
             }
         }
-
-        return empty($this->errors);
+        return $errors;
     }
 
     public function validateRule(string $property, $data, string $rule): array
@@ -222,11 +212,6 @@ class ValidationService
             $errors[] = 'Значение должно быть одним из: ' . $enums . '.';
         }
         return $errors;
-    }
-
-    public function getErrors(): array
-    {
-        return $this->errors;
     }
 
     private function toCamelCase(string $string): string

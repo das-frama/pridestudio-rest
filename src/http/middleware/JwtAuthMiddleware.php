@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace app\http\middleware;
 
-use app\http\responder\ResponderInterface;
 use app\ResponseFactory;
+use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -32,11 +32,11 @@ class JwtAuthMiddleware implements MiddlewareInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $next): ResponseInterface
     {
-        $path = $request->getUri()->getPath();
-        $method = $request->getMethod();
-        if ($method === 'POST' && $path === '/auth/login') {
-            return $next->handle($request);
-        }
+        // $path = $request->getUri()->getPath();
+        // $method = $request->getMethod();
+        // if ($method === 'POST' && $path === '/auth/login' || strstr($path, '/frontend') !== false) {
+        //     return $next->handle($request);
+        // }
         $cookies = $request->getCookieParams();
         $token = $cookies['jwt'] ?? '';
         if ($token === '') {

@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace app\http\controller\base;
 
-use app\ResponseFactory;
 use app\domain\validation\ValidationService;
-use app\storage\mongodb\base\AbstractEntity;
 use Psr\Http\Message\ServerRequestInterface;
 
 trait ControllerTrait
@@ -41,12 +39,16 @@ trait ControllerTrait
      * @param array $body
      * @return array
      */
-    private function validate(array $body, array $rules): array
+    private function validate(ServerRequestInterface $request, array $rules): ?ValidationService
     {
-        $validationService = new ValidationService;
-        // Sanitize input.
-        $body = $validationService->sanitize($body, $rules);
-        // Validate input.
-        return $validationService->validate($body, $rules);
+        $data = $request->getParsedBody();
+        if (empty($data)) {
+            return null;
+        }
+
+        $service = new ValidationService($data, $rules);
+        $service->validate($rules);
+
+        return $service;
     }
 }

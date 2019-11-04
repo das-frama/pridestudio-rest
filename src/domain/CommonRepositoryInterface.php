@@ -51,17 +51,17 @@ interface CommonRepositoryInterface
     /**
      * Insert a new entity into storage.
      * @param AbstractEntity $entity
-     * @return string|null entity's id.
+     * @return AbstractEntity|null
      */
-    public function insert(AbstractEntity $entity): ?string;
+    public function insert(AbstractEntity $entity): ?AbstractEntity;
 
     /**
      * Update an extisted entity from storage.
      * @param AbstractEntity $entity
      * @param bool $upsert
-     * @return bool.
+     * @return AbstractEntity|null
      */
-    public function update(AbstractEntity $entity, bool $upsert = false): bool;
+    public function update(AbstractEntity $entity, bool $upsert = false): ?AbstractEntity;
 
     /**
      * Delet an extisting entity from storage..

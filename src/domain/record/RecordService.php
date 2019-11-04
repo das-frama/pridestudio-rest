@@ -183,9 +183,9 @@ class RecordService
      * @param Record $record
      * @param Client $client
      * @param string $couponCode
-     * @return string|null
+     * @return Record|null
      */
-    public function create(Record $record, Client $c, string $couponCode = null): ?string
+    public function create(Record $record, Client $c, string $couponCode = null): ?Record
     {
         // Find client. If not exist then create one.
         $filter = ['email' => $c->email, 'phone' => $c->phone];

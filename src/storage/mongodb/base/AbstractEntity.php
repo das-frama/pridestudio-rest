@@ -18,7 +18,7 @@ use MongoDB\BSON\Persistable;
 abstract class AbstractEntity implements Persistable, JsonSerializable
 {
     protected $include = [];
-    protected $exclude = [];
+    protected $public = [];
     protected $unserialized = false;
 
     /**
@@ -60,8 +60,8 @@ abstract class AbstractEntity implements Persistable, JsonSerializable
             $name = $reflectionProperty->getName();
             $value = $reflectionProperty->getValue($this);
             $isInclude = empty($this->include) || in_array($name, $this->include);
-            $isExclude = !empty($this->exclude) && in_array($name, $this->exclude);
-            if ($isInclude && !$isExclude) {
+            $isPublic = empty($this->public) || in_array($name, $this->public);
+            if ($isInclude && $isPublic) {
                 $properties[$name] = $value;
             }
         }

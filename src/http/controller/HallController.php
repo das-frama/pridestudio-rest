@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace app\http\controller;
 
-use app\command\UpdateHallCommand;
 use app\RequestUtils;
 use app\ResponseFactory;
+use app\entity\Hall;
 use app\domain\hall\HallService;
 use app\domain\validation\ValidationService;
-use app\entity\Hall;
 use app\http\controller\base\ControllerTrait;
 use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -50,7 +49,7 @@ class HallController
     {
         $params = $this->getQueryParams($request);
         $include = $params['include'] ?? [];
-        $halls = $this->hallService->findAll($params, $include);
+        $halls = $this->hallService->findAll($params, false, $include);
         $count = isset($params['query']) ? count($halls) : $this->hallService->count();
         return $this->responder->success($halls, $count);
     }
@@ -65,12 +64,7 @@ class HallController
     {
         $id = RequestUtils::getPathSegment($request, 2);
         $params = $this->getQueryParams($request);
-        // $err = (new ValidationService)->validateMongoid($id);
-        // if ($err === null) {
-            // $hall = $this->hallService->findByID($id, $params['include'] ?? []);
-        // } else {
-        $hall = $this->hallService->findBySlug($id, $params['include'] ?? []);
-        // }
+        $hall = $this->hallService->findByID($id, $params['include'] ?? []);
         if ($hall === null) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, ["Hall not found."]);
         }
@@ -91,15 +85,15 @@ class HallController
         }
         $params = $this->getQueryParams($request);
         $selected = $params['selected'] ?? [];
-        // if (!empty($selected)) {
-        //     // $validationServices = new ValidationService();
-        //     foreach ($selected as $selectedID) {
-        //         $err = $validationServices->validateMongoid($selectedID);
-        //         if ($err !== null) {
-        //             return $this->responder->error(ResponseFactory::BAD_REQUEST, ['Wrong id.']);
-        //         }
-        //     }
-        // }
+        if (!empty($selected)) {
+            $validationServices = new ValidationService;
+            foreach ($selected as $selectedID) {
+                $err = $validationServices->validateObjectId($selectedID);
+                if ($err !== []) {
+                    return $this->responder->error(ResponseFactory::BAD_REQUEST, $err);
+                }
+            }
+        }
         $services = $this->hallService->findServices($id, $selected, $params['include'] ?? []);
         return $this->responder->success($services, count($services));
     }
@@ -114,7 +108,10 @@ class HallController
     {
         // Validate body from request.
         $data = $request->getParsedBody();
-        $validator = new ValidationService($data, [
+        if (empty($data)) {
+            return $this->responder->error(ResponseFactory::BAD_REQUEST, ['Empty body.']);
+        }
+        $errors = (new ValidationService)->validate($data, [
             'services' => ['array:0:50'],
             'services.$.category_id' => ['object_id'],
             'services.$.children' => ['array:0:16'],
@@ -137,12 +134,15 @@ class HallController
             'sort' => ['int'],
             'is_active' => ['bool'],
         ]);
-        if (!$validator->validate()) {
-            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, $validator->getErrors());
+        if ($errors !== []) {
+            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, $errors);
         }
+
         // Prepare hall entity.
         $hall = new Hall;
-        $hall->load($data, ['name', 'slug', 'preview_image', 'base_price', 'sort', 'is_active']);
+        $hall->load($data, [
+            'name', 'slug', 'description', 'preview_image', 'base_price', 'services', 'prices', 'sort', 'is_active',
+        ]);
     
         // Create hall.
         $hall = $this->hallService->create($hall);
@@ -162,32 +162,64 @@ class HallController
      */
     public function update(ServerRequestInterface $request): ResponseInterface
     {
-        $id = RequestUtils::getPathSegment($request, 2);
         // Check if hall exists.
+        $id = RequestUtils::getPathSegment($request, 2);
         $hall = $this->hallService->findByID($id);
         if ($hall === null) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, ["Hall not found."]);
         }
-        // Get body's data from request.
+
+        // Get body from request.
         $data = $request->getParsedBody();
         if (empty($data)) {
             return $this->responder->error(ResponseFactory::BAD_REQUEST, ['Empty body.']);
         }
+
+        // Validate data.
+        $errors = (new ValidationService)->validate($data, [
+            'services' => ['array:0:50'],
+            'services.$.category_id' => ['object_id'],
+            'services.$.children' => ['array:0:16'],
+            'services.$.children.$' => ['object_id'],
+            'services.$.parents' => ['array:0:16'],
+            'services.$.parents.$' => ['object_id'],
+            'prices' => ['array:0:50'],
+            'prices.$.time_from' => ['time'],
+            'prices.$.time_to' => ['time'],
+            'prices.$.type' => ['enum:1,2'],
+            'prices.$.from_length' => ['int:60:1440'],
+            'prices.$.comparison' => ['enum:>,>=,<,<=,=,!='],
+            'prices.$.price' => ['int:0:9999999'],
+            'prices.$.service_ids' => ['array:0:16'],
+            'prices.$.service_ids.$' => ['object_id'],
+            'name' => ['required', 'string:1:64'],
+            'slug' => ['required', 'string:1:64'],
+            'preview_image' => ['string:1:255'],
+            'base_price' => ['int:0:999999'],
+            'sort' => ['int'],
+            'is_active' => ['bool'],
+        ]);
+        if ($errors !== []) {
+            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, $errors);
+        }
+
         // Prepare hall for update.
         $hall->load($data, [
             'name', 'slug', 'description', 'base_price', 'preview_image', 'services', 'prices', 'sort', 'is_active'
         ]);
+
         // Update hall.
-        $err = $this->hallService->update($hall);
-        if ($err !== null) {
-            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, [$err]);
+        $hall = $this->hallService->update($hall);
+        if ($hall === null) {
+            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, ['Error during update.']);
         }
 
-        return $this->responder->success(true, 1);
+        return $this->responder->success($hall, 1);
     }
 
     /**
      * Delete hall.
+     * DELETE /halls/<id>
      * @method DELETE
      * @param ServerRequestInterface $request
      * @return ResponseInterface

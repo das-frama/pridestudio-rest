@@ -12,12 +12,12 @@
     "psr/http-message": "^1.0",
     "psr/http-server-handler": "^1.0",
     "psr/http-server-middleware": "^1.0",
-    "nyholm/psr7-server": "^0.3.0",
     "php-http/message-factory": "^1.0",
+    "nyholm/psr7": "^1.2",
+    "nyholm/psr7-server": "^0.3.0",
     "level-2/dice": "^4.0",
     "vlucas/phpdotenv": "^3.6",
     "monolog/monolog": "^2.0",
-    "nyholm/psr7": "^1.2",
     "firebase/php-jwt": "^5.0"
   },
   "authors": [

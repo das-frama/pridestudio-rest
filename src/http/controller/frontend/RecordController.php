@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\http\controller;
+namespace app\http\controller\frontend;
 
 use app\RequestUtils;
 use app\ResponseFactory;
@@ -11,7 +11,6 @@ use app\entity\Record;
 use app\domain\record\RecordService;
 use app\domain\booking\PaymentDocument;
 use app\domain\hall\HallService;
-use app\domain\validation\ValidationService;
 use app\http\controller\base\ControllerTrait;
 use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -41,48 +40,8 @@ class RecordController
     }
 
     /**
-     * Get all records.
-     * GET /records
-     * @method GET
-     * @param ServerRequestInterface $request
-     * @return ResponseInterface
-     */
-    public function all(ServerRequestInterface $request): ResponseInterface
-    {
-        $params = $this->getQueryParams($request);
-        $records = $this->recordService->findAll($params['include'] ?? []);
-        return $this->responder->success($records);
-    }
-
-    /**
-     * Get one record by id.
-     * GET /records/<id>
-     * @method GET
-     * @param ServerRequestInterface $request
-     * @return ResponseInterface
-     */
-    public function read(ServerRequestInterface $request): ResponseInterface
-    {
-        $id = RequestUtils::getPathSegment($request, 2);
-        // Validate id.
-        $errors = (new ValidationService)->validateObjectId($id);
-        if ($errors !== []) {
-            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, $errors);
-        }
-        // Get query params.
-        $params = $this->getQueryParams($request);
-        // Find a record.
-        $record = $this->recordService->findByID($id, $params['include'] ?? []);
-        if ($record === null) {
-            return $this->responder->error(ResponseFactory::NOT_FOUND, ["Record not found."]);
-        }
-        
-        return $this->responder->success($record);
-    }
-
-    /**
      * Calculate price for reservations.
-     * POST /records/price
+     * POST /frontend/records/price
      * @method POST
      * @param ServerRequestInterface $request
      * @return ResponseInterface
@@ -117,13 +76,14 @@ class RecordController
 
     /**
      * Check coupon.
+     * GET /frontend/records/coupon/<coupon-code>
      * @method GET
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      */
     public function coupon(ServerRequestInterface $request): ResponseInterface
     {
-        $code = RequestUtils::getPathSegment($request, 3);
+        $code = RequestUtils::getPathSegment($request, 4);
         $coupon = $this->recordService->findCouponByCode($code, ['code', 'factor']);
         if ($coupon === null) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, ['Coupon not found.']);
@@ -134,7 +94,7 @@ class RecordController
 
     /**
      * Post record.
-     * POST /records
+     * POST /frontend/records
      * @method POST
      * @param ServerRequestInterface $request
      * @return ResponseInterface
@@ -159,11 +119,11 @@ class RecordController
         }
 
         // Save record.
-        $id = $this->recordService->create($record, $client, $data['coupon']['code'] ?? null);
-        if ($id === null) {
+        $record = $this->recordService->create($record, $client, $data['coupon']['code'] ?? null);
+        if ($record === null) {
             return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, ["Errors during create."]);
         }
-
-        return $this->responder->success($id);
+        
+        return $this->responder->success($record->id, 1, ResponseFactory::CREATED);
     }
 }

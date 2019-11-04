@@ -138,10 +138,5 @@ class CalendarService
             'reservations.start_at' => ['$gte' => $startAt, '$lt' => $endAt]
         ];
         return $this->recordsRepo->findReservations($filter);
-        // $result = [];
-        // foreach ($reservations as $r) {
-        //     $result = array_merge($result, $r);
-        // }
-        // return $result;
     }
 }

@@ -10,10 +10,8 @@ use Psr\Log\LoggerInterface;
 
 return [
     Client::class => [
+        'constructParams' => [getenv('DB_URI')],
         'shared' => true,
-        'constructParams' => [
-            getenv('DB_URI'),
-        ]
     ],
     FileService::class => [
         'constructParams' => [getenv('APP_STORAGE_PATH')],
@@ -28,6 +26,10 @@ return [
     LoggerInterface::class => [
         'instanceOf' => Logger::class,
         'constructParams' => ['app', [], [], null],
+        'shared' => true,
+    ],
+    'app\http\middleware\JwtAuthMiddleware' => [
+        'constructParams' => [getenv('JWT_SECRET')],
         'shared' => true,
     ],
 

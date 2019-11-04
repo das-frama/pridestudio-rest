@@ -26,6 +26,9 @@ class Router implements RouterInterface
     /** @var array  */
     private $middlewares = [];
 
+    /** @var array */
+    private $routeMiddlewares = [];
+
     /** @var PathTree */
     private $routes;
 
@@ -57,11 +60,15 @@ class Router implements RouterInterface
      * @param string $method
      * @param string $path
      * @param array $handler
+     * @param array $middlewares
      */
-    public function register(string $method, string $path, array $handler): void
+    public function register(string $method, string $path, array $handler, array $middlewares = []): void
     {
         $routeNumber = count($this->routeHandlers);
         $this->routeHandlers[$routeNumber] = $handler;
+        if (!empty($middlewares)) {
+            $this->routeMiddlewares[$routeNumber] = $middlewares;
+        }
         $path = trim($path, '/');
         $parts = [];
         if ($path) {
@@ -85,19 +92,31 @@ class Router implements RouterInterface
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
+        // Remove base path from request.
         $request = $this->removeBasePath($request);
 
-        // Middlewares.
+        // Router middlewares.
         if (count($this->middlewares)) {
             $handler = array_pop($this->middlewares);
             return $handler->process($request, $this);
         }
 
+        // Get route number id.
         $routeNumbers = $this->getRouteNumbers($request);
         if (count($routeNumbers) === 0) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, ['Route not found.']);
         }
 
+        // Route middlewares.
+        if (isset($this->routeMiddlewares[$routeNumbers[0]])) {
+            if (count($this->routeMiddlewares[$routeNumbers[0]])) {
+                $class = array_pop($this->routeMiddlewares[$routeNumbers[0]]);
+                $handler = $this->dice->create($class);
+                return $handler->process($request, $this);
+            }
+        }
+
+        // Proccess route's controller.
         try {
             list($class, $method) = $this->routeHandlers[$routeNumbers[0]];
             $controller = $this->dice->create($class);

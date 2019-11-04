@@ -13,5 +13,5 @@ define('APP_DIR', dirname(WEB_ROOT_DIR));
 define('HOST', 'http://' . $_SERVER['SERVER_NAME'] . ':' . $_SERVER['SERVER_PORT']);
 
 (DotEnv::create(APP_DIR))->load();
-$config = require __DIR__ . '/../config/app.php';
+$config = require __DIR__ . '/../config/main.php';
 (new App($config))->run(RequestFactory::fromGlobals());
