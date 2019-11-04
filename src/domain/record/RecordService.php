@@ -144,6 +144,15 @@ class RecordService
         if (!$passLength) {
             return $basePrice * $hours;
         }
+
+        // Day of the week.
+        if ($rule->schedule_mask !== null) {
+            $day = PriceRule::getWeekday($reservation->start_at);
+            if (($rule->schedule_mask & $day) !== $day) {
+                return $basePrice * $hours;
+            }
+        }
+
         // Fixed price.
         if ($rule->type == PriceRule::TYPE_FIXED) {
             return $rule->price;
