@@ -52,6 +52,9 @@ class RecordService
         if (!empty($include) && in_array('client', $expand) && !in_array('client_id', $include)) {
             $include[] = 'client_id';
         }
+        if (!empty($include) && in_array('hall', $expand) && !in_array('hall_id', $include)) {
+            $include[] = 'hall_id';
+        }
         $record = $this->recordRepo->findOne(['id' => $id], $include);
         if ($record === null) {
             return null;
@@ -59,8 +62,12 @@ class RecordService
 
         // Expand.
         if (in_array('client', $expand)) {
-            $client = $this->clientRepo->findone(['id' => $record->client_id]);
+            $client = $this->clientRepo->findOne(['id' => $record->client_id]);
             $record->setExpand('client', $client);
+        }
+        if (in_array('hall', $expand)) {
+            $hall = $this->hallRepo->findOne(['id' => $record->hall_id]);
+            $record->setExpand('hall', $hall);
         }
 
         return $record;
