@@ -11,6 +11,6 @@ require __DIR__ . '/vendor/autoload.php';
 define('APP_DIR', __DIR__);
 
 (Dotenv::create(APP_DIR))->load();
-$config = require __DIR__ . '/config/app.php';
+$config = require __DIR__ . '/config/main.php';
 $status = (new App($config))->run($argv);
 exit($status);
