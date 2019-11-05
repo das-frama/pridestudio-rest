@@ -14,6 +14,7 @@ return [
     'records.create' => ['POST', '/records', ['app\http\controller\RecordController', 'create']],
     'records.price' => ['POST', '/records/price', ['app\http\controller\RecordController', 'price']],
     'records.coupon' => ['GET', '/records/coupon/*', ['app\http\controller\RecordController', 'coupon']],
+    'records.status' => ['GET', '/records/statuses', ['app\http\controller\RecordController', 'statuses']],
     'records.read' => ['GET', '/records/*', ['app\http\controller\RecordController', 'read']],
 
     'halls.all'  => ['GET', '/halls', ['app\http\controller\HallController', 'all']],

@@ -73,11 +73,23 @@ class RecordController
         // Get query params.
         $params = $this->getQueryParams($request);
         // Find a record.
-        $record = $this->recordService->findByID($id, $params['include'] ?? []);
+        $record = $this->recordService->findByID($id, $params['include'] ?? [], $params['expand'] ?? []);
         if ($record === null) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, ["Record not found."]);
         }
         return $this->responder->success($record);
+    }
+
+    /**
+     * Get statuses list of records.
+     * GET /records/statuses
+     * @method GET
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
+     */
+    public function statuses(ServerRequestInterface $request): ResponseInterface
+    {
+        return $this->responder->success($this->recordService->statuses());
     }
 
     /**

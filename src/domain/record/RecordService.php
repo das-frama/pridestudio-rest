@@ -47,9 +47,23 @@ class RecordService
      * @param array $include
      * @return Record|null
      */
-    public function findByID(string $id, array $include = []): ?Record
+    public function findByID(string $id, array $include = [], array $expand = []): ?Record
     {
-        return $this->recordRepo->findOne(['id' => $id], $include);
+        if (!empty($include) && in_array('client', $expand) && !in_array('client_id', $include)) {
+            $include[] = 'client_id';
+        }
+        $record = $this->recordRepo->findOne(['id' => $id], $include);
+        if ($record === null) {
+            return null;
+        }
+
+        // Expand.
+        if (in_array('client', $expand)) {
+            $client = $this->clientRepo->findone(['id' => $record->client_id]);
+            $record->setExpand('client', $client);
+        }
+
+        return $record;
     }
 
     /**
@@ -99,6 +113,33 @@ class RecordService
         }
 
         return $items;
+    }
+
+    /**
+     * Check if given record is exists.
+     * @param string $id
+     * @return bool
+     */
+    public function isExists(string $id): bool
+    {
+        return $this->recordRepo->isExists(['id' => $id]);
+    }
+
+    /**
+     * Get status list.
+     * @return array
+     */
+    public function statuses(): array
+    {
+        return [
+            Record::STATUS_CANCELED => 'Отменён',
+            Record::STATUS_NEW => 'Новый',
+            Record::STATUS_PREPAID => 'Предоплата',
+            Record::STATUS_NOTPAID => 'Не оплачен',
+            Record::STATUS_PAID => 'Оплачен',
+            Record::STATUS_CASH => 'Наличными',
+            Record::STATUS_DONE => 'Выполнен',
+        ];
     }
 
     /**
