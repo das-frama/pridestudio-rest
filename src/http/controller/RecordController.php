@@ -177,6 +177,62 @@ class RecordController
             return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, ["Errors during create."]);
         }
     
-        return $this->responder->success($this->recordService->getPaymentURL($record), 1);
+        return $this->responder->success($record, 1);
+    }
+
+    /**
+     * Update record.
+     * PUT /records/<id>
+     * @method PUT
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
+     */
+    public function update(ServerRequestInterface $request): ResponseInterface
+    {
+        // Check if record exists.
+        $id = RequestUtils::getPathSegment($request, 2);
+        if (!$this->recordService->isExists($id)) {
+            return $this->responder->error(ResponseFactory::NOT_FOUND, ['Record not found.']);
+        }
+
+        // Get body's data from request.
+        $data = $request->getParsedBody();
+        if (empty($data)) {
+            return $this->responder->error(ResponseFactory::BAD_REQUEST, ['Empty body.']);
+        }
+
+        // Load data.
+        $record = new Record;
+        $record->load($data, ['hall_id', 'reservations', 'service_ids', 'status', 'total', 'comment']);
+        $record->id = $id;
+        $client = new Client;
+        $client->load($data['client'], ['name', 'phone', 'email']);
+
+        // // Check if hall exists.
+        // if (!$this->hallService->isExists($record->hall_id, true)) {
+        //     return $this->responder->error(ResponseFactory::NOT_FOUND, ["Hall not found."]);
+        // }
+
+        // Update record.
+        $record = $this->recordService->update($record, $client);
+        if ($record === null) {
+            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, ["Errors during create."]);
+        }
+    
+        return $this->responder->success($record, 1);
+    }
+
+    /**
+     * Delete record.
+     * DELETE /records/<id>
+     * @method DELETE
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
+     */
+    public function delete(ServerRequestInterface $request): ResponseInterface
+    {
+        $id = RequestUtils::getPathSegment($request, 2);
+        $isDeleted = $this->recordService->delete($id);
+        return $this->responder->success($isDeleted, (int) $isDeleted);
     }
 }

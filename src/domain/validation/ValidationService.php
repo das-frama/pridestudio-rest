@@ -143,7 +143,7 @@ class ValidationService
         return $errors;
     }
 
-    public function validateBool($value) 
+    public function validateBool($value): array
     {
         $errors = [];
         $value = filter_var($value, FILTER_VALIDATE_BOOLEAN);
@@ -153,7 +153,7 @@ class ValidationService
         return $errors;
     }
 
-    public function validateEmail($value)
+    public function validateEmail($value): array
     {
         $errors = [];
         $value = filter_var($value, FILTER_VALIDATE_EMAIL);
@@ -197,6 +197,9 @@ class ValidationService
 
     public function validateTime($value): array
     {
+        if ($value === null) {
+            return [];
+        }
         $errors = [];
         if (!preg_match("/^(?:2[0-3]|[01][0-9]):[0-5][0-9]$/", $value)) {
             $errors[] = 'Значение должно быть временем от 00:00 до 23:59.';

@@ -8,11 +8,14 @@ return [
     ['GET', '/users/*', ['app\http\controller\UserController', 'read'], ['app\http\middleware\JwtAuthMiddleware']],
     ['POST', '/users', ['app\http\controller\UserController', 'create'], ['app\http\middleware\JwtAuthMiddleware']],
     // Records.
+    ['GET', '/records', ['app\http\controller\RecordController', 'all'], ['app\http\middleware\JwtAuthMiddleware']],
+    ['GET', '/records/*', ['app\http\controller\RecordController', 'read'], ['app\http\middleware\JwtAuthMiddleware']],
     ['POST', '/records', ['app\http\controller\RecordController', 'create'], ['app\http\middleware\JwtAuthMiddleware']],
+    ['PUT', '/records/*', ['app\http\controller\RecordController', 'update'], ['app\http\middleware\JwtAuthMiddleware']],
+    ['DELETE', '/records/*', ['app\http\controller\RecordController', 'delete'], ['app\http\middleware\JwtAuthMiddleware']],
     ['POST', '/records/price', ['app\http\controller\RecordController', 'price'], ['app\http\middleware\JwtAuthMiddleware']],
     ['GET', '/records/coupon/*', ['app\http\controller\RecordController', 'coupon'], ['app\http\middleware\JwtAuthMiddleware']],
     ['GET', '/records/statuses', ['app\http\controller\RecordController', 'statuses'], ['app\http\middleware\JwtAuthMiddleware']],
-    ['GET', '/records/*', ['app\http\controller\RecordController', 'read'], ['app\http\middleware\JwtAuthMiddleware']],
     // Services.
     ['GET', '/services', ['app\http\controller\ServicesController', 'all'], ['app\http\middleware\JwtAuthMiddleware']],
     // Halls.

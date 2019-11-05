@@ -324,13 +324,66 @@ class RecordService
         }
 
         // Save record.
-        $id = $this->recordRepo->insert($record);
-        if ($id === null) {
+        return $this->recordRepo->insert($record);
+    }
+
+    /**
+     * Update existing record.
+     * @param Record $record
+     * @param Client $client
+     * @param string $couponCode
+     * @return Record|null
+     */
+    public function update(Record $record, Client $c): ?Record
+    {
+        // Client. If not exist then create one.
+        $filter = ['email' => $c->email, 'phone' => $c->phone];
+        $client = $this->clientRepo->findOneAndUpdate($filter, $c, ['id'], true);
+        if ($client === null) {
+            $client = clone $c;
+            $client->id = $this->clientRepo->insert($client);
+        }
+        if ($client->id !== null) {
+            $record->client_id = $client->id;
+        }
+
+        // Hall.
+        $hall = $this->hallRepo->findOne(['id' => $record->hall_id], ['id', 'base_price', 'prices']);
+        if ($hall === null) {
             return null;
         }
-        $record->id = $id;
 
-        return $record;
+        // // Coupon.
+        // $coupon = null;
+        // if ($couponCode !== null) {
+        //     $coupon = $this->couponRepo->findOne(['code' => $couponCode], ['id', 'factor']);
+        //     if ($coupon !== null) {
+        //         $record->coupon_id = $coupon->id;
+        //     }
+        // }
+
+        // Total price.
+        $record->total = $record->total ?: $this->calculatePrice($record, $hall);
+        
+        // Payment.
+        // if ($record->payment instanceof Payment) {
+        //     $record->payment->aggregator = Payment::AGGREGATOR_ROBOKASSA;
+        //     $record->payment->status = Payment::STATUS_NEW;
+        //     $record->payment->updated_at = time();
+        // }
+
+        // Save record.
+        return $this->recordRepo->update($record);
+    }
+
+    /**
+     * Delete an existing record.
+     * @param string $id
+     * @return bool
+     */
+    public function delete(string $id): bool
+    {
+        return $this->recordRepo->delete($id);
     }
 
     /**
