@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\domain\validation;
 
+use Exception;
 use Mongodb\BSON\ObjectId;
 
 class ValidationService
@@ -24,132 +25,18 @@ class ValidationService
     const VALIDATION_MONGO_ID = "Некорректный id.";
 
     /**
-     * Sanitize data.
-     * @param array $data
-     * @param array $rules
-     * @return array
-     */
-    public function sanitize(array $data, array $rules): array
-    {
-        $result = [];
-        foreach ($rules as $property => $rule) {
-            $result = $this->sanitizeProperty($property, $rule, $data);
-        }
-        return $result;
-    }
-
-    public function sanitizeProperty(string $property, array $rule, $data)
-    {
-        if (strpos($property, '.$.') !== false) {
-            // Array of objects.
-            list($left, $right) = explode('.$.', $property, 2);
-            if (!is_array($data[$left])) {
-                $data[$left] = [];
-            }
-            foreach ($data[$left] as $i => $d) {
-                $data[$left][$i] = $this->sanitizeProperty($right, $rule, $d);
-            }
-            return $data[$left];
-        } elseif (strpos($property, '.$') !== false) {
-            // Array of scalars.
-            list($left, $right) = explode('.$', $property, 2);
-            if (!is_array($data[$left])) {
-                $data[$left] = [];
-            }
-            foreach ($data[$left] as $i => $d) {
-                $data[$left][$i] = $this->sanitizeProperty((string) $i, $rule, $data[$left]);
-            }
-            return [$left => $data[$left]];
-        } elseif (strpos($property, '.') !== false) {
-            // Object.
-            list($left, $right) = explode('.', $property, 2);
-            return [$left => $this->sanitizeProperty($right, $rule, $data->{$left})];
-        } else {
-            // Plain value.
-            return [$property => $this->sanitizeValue($data[$property], $rule)];
-        }
-    }
-
-    /**
-     * Get sanitized value.
-     * @param mixed $value
-     * @param array $rules
-     * @return mixed
-     */
-    public function sanitizeValue($value, array $rules)
-    {
-        foreach ($rules as $rule) {
-            if ($rule === 'required') {
-                continue;
-            }
-            if (strpos($rule, ':') !== false) {
-                $ruleName = strstr($rule, ':', true);
-            } else {
-                $ruleName = $rule;
-            }
-            switch ($ruleName) {
-                case 'mongoid':
-                case 'string':
-                    return filter_var($value, FILTER_SANITIZE_STRING);
-                case 'email':
-                    return filter_var($value, FILTER_SANITIZE_EMAIL);
-                case 'int':
-                    return (int) filter_var($value, FILTER_SANITIZE_NUMBER_INT);
-                case 'url':
-                    return filter_var($value, FILTER_SANITIZE_URL);
-                case 'array':
-                    return [];
-            }
-        }
-        return $value;
-    }
-
-    /**
      * Validate an object against rules.
      * @param array $data
      * @param array $rules
-     * @return array
+     * @return array errors
      */
     public function validate(array $data, array $rules): array
     {
         $errors = [];
         foreach ($rules as $property => $rule) {
-            if (strpos($property, '.$.') !== false) {
-                // Array of objects.
-                list($left, $right) = explode('.$.', $property, 2);
-                if (!isset($data->{$left}) || !is_array($data->{$left})) {
-                    continue;
-                }
-                foreach ($data->{$left} as $i => &$element) {
-                    $err = $this->validateValue($element->{$right} ?? null, $rule);
-                    if ($err !== null) {
-                        $errors[$right] = $err;
-                    }
-                }
-            } elseif (strpos($property, '.$') !== false) {
-                // Array of scalars.
-                $left = strstr($property, '.$', true);
-                if (!isset($data->{$left}) || !is_array($data->{$left})) {
-                    continue;
-                }
-                foreach ($data->{$left} as $i => &$element) {
-                    $err = $this->validateValue($element, $rule);
-                    if ($err !== null) {
-                        $errors[$left] = $err;
-                    }
-                }
-            } elseif (strpos($property, '.') !== false) {
-                list($left, $right) = explode('.', $property, 2);
-                if (!isset($data->{$left}->{$right})) {
-                    continue;
-                }
-                $err = $this->validateValue($data->{$left}->{$right}, $rule);
-                if ($err !== null) {
-                    $errors[$right] = $err;
-                }
-            } else {
-                $err = $this->validateValue($data->{$property} ?? null, $rule);
-                if ($err !== null) {
+            foreach ($rule as $r) {
+                $err = $this->validateRule($property, $data, $r);
+                if ($err !== []) {
                     $errors[$property] = $err;
                 }
             }
@@ -157,171 +44,178 @@ class ValidationService
         return $errors;
     }
 
-    /**
-     * Validate an object against single rule.
-     * @param mixed $value
-     * @param string $property
-     * @param array $rules
-     * @return string|null
-     */
-    public function validateValue($value, array $rules): ?string
+    public function validateRule(string $property, $data, string $rule): array
     {
-        if (empty($value)) {
-            if (in_array('required', $rules)) {
-                return static::VALIDATION_REQUIRED;
+        if (strpos($property, '.$.') !== false) {
+            list($left, $right) = explode('.$.', $property, 2);
+            if (!isset($data[$left])) {
+                return [];
             }
-            return null;
+            if (!is_array($data[$left])) {
+                return ['Поле должно быть массивом.'];
+            }
+            $errors = [];
+            foreach ($data[$left] as $i => $item) {
+                $err = $this->validateRule($right, $item, $rule);
+                if ($err !== []) {
+                    $errors[$i] = $err;
+                }
+            }
+            return $errors;
+        } elseif (strpos($property, '.$') !== false) {
+            list($left, $right) = explode('.$', $property, 2);
+            if (!isset($data[$left])) {
+                return [];
+            }
+            if (!is_array($data[$left])) {
+                return ['Поле должно быть массивом.'];
+            }
+            $errors = [];
+            foreach ($data[$left] as $i => $item) {
+                $err = $this->validateRule((string)$i, $data[$left], $rule);
+                if ($err !== []) {
+                    $errors[$i] = $err;
+                }
+            }
+            return $errors;
+        } elseif (strpos($property, '.') !== false) {
+            list($left, $right) = explode('.', $property, 2);
+            return $this->validateRule($right, $data[$left], $rule);
         }
 
-        foreach ($rules as $rule) {
-            if (strpos($rule, ':') !== false) {
-                $params = explode(':', $rule);
-                $ruleName = $params[0];
-                if (count($params) > 1) {
-                    $params = array_slice($params, 1);
-                }
-            } else {
-                $ruleName = $rule;
-                $params = [];
-            }
-            $method = 'validate' . ucfirst($ruleName);
-            if (method_exists($this, $method)) {
-                $err = call_user_func([$this, $method], $value, ...$params);
-                if ($err !== null) {
-                    return $err;
-                }
-            }
-        }
-        return null;
+        return $this->validateValue($data[$property] ?? null, $rule);
     }
 
-    /**
-     * Validate array value.
-     * @param mixed $value
-     * @param int $min
-     * @param int $max
-     * @return string|null
-     */
-    public function validateArray($value, int $min = 0, int $max = 0): ?string
+    public function validateValue($value, string $rule): array
     {
+        $name = $rule;
+        $params = [];
+        if (strpos($rule, ':') !== false) {
+            $params = explode(':', $rule);
+            $name = $params[0];
+        }
+        $methodName = 'validate' . $this->toCamelCase($name);
+        if (method_exists($this, $methodName)) {
+            return call_user_func([$this, $methodName], $value, ...array_splice($params, 1));
+        }
+        return [];
+    }
+    
+    public function validateRequired($value): array
+    {
+        $errors = [];
+        if ($value === null) {
+            $errors[] = 'Поле является обязательным.';
+        }
+        return $errors;
+    }
+
+    public function validateString($value, int $min = 0, int $max = 0): array
+    {
+        $errors = [];
+        $value = filter_var($value, FILTER_SANITIZE_STRING);
+        if (!$value) {
+            $errors[] = 'Поле должно быть строкой.';
+        }
+        $len = mb_strlen($value);
+        if ($min !== 0 && $len < $min) {
+            $errors[] = 'Минимальный размер строки должен быть больше чем ' . $min . ' символов.';
+        }
+        if ($max !== 0 && $len > $max) {
+            $errors[] = 'Максимальный размер строки не должен превышать ' . $max . ' символов.';
+        }
+        return $errors;
+    }
+
+    public function validateInt($value, int $min = 0, int $max = 0): array
+    {
+        $errors = [];
+        $value = filter_var($value, FILTER_VALIDATE_INT);
+        if (!$value) {
+            $errors[] = 'Поле должно быть числом.';
+        }
+        if ($min !== 0 && $value < $min) {
+            $errors[] = 'Минимальный размер значения должен быть больше чем ' . $min . '.';
+        }
+        if ($max !== 0 && $value > $max) {
+            $errors[] = 'Максимальный размер значения не должен превышать ' . $max . '.';
+        }
+        return $errors;
+    }
+
+    public function validateBool($value) 
+    {
+        $errors = [];
+        $value = filter_var($value, FILTER_VALIDATE_BOOLEAN);
+        if (!$value) {
+            $errors[] = 'Значение должно быть булевым типом.';
+        }
+        return $errors;
+    }
+
+    public function validateEmail($value)
+    {
+        $errors = [];
+        $value = filter_var($value, FILTER_VALIDATE_EMAIL);
+        if (!$value) {
+            $errors[] = 'Значение должно быть правильным email адресом.';
+        }
+        return $errors;
+    }
+
+    public function validateArray($value, int $min = 0, int $max = 0): array
+    {
+        if ($value === null) {
+            return [];
+        }
+        $errors = [];
         if (!is_array($value)) {
-            return static::VALIDATION_ARRAY;
+            $errors[] = 'Поле должно быть массивом.';
+            return $errors;
         }
-        $len = count($value);
-        if ($min > 0 && $len < $min) {
-            return sprintf(static::VALIDATION_ARRAY_MIN, $min);
+        $count = count($value);
+        if ($min !== 0 && $count < $min) {
+            $errors[] = 'Минимальный размер массива должен быть больше чем ' . $min . ' элементов.';
         }
-        if ($max > 0 && $len > $max) {
-            return sprintf(static::VALIDATION_ARRAY_MAX, $max);
+        if ($max !== 0 && $count > $max) {
+            $errors[] = 'Максимальный размер массива не должен превышать ' . $max . ' элементов.';
         }
-        return null;
+        return $errors;
     }
 
-    /**
-     * Validate string with params.
-     * @param mixed $value
-     * @param int $min
-     * @param int $max
-     * @return string|null
-     */
-    public function validateString($value, int $min = 0, int $max = 0): ?string
+    public function validateObjectId($value): array
     {
-        if (!is_string($value)) {
-            return sprintf(static::VALIDATION_STRING, $value);
-        }
-        $len = strlen($value);
-        if ($min > 0 && $len < $min) {
-            return sprintf(static::VALIDATION_STRING_MIN, $min);
-        }
-        if ($max > 0 && $len > $max) {
-            return sprintf(static::VALIDATION_STRING_MAX, $max);
-        }
-        return null;
-    }
-
-    /**
-     * Validate bool with params.
-     * @param mixed $value
-     * @return string|null
-     */
-    public function validateBool($value): ?string
-    {
-        if (!filter_var($value, FILTER_VALIDATE_BOOLEAN)) {
-            return sprintf(static::VALIDATION_BOOL, $value);
-        }
-        return null;
-    }
-
-    /**
-     * Validate email with params.
-     * @param string $value
-     * @param int $min
-     * @param int $max
-     * @return string|null
-     */
-    public function validateEmail(string $value, int $min = 0, int $max = 0): ?string
-    {
-        if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
-            return sprintf(static::VALIDATION_EMAIL, $value);
-        }
-        $len = strlen($value);
-        if ($min > 0 && $len < $min) {
-            return sprintf(static::VALIDATION_STRING_MIN, $min);
-        }
-        if ($max > 0 && $len > $max) {
-            return sprintf(static::VALIDATION_STRING_MAX, $max);
-        }
-        return null;
-    }
-
-    /**
-     * Validate enum with params.
-     * @param string $value
-     * @param string $values
-     * @return string|null
-     */
-    public function validateEnum(string $value, string $values): ?string
-    {
-        $params = explode(',', $values);
-        if (!in_array($value, $params)) {
-            return sprintf(static::VALIDATION_ENUM, $value);
-        }
-        return null;
-    }
-
-    /**
-     * Valdate mongodb id.
-     * @param mixed $id
-     * @return string|null
-     */
-    public function validateMongoid($id): ?string
-    {
+        $errors = [];
         try {
-            new ObjectId((string) $id);
-            return null;
-        } catch (\Exception $e) {
-            return static::VALIDATION_MONGO_ID;
+            new ObjectId($value);
+        } catch (Exception $e) {
+            $errors[] = 'Значение не является ObjectID.';
         }
+
+        return $errors;
     }
 
-    /**
-     * Validate integer value.
-     * @param mixed $value
-     * @param int $min
-     * @param int $max
-     * @return string|null
-     */
-    public function validateInt($value, int $min = 0, int $max = 0): ?string
+    public function validateTime($value): array
     {
-        if (!is_int($value)) {
-            return sprintf(static::VALIDATION_INT, 'test');
+        $errors = [];
+        if (!preg_match("/^(?:2[0-3]|[01][0-9]):[0-5][0-9]$/", $value)) {
+            $errors[] = 'Значение должно быть временем от 00:00 до 23:59.';
         }
-        if ($min > 0 && $value < $min) {
-            return sprintf(static::VALIDATION_INT_MIN, $min);
+        return $errors;
+    }
+
+    public function validateEnum($value, string $enums): array
+    {
+        $errors = [];
+        $arr = explode(',', $enums);
+        if (!in_array($value, $arr)) {
+            $errors[] = 'Значение должно быть одним из: ' . $enums . '.';
         }
-        if ($max > 0 && $value > $max) {
-            return sprintf(static::VALIDATION_INT_MAX, $max);
-        }
-        return null;
+        return $errors;
+    }
+
+    private function toCamelCase(string $string): string
+    {
+        return str_replace(' ', '', ucwords(str_replace('_', ' ', $string)));
     }
 }

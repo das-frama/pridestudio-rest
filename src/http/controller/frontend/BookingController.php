@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app\http\controller;
+namespace app\http\controller\frontend;
 
 use app\ResponseFactory;
 use app\RequestUtils;
@@ -45,7 +45,7 @@ class BookingController
 
     /**
      * Get all info at once for booking page.
-     * GET /booking
+     * GET /frontend/booking
      * @method GET
      * @param ServerRequestInterface $request
      * @return ResponseInterface
@@ -75,21 +75,24 @@ class BookingController
 
     /**
      * Get all info at once for booking page with hall.
+     * GET /frontend/booking/<hall-id>
      * @method GET
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      */
     public function hall(ServerRequestInterface $request): ResponseInterface
     {
-        $hallSlug = RequestUtils::getPathSegment($request, 2);
         // Find hall.
+        $hallSlug = RequestUtils::getPathSegment($request, 3);
         $hall = $this->hallService->findBySlug($hallSlug, ['id', 'name', 'slug', 'preview_image']);
         if ($hall === null) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, ['Hall not found.']);
         }
+
         // Find settings.
         $settings = $this->settingService->findByGroup('calendar', ['key', 'value']);
         $settings = array_column($settings, 'value', 'key');
+
         // Form document.
         $bookingDoc = new BookingDocument;
         $bookingDoc->settings = $settings;

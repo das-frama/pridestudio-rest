@@ -172,7 +172,7 @@ abstract class AbstractRepository implements CommonRepositoryInterface
     /**
      * {@inheritDoc}
      */
-    public function insert(AbstractEntity $entity): ?string
+    public function insert(AbstractEntity $entity): ?AbstractEntity
     {
         if (property_exists($entity, 'updated_at')) {
             $entity->updated_at = time();
@@ -180,17 +180,20 @@ abstract class AbstractRepository implements CommonRepositoryInterface
         $result = $this->collection->insertOne($entity, [
             'bypassDocumentValidation' => false,
         ]);
-        $id = $result->getInsertedId();
-        return ($id instanceof ObjectId) ? (string) $id : null;
+        if (!$result->isAcknowledged()) {
+            return null;
+        }
+        $entity->id = (string) $result->getInsertedId();
+        return $entity;
     }
 
     /**
      * {@inheritDoc}
      */
-    public function update(AbstractEntity $entity, bool $upsert = false): bool
+    public function update(AbstractEntity $entity, bool $upsert = false): ?AbstractEntity
     {
         if ($entity->id === null) {
-            return false;
+            return null;
         }
         $filter = ['_id' => new ObjectId($entity->id)];
         if (property_exists($entity, 'updated_at')) {
@@ -201,7 +204,7 @@ abstract class AbstractRepository implements CommonRepositoryInterface
             'bypassDocumentValidation' => false,
             'upsert' => $upsert,
         ]);
-        return $result->isAcknowledged();
+        return $result->isAcknowledged() ? $entity : null;
     }
 
     /**

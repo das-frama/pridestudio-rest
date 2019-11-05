@@ -88,10 +88,11 @@ class HallService
     /**
      * Get all halls.
      * @param array $params (skip, limit, page, query)
+     * @param bool $onlyActive
      * @param array $include
      * @return Hall[]
      */
-    public function findAll(array $params = [], array $include = []): array
+    public function findAll(array $params = [], $onlyActive = false, array $include = []): array
     {
         $page = intval($params['page'] ?? 0);
         $limit = intval($params['limit'] ?? 0);
@@ -109,6 +110,9 @@ class HallService
         }
         // Query.
         $filter = [];
+        if ($onlyActive) {
+            $filter['is_active'] = true;
+        }
         if (isset($params['query'])) {
             $filter = array_fill_keys(['name', 'slug'], '%' . $params['query'] . '%');
             return $this->hallRepo->search($filter, $limit, $skip, $sort, $include);
@@ -147,20 +151,26 @@ class HallService
      */
     public function create(Hall $hall): ?string
     {
+        // Check uniqueness.
+        if ($this->hallRepo->isExists(['slug' => $hall->slug])) {
+            return null;
+        }
+
         if ($hall->updated_at === null) {
             $hall->updated_at = time();
         }
+        
         return $this->hallRepo->insert($hall);
     }
 
     /**
      * Update an existing hall.
      * @param Hall $hall
-     * @return string|null
+     * @return Hall|null
      */
-    public function update(Hall $hall): ?string
+    public function update(Hall $hall): ?Hall
     {
-        return $this->hallRepo->update($hall) ? null : 'Error during update a record.';
+        return $this->hallRepo->update($hall);
     }
 
     /**
@@ -171,5 +181,11 @@ class HallService
     public function delete(string $id): bool
     {
         return $this->hallRepo->delete($id);
+    }
+
+    private function isUnique(string $slug): bool
+    {
+        $filter = ['slug' => $slug];
+        return $this->hallRepo->isExists($filter);
     }
 }

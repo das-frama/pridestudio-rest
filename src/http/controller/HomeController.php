@@ -32,6 +32,8 @@ class HomeController
      */
     public function index(ServerRequestInterface $request): ResponseInterface
     {
-        return $this->responder->success(['success' => true]);
+        $wisdom = require(APP_DIR . '/data/thoughts/wisdom.php');
+        shuffle($wisdom);
+        return $this->responder->success($wisdom[0], 1);
     }
 }

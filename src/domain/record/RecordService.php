@@ -234,6 +234,15 @@ class RecordService
         if (!$passLength) {
             return $basePrice * $hours;
         }
+
+        // Day of the week.
+        if ($rule->schedule_mask !== null) {
+            $day = PriceRule::getWeekday($reservation->start_at);
+            if (($rule->schedule_mask & $day) !== $day) {
+                return $basePrice * $hours;
+            }
+        }
+
         // Fixed price.
         if ($rule->type == PriceRule::TYPE_FIXED) {
             return $rule->price;
@@ -275,7 +284,7 @@ class RecordService
      * @param string $couponCode
      * @return Record|null
      */
-    public function create(Record $record, Client $c, string $couponCode = null, string $paymentMethod = null): ?Record
+    public function create(Record $record, Client $c, string $couponCode = null): ?Record
     {
         // Client. If not exist then create one.
         $filter = ['email' => $c->email, 'phone' => $c->phone];

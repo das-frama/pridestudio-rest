@@ -8,6 +8,8 @@ use app\storage\mongodb\base\AbstractEntity;
 
 class User extends AbstractEntity
 {
+    protected $public = ['id', 'email', 'name', 'phone', 'role', 'is_active', 'created_at', 'updated_at', 'created_by', 'updated_by'];
+
     /** @var string */
     public $id;
 
@@ -40,6 +42,17 @@ class User extends AbstractEntity
 
     /** @var string */
     public $updated_by;
+
+    /**
+     * {@inheritDoc}
+     */
+    public function load(array $data, array $safe = []): void
+    {
+        parent::load($data, $safe);
+        if (isset($data['password']) && in_array('passoword', $safe)) {
+            $this->setPassword($data['password']);
+        }
+    }
 
     /**
      * @param string $password

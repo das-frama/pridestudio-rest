@@ -7,7 +7,6 @@ namespace app;
 use app\http\router\Router;
 use app\http\router\RouterInterface;
 use app\http\middleware\CorsMiddleware;
-use app\http\middleware\JwtAuthMiddleware;
 use app\http\middleware\LogMiddleware;
 use app\http\responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -44,10 +43,12 @@ class App
     public function __construct(array $config)
     {
         // DI.
-        $dice = (new Dice())->addRules($config['rules']);
+        $dice = (new Dice)->addRules($config['rules']);
+        
         // Set level mode.
         $this->env = getenv('APP_ENV');
         $this->debug = getenv('APP_DEBUG') === 'true';
+
         // Logger.
         $this->logger = $dice->create(LoggerInterface::class);
         $this->logger->pushHandler(
@@ -55,19 +56,21 @@ class App
                 ->setFormatter(new LineFormatter(null, null, true, true))
         );
         ErrorHandler::register($this->logger);
+
         // Responder.
         $this->responder = $dice->create(ResponderInterface::class);
+
         // Router.
         $this->router = new Router(getenv('APP_BASE_PATH'), $dice, $this->responder);
-        // Load middlewares.
+        // Load router middlewares.
+        $this->router->load(new CorsMiddleware);
         if ($this->debug) {
             $this->router->load(new LogMiddleware($this->logger, $this->debug));
         }
-        // $this->router->load(new JwtAuthMiddleware($this->responder, getenv('JWT_SECRET')));
-        $this->router->load(new CorsMiddleware);
         // Load routes.
-        foreach ($config['routes'] as $route) {
-            $this->router->register($route[0], $route[1], $route[2]);
+        $routes = array_merge($config['routes']['dashboard'], $config['routes']['frontend']);
+        foreach ($routes as $route) {
+            $this->router->register($route[0], $route[1], $route[2], $route[3] ?? []);
         }
     }
 
@@ -80,18 +83,12 @@ class App
         try {
             $response = $this->router->handle($this->addParsedBody($request));
         } catch (Exception $e) {
-            $message = 'Internal Server Error';
-            if ($this->debug) {
-                $message = $e->getMessage();
-            }
+            $message = $this->env === 'production' ? 'Internal Server Error' : $e->getMessage();
             $response = $this->responder->error(ResponseFactory::INTERNAL_SERVER_ERROR, [$message]);
             $this->emit($response);
             throw $e;
         } catch (Error $e) {
-            $message = 'Internal Server Error';
-            if ($this->debug) {
-                $message = $e->getMessage();
-            }
+            $message = $this->env === 'production' ? 'Internal Server Error' : $e->getMessage();
             $response = $this->responder->error(ResponseFactory::INTERNAL_SERVER_ERROR, [$message]);
             $this->emit($response);
             throw $e;

@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace app\http\controller;
 
+use app\ResponseFactory;
 use app\domain\auth\AuthService;
-use app\domain\validation\ValidationService;
 use app\http\controller\base\ControllerTrait;
 use app\http\responder\ResponderInterface;
-use app\ResponseFactory;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
