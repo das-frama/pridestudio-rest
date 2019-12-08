@@ -13,5 +13,5 @@ class Reservation extends AbstractEntity
 {
     public int $start_at;
     public int $length;
-    public string $comment;
+    public string $comment = '';
 }
