@@ -27,11 +27,9 @@ abstract class AbstractEntity implements Persistable, JsonSerializable
         // Set default values by it's type for each property.
         $reflectionProperties = (new ReflectionClass(static::class))->getProperties(ReflectionProperty::IS_PUBLIC);
         foreach ($reflectionProperties as $reflectionProperty) {
-            if ($reflectionProperty->getValue() !== null) {
-                continue;
-            }
             $name = $reflectionProperty->getName();
-            switch ($reflectionProperty->getType()) {
+            $type = $reflectionProperty->getType()->getName();
+            switch ($type) {
                 case 'string':
                     $this->{$name} = '';
                     break;
