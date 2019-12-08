@@ -11,7 +11,7 @@ return [
         'level' => Logger::DEBUG,
     ],
     'routes' => [
-        'dashboard' => require __DIR__ . '/routes/dashboard.php',
-        'frontend' => require __DIR__ . '/routes/frontend.php',
+        'dashboard' => require __DIR__ . '/../routes/dashboard.php',
+        'frontend' => require __DIR__ . '/../routes/frontend.php',
     ],
 ];

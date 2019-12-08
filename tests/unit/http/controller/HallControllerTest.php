@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace tests\unit\http\controller;
 
 use app\ResponseFactory;
-use app\domain\hall\HallService;
+use app\Domain\hall\HallService;
 use app\http\controller\HallController;
 use app\http\responder\JsonResponder;
 use Psr\Http\Message\ResponseInterface;

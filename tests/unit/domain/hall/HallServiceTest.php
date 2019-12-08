@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace tests\unit\domain\hall;
+namespace tests\unit\Domain\hall;
 
-use app\domain\hall\HallRepositoryInterface;
-use app\domain\hall\HallService;
+use app\Domain\hall\HallRepositoryInterface;
+use app\Domain\hall\HallService;
 use app\entity\Hall;
 use app\entity\Service;
 use app\entity\ServiceChild;

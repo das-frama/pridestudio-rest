@@ -1,9 +1,9 @@
 <?php
 
-use app\domain\auth\AuthService;
-use app\domain\file\FileService;
-use app\http\responder\JsonResponder;
-use app\http\responder\ResponderInterface;
+use App\Domain\Auth\AuthService;
+use App\Domain\File\FileService;
+use App\Http\Responder\JsonResponder;
+use App\Http\Responder\ResponderInterface;
 use MongoDB\Client;
 use Monolog\Logger;
 use Psr\Log\LoggerInterface;
@@ -28,37 +28,37 @@ return [
         'constructParams' => ['app', [], [], null],
         'shared' => true,
     ],
-    'app\http\middleware\JwtAuthMiddleware' => [
+    'App\Http\Middleware\JwtAuthMiddleware' => [
         'constructParams' => [getenv('JWT_SECRET')],
         'shared' => true,
     ],
 
-    'app\domain\record\RecordRepositoryInterface' => [
-        'instanceOf' => 'app\storage\mongodb\RecordRepository',
+    'App\Domain\Record\RecordRepositoryInterface' => [
+        'instanceOf' => 'App\Storage\MongoDB\RecordRepository',
         'shared' => true
     ],
-    'app\domain\client\ClientRepositoryInterface' => [
-        'instanceOf' => 'app\storage\mongodb\ClientRepository',
+    'App\Domain\Client\ClientRepositoryInterface' => [
+        'instanceOf' => 'App\Storage\MongoDB\ClientRepository',
         'shared' => true
     ],
-    'app\domain\record\CouponRepositoryInterface' => [
-        'instanceOf' => 'app\storage\mongodb\CouponRepository',
+    'App\Domain\Record\CouponRepositoryInterface' => [
+        'instanceOf' => 'App\Storage\MongoDB\CouponRepository',
         'shared' => true
     ],
-    'app\domain\hall\HallRepositoryInterface' => [
-        'instanceOf' => 'app\storage\mongodb\HallRepository',
+    'App\Domain\Hall\HallRepositoryInterface' => [
+        'instanceOf' => 'App\Storage\MongoDB\HallRepository',
         'shared' => true
     ],
-    'app\domain\service\ServiceRepositoryInterface' => [
-        'instanceOf' => 'app\storage\mongodb\ServiceRepository',
+    'App\Domain\Service\ServiceRepositoryInterface' => [
+        'instanceOf' => 'App\Storage\MongoDB\ServiceRepository',
         'shared' => true
     ],
-    'app\domain\setting\SettingRepositoryInterface' => [
-        'instanceOf' => 'app\storage\mongodb\SettingRepository',
+    'App\Domain\Setting\SettingRepositoryInterface' => [
+        'instanceOf' => 'App\Storage\MongoDB\SettingRepository',
         'shared' => true
     ],
-    'app\domain\user\UserRepositoryInterface' => [
-        'instanceOf' => 'app\storage\mongodb\UserRepository',
+    'App\Domain\User\UserRepositoryInterface' => [
+        'instanceOf' => 'App\Storage\MongoDB\UserRepository',
         'shared' => true
     ],
 ];

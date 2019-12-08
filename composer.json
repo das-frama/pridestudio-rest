@@ -3,7 +3,7 @@
   "description": "A pridestudio web app for rent places.",
   "type": "project",
   "require": {
-    "php": "^7.1",
+    "php": "^7.4",
     "ext-mongodb": "*",
     "ext-json": "*",
     "ext-fileinfo": "*",
@@ -15,7 +15,7 @@
     "php-http/message-factory": "^1.0",
     "nyholm/psr7": "^1.2",
     "nyholm/psr7-server": "^0.3.0",
-    "level-2/dice": "^4.0",
+    "level-2/dice": "dev-master",
     "vlucas/phpdotenv": "^3.6",
     "monolog/monolog": "^2.0",
     "firebase/php-jwt": "^5.0"
@@ -30,7 +30,7 @@
   "minimum-stability": "stable",
   "autoload": {
     "psr-4": {
-      "app\\": "src/"
+      "App\\": "src/"
     }
   },
   "require-dev": {

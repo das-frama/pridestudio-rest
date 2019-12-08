@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace app;
+namespace App;
 
 use Psr\Http\Message\MessageInterface;
 use Psr\Http\Message\RequestInterface;
@@ -34,7 +34,7 @@ class RequestUtils
     }
 
     /**
-     * Implementation from https://github.com/guzzle/psr7/blob/master/src/functions.php
+     * Implementation from Https://github.com/guzzle/psr7/blob/master/src/functions.php
      */
     public static function str(MessageInterface $message): string
     {

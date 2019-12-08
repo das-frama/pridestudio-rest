@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace app;
+namespace App;
 
-use app\http\router\Router;
-use app\http\router\RouterInterface;
-use app\http\middleware\CorsMiddleware;
-use app\http\middleware\LogMiddleware;
-use app\http\responder\ResponderInterface;
+use App\Http\Router\Router;
+use App\Http\Router\RouterInterface;
+use App\Http\Middleware\CorsMiddleware;
+use App\Http\Middleware\LogMiddleware;
+use App\Http\Responder\ResponderInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
@@ -21,20 +21,11 @@ use Exception;
 
 class App
 {
-    /** @var RouterInterface */
-    private $router;
-
-    /** @var ResponderInterface */
-    private $responder;
-
-    /** @var LoggerInterface */
-    private $logger;
-
-    /** @var string */
-    private $env;
-
-    /** @var bool */
-    private $debug;
+    private RouterInterface $router;
+    private ResponderInterface $responder;
+    private LoggerInterface $logger;
+    private string $env;
+    private bool $debug;
 
     /**
      * App constructor.

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace app;
+namespace App;
 
-use app\entity\File;
+use App\Entity\File;
 use Psr\Http\Message\ResponseInterface;
 use Nyholm\Psr7\Factory\Psr17Factory;
 
@@ -30,7 +30,7 @@ class ResponseFactory
     public static function fromObject(int $status, array $body): ResponseInterface
     {
         $content = json_encode($body, JSON_UNESCAPED_UNICODE);
-        return self::from($status, 'application/json', $content);
+        return self::from($status, 'Application/json', $content);
     }
 
     /**
