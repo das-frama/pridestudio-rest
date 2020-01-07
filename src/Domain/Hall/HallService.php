@@ -148,15 +148,11 @@ class HallService
      * @param Hall $hall
      * @return string|null
      */
-    public function create(Hall $hall): ?string
+    public function create(Hall $hall): ?Hall
     {
         // Check uniqueness.
         if ($this->hallRepo->isExists(['slug' => $hall->slug])) {
             return null;
-        }
-
-        if ($hall->updated_at === null) {
-            $hall->updated_at = time();
         }
         
         return $this->hallRepo->insert($hall);

@@ -35,5 +35,6 @@ return [
     // System.
     ['GET', '/system/init', ['App\Http\Controller\SystemController', 'init'], ['app\http\middleware\JwtAuthMiddleware']],
     // Auth.
+    ['POST', '/auth/login', ['App\Http\Controller\AuthController', 'login']],
     ['GET', '/me', ['App\Http\Controller\AuthController', 'me'], ['app\http\middleware\JwtAuthMiddleware']],
 ];

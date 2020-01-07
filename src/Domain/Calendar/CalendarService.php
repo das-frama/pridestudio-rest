@@ -8,7 +8,6 @@ use App\Domain\Record\RecordRepositoryInterface;
 use App\Domain\Setting\SettingRepositoryInterface;
 use App\Entity\Reservation;
 use MongoDB\BSON\ObjectId;
-use DateTime;
 use DateTimeImmutable;
 
 /**
@@ -46,20 +45,27 @@ class CalendarService
     public function weekdays(string $hallID, int $year = null, int $week = null): CalendarDocument
     {
         if ($year === null) {
-            $year = (int) date('Y');
+            $year = (int) date('o');
         }
         if ($week === null) {
             $week = (int) date('W');
         }
         $year = abs($year);
         $week = abs($week);
+        if ($week === 0) {
+            $week = 1;
+            $year -= 1;
+        } elseif ($week >= 54) {
+            $week = 1;
+            $year += 1;
+        }
 
         $dates = [];
         for ($day = 1; $day <= 7; $day++) {
             $str = sprintf("%04dW%02d%d", $year, $week, $day);
             $time = strtotime($str);
             if ($time === false) {
-                return new CalendarDocument;
+                throw new \Exception("Unpredicted week number {$week}", 1);
             }
             $dates[] = date('Y-m-d', $time);
         }
@@ -67,7 +73,7 @@ class CalendarService
         $firstDate = new DateTimeImmutable($dates[0]);
         $lastDate = (new DateTimeImmutable($dates[6]))->setTime(23, 59, 59);
         $document = new CalendarDocument;
-        $document->year = (int) $lastDate->format('Y');
+        $document->year = (int) $lastDate->format('o');
         $document->week = (int) $lastDate->format('W');
         $document->dates = $dates;
         $document->reservations = $this->findReservations(

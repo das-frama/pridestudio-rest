@@ -320,7 +320,6 @@ class RecordService
         if ($record->payment instanceof Payment) {
             $record->payment->aggregator = Payment::AGGREGATOR_ROBOKASSA;
             $record->payment->status = Payment::STATUS_NEW;
-            $record->payment->updated_at = time();
         }
 
         // Save record.
