@@ -48,25 +48,25 @@ abstract class AbstractRepository implements CommonRepositoryInterface
             unset($options['projection']['id']);
         }
         // Process result.
-        $Entity = $this->collection->findOne($this->convertFilter($filter), $options);
-        if (!$Entity instanceof AbstractEntity) {
+        $entity = $this->collection->findOne($this->convertFilter($filter), $options);
+        if (!$entity instanceof AbstractEntity) {
             return null;
         }
-        $Entity->setInclude($include);
-        return $Entity;
+        $entity->setInclude($include);
+        return $entity;
     }
 
     /**
      * {@inheritDoc}
      */
-    public function findOneAndUpdate(array $filter, AbstractEntity $Entity, array $include = [], bool $returnNew = false): ?AbstractEntity
+    public function findOneAndUpdate(array $filter, AbstractEntity $entity, array $include = [], bool $returnNew = false): ?AbstractEntity
     {
         // Prepare update.
-        if (property_exists($Entity, 'updated_at')) {
-            $Entity->updated_at = time();
+        if (property_exists($entity, 'updated_at')) {
+            $entity->updated_at = time();
         }
         $update = [
-            '$set' => $Entity,
+            '$set' => $entity,
         ];
         $options = $this->defaultOptions;
         // Prepare projection.
@@ -77,12 +77,12 @@ abstract class AbstractRepository implements CommonRepositoryInterface
         }
         $options['returnNewDocument'] = $returnNew;
         // Process result.
-        $Entity = $this->collection->findOneAndUpdate($this->convertFilter($filter), $update, $options);
-        if (!$Entity instanceof AbstractEntity) {
+        $entity = $this->collection->findOneAndUpdate($this->convertFilter($filter), $update, $options);
+        if (!$entity instanceof AbstractEntity) {
             return null;
         }
-        $Entity->setInclude($include);
-        return $Entity;
+        $entity->setInclude($include);
+        return $entity;
     }
 
     /**
@@ -119,9 +119,9 @@ abstract class AbstractRepository implements CommonRepositoryInterface
 
         // Perform query.
         $cursor = $this->collection->find($this->convertFilter($filter), $options);
-        return array_map(function (AbstractEntity $Entity) use ($include) {
-            $Entity->setInclude($include);
-            return $Entity;
+        return array_map(function (AbstractEntity $entity) use ($include) {
+            $entity->setInclude($include);
+            return $entity;
         }, $cursor->toArray());
     }
 
@@ -167,39 +167,40 @@ abstract class AbstractRepository implements CommonRepositoryInterface
     /**
      * {@inheritDoc}
      */
-    public function insert(AbstractEntity $Entity): ?AbstractEntity
+    public function insert(AbstractEntity $entity): ?AbstractEntity
     {
-        if (property_exists($Entity, 'updated_at')) {
-            $Entity->updated_at = time();
+        if (property_exists($entity, 'updated_at')) {
+            $entity->updated_at = time();
         }
-        $result = $this->collection->insertOne($Entity, [
+        $result = $this->collection->insertOne($entity, [
             'bypassDocumentValidation' => false,
         ]);
         if (!$result->isAcknowledged()) {
             return null;
         }
-        $Entity->id = (string) $result->getInsertedId();
-        return $Entity;
+        
+        $entity->id = (string) $result->getInsertedId();
+        return $entity;
     }
 
     /**
      * {@inheritDoc}
      */
-    public function update(AbstractEntity $Entity, bool $upsert = false): ?AbstractEntity
+    public function update(AbstractEntity $entity, bool $upsert = false): ?AbstractEntity
     {
-        if ($Entity->id === null) {
+        if ($entity->id === null) {
             return null;
         }
-        $filter = ['_id' => new ObjectId($Entity->id)];
-        if (property_exists($Entity, 'updated_at')) {
-            $Entity->updated_at = time();
+        $filter = ['_id' => new ObjectId($entity->id)];
+        if (property_exists($entity, 'updated_at')) {
+            $entity->updated_at = time();
         }
-        $update = ['$set' => $Entity];
+        $update = ['$set' => $entity];
         $result = $this->collection->updateOne($filter, $update, [
             'bypassDocumentValidation' => false,
             'upsert' => $upsert,
         ]);
-        return $result->isAcknowledged() ? $Entity : null;
+        return $result->isAcknowledged() ? $entity : null;
     }
 
     /**

@@ -33,7 +33,7 @@ abstract class AbstractEntity implements Persistable, JsonSerializable
                 case 'string':
                     $this->{$name} = '';
                     break;
-                case 'integer':
+                case 'int':
                     $this->{$name} = 0;
                     break;
                 case 'float':
@@ -45,9 +45,8 @@ abstract class AbstractEntity implements Persistable, JsonSerializable
                 case 'array':
                     $this->{$name} = [];
                     break;
-                case 'object':
+                default:
                     $this->{$name} = null;
-                    break;
             }
         }
     }
@@ -112,9 +111,9 @@ abstract class AbstractEntity implements Persistable, JsonSerializable
         $bson = [];
 
         foreach ($properties as $property) {
-            if ($this->{$property} === null) {
-                continue;
-            }
+            // if (is_null($this->{$property})) {
+            //     continue;
+            // }
             switch ($property) {
                 case 'id':
                     if (!empty($this->id)) {

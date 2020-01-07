@@ -27,7 +27,7 @@ class Record extends AbstractEntity
      /** @var Reservation[] */
     public array $reservations = [];
     public array $service_ids = [];
-    public Payment $payment;
+    public ?Payment $payment;
     public string $coupon_id;
     public int $total;
     public string $comment;

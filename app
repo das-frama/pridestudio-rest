@@ -3,7 +3,7 @@
 
 declare(strict_types=1);
 
-use app\console\App;
+use App\Console\App;
 use Dotenv\Dotenv;
 
 require __DIR__ . '/vendor/autoload.php';

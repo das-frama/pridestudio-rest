@@ -9,7 +9,7 @@ use RecursiveDirectoryIterator;
 
 class App
 {
-    const COMMAND_PATH = 'App\console\command';
+    const COMMAND_PATH = 'App\Console\Command';
     const COLOR_DARK_GREY = '1;30';
     const COLOR_LIGHT_GREY = '0;37';
     const COLOR_GREEN = '0;32';
@@ -58,7 +58,7 @@ class App
      */
     private function availableCommands(): array
     {
-        $path = __DIR__ . DIRECTORY_SEPARATOR . 'command';
+        $path = __DIR__ . DIRECTORY_SEPARATOR . 'Command';
         $files = new RecursiveDirectoryIterator($path);
         $commands = [];
         foreach ($files as $file) {

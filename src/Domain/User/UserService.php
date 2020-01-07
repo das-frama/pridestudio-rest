@@ -68,7 +68,7 @@ class UserService
         if ($id === null) {
             return null;
         }
-        $user->id = $id;
+        // $user->id = $id;
 
         return $user;
     }

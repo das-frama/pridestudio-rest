@@ -47,6 +47,6 @@ class InitCommand
     private function getData(string $filename): array
     {
         $path = join(DIRECTORY_SEPARATOR, ['data', 'init', $filename]);
-        return require(App_DIR . DIRECTORY_SEPARATOR . $path);
+        return require(APP_DIR . DIRECTORY_SEPARATOR . $path);
     }
 }
