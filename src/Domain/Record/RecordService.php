@@ -22,12 +22,20 @@ class RecordService
     private CouponRepositoryInterface $couponRepo;
     private HallRepositoryInterface $hallRepo;
 
+    /**
+     * RecordService constructor.
+     * @param RecordRepositoryInterface $recordRepo
+     * @param ClientRepositoryInterface $clientRepo
+     * @param CouponRepositoryInterface $couponRepo
+     * @param HallRepositoryInterface $hallRepo
+     */
     public function __construct(
         RecordRepositoryInterface $recordRepo,
         ClientRepositoryInterface $clientRepo,
         CouponRepositoryInterface $couponRepo,
         HallRepositoryInterface $hallRepo
-    ) {
+    )
+    {
         $this->recordRepo = $recordRepo;
         $this->clientRepo = $clientRepo;
         $this->couponRepo = $couponRepo;
@@ -63,18 +71,21 @@ class RecordService
             $record->setExpand('hall', $hall);
         }
 
-        return $record;
+        return $record instanceof Record ? $record : null;
     }
 
     /**
      * Get all records.
+     * @param array $params
      * @param array $include
+     * @param array $expand
      * @return Record[]
      */
     public function findAll(array $params = [], array $include = [], array $expand = []): array
     {
         $page = intval($params['page'] ?? 0);
         $limit = intval($params['limit'] ?? 0);
+
         // Sort.
         $sort = [];
         if (isset($params['orderBy'])) {
@@ -86,11 +97,13 @@ class RecordService
         } else {
             $sort['id'] = -1;
         }
+
         // Skip.
         $skip = 0;
         if ($page > 0) {
             $skip = $limit * ($page - 1);
         }
+
         // Query.
         $filter = [];
         if (isset($params['query'])) {
@@ -101,7 +114,8 @@ class RecordService
             $include[] = 'client_id';
         }
         $items = $this->recordRepo->findAll($filter, $limit, $skip, $sort, $include);
-        // Refrences.
+
+        // References.
         if (in_array('client', $expand)) {
             $clientIDs = array_column($items, 'client_id');
             $clients = $this->clientRepo->findAll(['id' => $clientIDs], 0, 0, [], ['id', 'name']);
@@ -153,8 +167,9 @@ class RecordService
 
     /**
      * Calculate price for reservations.
-     * @param Records $record
+     * @param Record $record
      * @param Hall $hall
+     * @param Coupon|null $coupon
      * @return int
      */
     public function calculatePrice(Record $record, Hall $hall, Coupon $coupon = null): int
@@ -195,14 +210,15 @@ class RecordService
      */
     public function findCouponByCode(string $code, array $include = []): ?Coupon
     {
-        return $this->couponRepo->findOne(['code' => $code], $include);
+        $coupon = $this->couponRepo->findOne(['code' => $code], $include);
+        return $coupon instanceof Coupon ? $coupon : null;
     }
 
     /**
      * Calculate price for rule by reservation.
      * @param PriceRule $rule
      * @param Reservation $reservation
-     * @param int $base_price
+     * @param int $basePrice
      * @return int
      */
     private function calculatePriceRule(PriceRule $rule, Reservation $reservation, int $basePrice): int
@@ -248,21 +264,19 @@ class RecordService
             return $rule->price;
         }
         // Price per hour.
-        $hoursToCount = 0;
+        $hoursToCount = $hours;
         if ($rule->time_from !== null && $rule->time_to !== null) {
             $date = (new DateTimeImmutable())->setTimestamp($reservation->start_at);
             list($hour, $minute) = explode(':', $rule->time_from, 2);
-            $topAt = $date->setTime((int) $hour, (int) $minute)->getTimestamp();
+            $topAt = $date->setTime((int)$hour, (int)$minute)->getTimestamp();
             list($hour, $minute) = explode(':', $rule->time_to, 2);
-            $bottomAt = $date->setTime((int) $hour, (int) $minute)->getTimestamp();
+            $bottomAt = $date->setTime((int)$hour, (int)$minute)->getTimestamp();
             if ($hour === "00") {
                 $bottomAt += 24 * 60 * 60;
             }
             $diff = min($reservation->start_at + $reservation->length * 60, $bottomAt) -
                 max($reservation->start_at, $topAt);
             $hoursToCount = $diff > 0 ? $diff / 60 / 60 : 0;
-        } else {
-            $hoursToCount = $hours;
         }
 
         $amount = 0;
@@ -280,7 +294,7 @@ class RecordService
     /**
      * Create a new record.
      * @param Record $record
-     * @param Client $client
+     * @param Client $c
      * @param string $couponCode
      * @return Record|null
      */
@@ -290,8 +304,7 @@ class RecordService
         $filter = ['email' => $c->email, 'phone' => $c->phone];
         $client = $this->clientRepo->findOneAndUpdate($filter, $c, ['id'], true);
         if ($client === null) {
-            $client = clone $c;
-            $client->id = $this->clientRepo->insert($client);
+            $client = $this->clientRepo->insert($c);
         }
         if ($client->id !== null) {
             $record->client_id = $client->id;
@@ -299,7 +312,7 @@ class RecordService
 
         // Hall.
         $hall = $this->hallRepo->findOne(['id' => $record->hall_id], ['id', 'base_price', 'prices']);
-        if ($hall === null) {
+        if (!($hall instanceof Hall)) {
             return null;
         }
 
@@ -307,7 +320,7 @@ class RecordService
         $coupon = null;
         if ($couponCode !== null) {
             $coupon = $this->couponRepo->findOne(['code' => $couponCode], ['id', 'factor']);
-            if ($coupon !== null) {
+            if ($coupon instanceof Coupon) {
                 $record->coupon_id = $coupon->id;
             }
         }
@@ -315,7 +328,7 @@ class RecordService
         // Total price.
         $record->total = $this->calculatePrice($record, $hall, $coupon);
         $record->status = Record::STATUS_NEW;
-        
+
         // Payment.
         if ($record->payment instanceof Payment) {
             $record->payment->aggregator = Payment::AGGREGATOR_ROBOKASSA;
@@ -323,14 +336,14 @@ class RecordService
         }
 
         // Save record.
-        return $this->recordRepo->insert($record);
+        $record = $this->recordRepo->insert($record);
+        return $record instanceof Record ? $record : null;
     }
 
     /**
      * Update existing record.
      * @param Record $record
-     * @param Client $client
-     * @param string $couponCode
+     * @param Client $c
      * @return Record|null
      */
     public function update(Record $record, Client $c): ?Record
@@ -339,8 +352,7 @@ class RecordService
         $filter = ['email' => $c->email, 'phone' => $c->phone];
         $client = $this->clientRepo->findOneAndUpdate($filter, $c, ['id'], true);
         if ($client === null) {
-            $client = clone $c;
-            $client->id = $this->clientRepo->insert($client);
+            $client = $this->clientRepo->insert($c);
         }
         if ($client->id !== null) {
             $record->client_id = $client->id;
@@ -348,7 +360,7 @@ class RecordService
 
         // Hall.
         $hall = $this->hallRepo->findOne(['id' => $record->hall_id], ['id', 'base_price', 'prices']);
-        if ($hall === null) {
+        if (!($hall instanceof Hall)) {
             return null;
         }
 
@@ -363,7 +375,7 @@ class RecordService
 
         // Total price.
         $record->total = $record->total ?: $this->calculatePrice($record, $hall);
-        
+
         // Payment.
         // if ($record->payment instanceof Payment) {
         //     $record->payment->aggregator = Payment::AGGREGATOR_ROBOKASSA;
@@ -372,7 +384,8 @@ class RecordService
         // }
 
         // Save record.
-        return $this->recordRepo->update($record);
+        $record = $this->recordRepo->update($record);
+        return $record instanceof Record ? $record : null;
     }
 
     /**

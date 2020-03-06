@@ -6,10 +6,18 @@ namespace App\Domain\Setting;
 
 use App\Entity\Setting;
 
+/**
+ * Class SettingService
+ * @package App\Domain\Setting
+ */
 class SettingService
 {
     private SettingRepositoryInterface $settingRepo;
 
+    /**
+     * SettingService constructor.
+     * @param SettingRepositoryInterface $repo
+     */
     public function __construct(SettingRepositoryInterface $repo)
     {
         $this->settingRepo = $repo;
@@ -49,6 +57,7 @@ class SettingService
     /**
      * Get setting by group name.
      * @param string $name
+     * @param array $include
      * @return Setting[]
      */
     public function findByGroup(string $name, array $include = []): array
@@ -64,14 +73,15 @@ class SettingService
      */
     public function findByKey(string $key, array $include = []): ?Setting
     {
-        return $this->settingRepo->findOne(['key' => $key], $include);
+        $setting = $this->settingRepo->findOne(['key' => $key], $include);
+        return $setting instanceof Setting ? $setting : null;
     }
 
     /**
      * Count settings.
      * @return int
      */
-    public function count()
+    public function count(): int
     {
         return $this->settingRepo->count();
     }

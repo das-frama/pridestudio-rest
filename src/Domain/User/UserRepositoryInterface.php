@@ -8,5 +8,5 @@ use App\Domain\CommonRepositoryInterface;
 
 interface UserRepositoryInterface extends CommonRepositoryInterface
 {
- 
+
 }

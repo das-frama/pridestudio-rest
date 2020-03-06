@@ -5,22 +5,22 @@ declare(strict_types=1);
 namespace App\Storage\MongoDB\Base;
 
 use JsonSerializable;
+use MongoDB\BSON\ObjectId;
+use MongoDB\BSON\Persistable;
+use MongoDB\BSON\UTCDateTime;
+use ReflectionClass;
 use ReflectionObject;
 use ReflectionProperty;
-use ReflectionClass;
-use MongoDB\BSON\ObjectId;
-use MongoDB\BSON\UTCDateTime;
-use MongoDB\BSON\Persistable;
 
 /**
  * Entity is a base class for mongodb records.
  */
 abstract class AbstractEntity implements Persistable, JsonSerializable
 {
-    protected $include = [];
-    protected $expand = [];
-    protected $public = [];
-    protected $unserialized = false;
+    protected array $include = [];
+    protected array $expand = [];
+    protected array $public = [];
+    protected bool $unserialized = false;
 
     public function __construct()
     {
@@ -53,7 +53,7 @@ abstract class AbstractEntity implements Persistable, JsonSerializable
 
     /**
      * Load array of data to the Entity.
-     * Every Entity should reimplement this method to load the data.
+     * Every Entity should implement this method to load the data.
      * @param array $data
      * @param array $safe
      * @return void
@@ -145,17 +145,17 @@ abstract class AbstractEntity implements Persistable, JsonSerializable
     public function bsonUnserialize(array $data): void
     {
         if (isset($data['_id']) && $data['_id'] instanceof ObjectId) {
-            $this->id = (string) $data['_id'];
+            $this->id = (string)$data['_id'];
             if (property_exists($this, 'created_at')) {
                 $this->created_at = $data['_id']->getTimestamp();
             }
         }
         foreach ($data as $property => $value) {
-            if (!property_exists($this, (string) $property)) {
+            if (!property_exists($this, (string)$property)) {
                 continue;
             }
             if ($value instanceof ObjectId) {
-                $this->{$property} = (string) $value;
+                $this->{$property} = (string)$value;
             } elseif ($value instanceof UTCDateTime) {
                 if (strpos($property, '_at', -3)) {
                     $this->{$property} = $value->toDateTime()->getTimestamp();
@@ -174,7 +174,7 @@ abstract class AbstractEntity implements Persistable, JsonSerializable
     private function convertArray($value)
     {
         if ($value instanceof ObjectId) {
-            return (string) $value;
+            return (string)$value;
         } elseif (is_array($value)) {
             return array_map([$this, 'convertArray'], $value);
         }
@@ -188,7 +188,7 @@ abstract class AbstractEntity implements Persistable, JsonSerializable
      */
     public static function publicProperties(): array
     {
-        // Get all public propertes.
+        // Get all public properties.
         $reflectionProperties = (new ReflectionClass(static::class))->getProperties(ReflectionProperty::IS_PUBLIC);
         return array_map(function (ReflectionProperty $reflectionProperty) {
             return $reflectionProperty->getName();

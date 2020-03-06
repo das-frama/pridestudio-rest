@@ -39,7 +39,7 @@ class SystemController
     public function init(ServerRequestInterface $request): ResponseInterface
     {
         $system = [
-            'settings' => $this->service->initSettings()
+            'settings' => $this->systemService->initSettings([]),
         ];
         return $this->responder->success($system);
     }

@@ -27,7 +27,7 @@ class Hall extends AbstractEntity
     public int $updated_at;
     public ?string $created_by;
     public ?string $updated_by;
-    
+
     /**
      * {@inheritDoc}
      */

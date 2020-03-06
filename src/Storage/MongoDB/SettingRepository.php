@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Storage\MongoDB;
 
-use App\Entity\Setting;
 use App\Domain\Setting\SettingRepositoryInterface;
+use App\Entity\Setting;
 use App\Storage\MongoDB\Base\AbstractRepository;
-use MongoDB\Client;
 use MongoDB\BSON\Regex;
+use MongoDB\Client;
 
 /**
  * Class SettingRepository
@@ -60,7 +60,7 @@ class SettingRepository extends AbstractRepository implements SettingRepositoryI
     }
 
     /**
-     * @param Setting[] $data
+     * @param array $settings
      * @return int
      */
     public function insertManyIfNotExists(array $settings): int

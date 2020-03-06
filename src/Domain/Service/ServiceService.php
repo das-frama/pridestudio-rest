@@ -4,12 +4,21 @@ declare(strict_types=1);
 
 namespace App\Domain\Service;
 
+use App\Entity\Hall;
 use App\Entity\Service;
 
+/**
+ * Class ServiceService
+ * @package App\Domain\Service
+ */
 class ServiceService
 {
     private ServiceRepositoryInterface $serviceRepo;
 
+    /**
+     * ServiceService constructor.
+     * @param ServiceRepositoryInterface $serviceRepo
+     */
     public function __construct(ServiceRepositoryInterface $serviceRepo)
     {
         $this->serviceRepo = $serviceRepo;
@@ -23,7 +32,8 @@ class ServiceService
      */
     public function find(string $id, array $include = []): ?Service
     {
-        return $this->serviceRepo->findOne(['id' => $id], $include);
+        $service = $this->serviceRepo->findOne(['id' => $id], $include);
+        return $service instanceof Service ? $service : null;
     }
 
     /**

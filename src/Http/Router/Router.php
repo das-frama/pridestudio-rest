@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Router;
 
+use App\Http\Responder\ResponderInterface;
 use App\RequestUtils;
 use App\ResponseFactory;
-use App\Http\Responder\JsonResponder;
-use App\Http\Responder\ResponderInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Server\MiddlewareInterface;
 use Dice\Dice;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
 use RuntimeException;
 
 /**
@@ -20,28 +19,15 @@ use RuntimeException;
  */
 class Router implements RouterInterface
 {
-    /** @var array  */
-    private $routeHandlers = [];
+    private array $routeHandlers = [];
+    private array $middlewares = [];
+    private array $routeMiddlewares = [];
+    private PathTree $routes;
+    private Dice $dice;
+    private ResponderInterface $responder;
+    private string $basePath;
 
-    /** @var array  */
-    private $Middlewares = [];
-
-    /** @var array */
-    private $routeMiddlewares = [];
-
-    /** @var PathTree */
-    private $routes;
-
-    /** @var Dice */
-    private $dice;
-
-    /** @var ResponderInterface */
-    private $responder;
-
-    /** @var string */
-    private $basePath;
-
-    public function __construct(string $basePath, Dice $dice, JsonResponder $responder)
+    public function __construct(string $basePath, Dice $dice, ResponderInterface $responder)
     {
         $this->basePath = $basePath;
         $this->dice = $dice;
@@ -84,7 +70,7 @@ class Router implements RouterInterface
      */
     public function load(MiddlewareInterface $Middleware): void
     {
-        $this->Middlewares[] = $Middleware;
+        $this->middlewares[] = $Middleware;
     }
 
     /**
@@ -96,15 +82,15 @@ class Router implements RouterInterface
         $request = $this->removeBasePath($request);
 
         // Router Middlewares.
-        if (count($this->Middlewares)) {
-            $handler = array_pop($this->Middlewares);
+        if (count($this->middlewares)) {
+            $handler = array_pop($this->middlewares);
             return $handler->process($request, $this);
         }
 
         // Get route number id.
         $routeNumbers = $this->getRouteNumbers($request);
         if (count($routeNumbers) === 0) {
-            return $this->responder->error(ResponseFactory::NOT_FOUND, ['Route not found.']);
+            return $this->responder->error(ResponseFactory::NOT_FOUND, 'Route not found.');
         }
 
         // Route Middlewares.

@@ -8,7 +8,7 @@ use App\Storage\MongoDB\Base\AbstractEntity;
 
 class User extends AbstractEntity
 {
-    protected $public = ['id', 'email', 'name', 'phone', 'role', 'is_active', 'created_at', 'updated_at', 'created_by', 'updated_by'];
+    protected array $public = ['id', 'email', 'name', 'phone', 'role', 'is_active', 'created_at', 'updated_at', 'created_by', 'updated_by'];
 
     public string $id;
     public string $email;
@@ -28,7 +28,7 @@ class User extends AbstractEntity
     public function load(array $data, array $safe = []): void
     {
         parent::load($data, $safe);
-        if (isset($data['password']) && in_array('passoword', $safe)) {
+        if (isset($data['password']) && in_array('password', $safe)) {
             $this->setPassword($data['password']);
         }
     }

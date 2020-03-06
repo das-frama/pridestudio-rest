@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Http\Controller\Frontend;
 
-use App\RequestUtils;
-use App\ResponseFactory;
 use App\Domain\Hall\HallService;
 use App\Domain\Validation\ValidationService;
 use App\Http\Controller\Base\ControllerTrait;
 use App\Http\Responder\ResponderInterface;
+use App\RequestUtils;
+use App\ResponseFactory;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
- * Hall class.
+ * HallController class.
  */
 class HallController
 {
@@ -62,7 +62,7 @@ class HallController
         $params = $this->getQueryParams($request);
         $hall = $this->hallService->findBySlug($slug, $params['include'] ?? []);
         if ($hall === null) {
-            return $this->responder->error(ResponseFactory::NOT_FOUND, ["Hall not found."]);
+            return $this->responder->error(ResponseFactory::NOT_FOUND, 'Hall not found.');
         }
         return $this->responder->success($hall, 1);
     }
@@ -77,7 +77,7 @@ class HallController
     {
         $id = RequestUtils::getPathSegment($request, 3);
         if (!$this->hallService->isExists($id)) {
-            return $this->responder->error(ResponseFactory::NOT_FOUND, ["Hall not found."]);
+            return $this->responder->error(ResponseFactory::NOT_FOUND, 'Hall not found.');
         }
         $params = $this->getQueryParams($request);
         $selected = $params['selected'] ?? [];
@@ -86,7 +86,7 @@ class HallController
             foreach ($selected as $selectedID) {
                 $err = $validationServices->validateObjectId($selectedID);
                 if ($err !== []) {
-                    return $this->responder->error(ResponseFactory::BAD_REQUEST, $err);
+                    return $this->responder->error(ResponseFactory::BAD_REQUEST, 'Bad request.', $err);
                 }
             }
         }

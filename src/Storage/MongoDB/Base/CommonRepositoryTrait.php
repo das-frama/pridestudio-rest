@@ -6,15 +6,20 @@ namespace App\Storage\MongoDB\Base;
 
 use Mongodb\BSON\ObjectId;
 
+/**
+ * Trait CommonRepositoryTrait
+ * @package App\Storage\MongoDB\Base
+ */
 trait CommonRepositoryTrait
 {
     /**
      * Finds an Entity from storage by filter.
      * @param array $filter
+     * @param array $options
      * @param array $include
      * @return AbstractEntity|null
      */
-    private function internalFindOne(array $filter, array $options, array $include = []): ?Entity
+    private function internalFindOne(array $filter, array $options, array $include = []): ?AbstractEntity
     {
         // Prepare projection.
         $projection = empty($include) ? [] : array_fill_keys($include, 1);
@@ -23,19 +28,22 @@ trait CommonRepositoryTrait
             unset($projection['id']);
         }
         // Process result.
-        $Entity = $this->collection->findOne(
+        $entity = $this->collection->findOne(
             $this->convertFilter($filter),
             array_merge($options, ['projection' => $projection])
         );
-        if (!$Entity instanceof Entity) {
+        if (!$entity instanceof AbstractEntity) {
             return null;
         }
-        $Entity->setInclude($include);
-        return $Entity;
+        $entity->setInclude($include);
+        return $entity;
     }
 
     /**
-     * @param array $link ['as' => ['localField' => 'foreignCollection.field']
+     * @param array $links
+     * @param array $filter
+     * @param array $options
+     * @param array $include
      * @return AbstractEntity[]
      */
     private function internalFindWith(array $links, array $filter, array $options, array $include = []): array
@@ -43,13 +51,13 @@ trait CommonRepositoryTrait
         $pipeline = [];
 
         // Construct filter.
-        $pipeline[] = ['$match' =>  $this->convertFilter($filter)];
+        $pipeline[] = ['$match' => $this->convertFilter($filter)];
 
         // Construct lookup.
         foreach ($links as $as => $link) {
             $localField = array_key_first($link);
             list($from, $foreignField) = explode('.', $link[$localField], 2);
-            $pipeline[] = ['$lookup' =>  [
+            $pipeline[] = ['$lookup' => [
                 'from' => $from,
                 'localField' => $localField,
                 'foreignField' => $foreignField,
@@ -68,9 +76,9 @@ trait CommonRepositoryTrait
 
         // Perform query.
         $cursor = $this->collection->aggregate($pipeline, $options);
-        return array_map(function (Entity $Entity) use ($include) {
-            $Entity->setInclude($include);
-            return $Entity;
+        return array_map(function (AbstractEntity $entity) use ($include) {
+            $entity->setInclude($include);
+            return $entity;
         }, $cursor->toArray());
     }
 
@@ -127,7 +135,7 @@ trait CommonRepositoryTrait
     private function internalSearch(array $search, array $include = [], array $options = []): array
     {
         $filter = array_map(function ($value) {
-            $str = (string) $value;
+            $str = (string)$value;
             $first = substr($value, 0, 1);
             $last = substr($value, -1);
             if ($first === '%' && $last === '%') {
@@ -147,6 +155,7 @@ trait CommonRepositoryTrait
 
     /**
      * Convert filter to bson object.
+     * @param array $filter
      * @return array
      */
     private function convertFilter(array $filter): array
@@ -200,7 +209,7 @@ trait CommonRepositoryTrait
             ]
         ]);
 
-        return (bool) $result;
+        return (bool)$result;
     }
 
     /**

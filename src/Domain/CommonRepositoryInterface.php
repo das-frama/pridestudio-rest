@@ -34,6 +34,9 @@ interface CommonRepositoryInterface
     /**
      * Find all entities.
      * @param array $filter
+     * @param int $limit
+     * @param int $skip
+     * @param array $sort
      * @param array $include
      * @return AbstractEntity[]
      */
@@ -41,7 +44,10 @@ interface CommonRepositoryInterface
 
     /**
      * Search entities by regular expression.
-     * @param array $filter
+     * @param array $search
+     * @param int $limit
+     * @param int $skip
+     * @param array $sort
      * @param array $include
      * @return AbstractEntity[]
      */
@@ -49,6 +55,7 @@ interface CommonRepositoryInterface
 
     /**
      * Count enities by filter.
+     * @param array $filter
      * @return int
      */
     public function count(array $filter = []): int;
@@ -69,7 +76,7 @@ interface CommonRepositoryInterface
     public function update(AbstractEntity $Entity, bool $upsert = false): ?AbstractEntity;
 
     /**
-     * Delet an extisting Entity from storage..
+     * Delete an existing Entity from storage..
      * @param string $id
      * @return bool.
      */

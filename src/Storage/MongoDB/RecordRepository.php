@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Storage\MongoDB;
 
+use App\Domain\Record\RecordRepositoryInterface;
+use App\Entity\Payment;
 use App\Entity\Record;
 use App\Entity\Reservation;
-use App\Entity\Payment;
-use App\Domain\Record\RecordRepositoryInterface;
 use App\Storage\MongoDB\Base\AbstractRepository;
 use MongoDB\Client;
 
@@ -64,7 +64,7 @@ class RecordRepository extends AbstractRepository implements RecordRepositoryInt
         $cursor = $this->collection->find($this->convertFilter($filter), $options);
         $result = [];
         foreach ($cursor as $record) {
-            $result = array_merge($result, (array) $record->reservations);
+            $result = array_merge($result, (array)$record->reservations);
         }
         return $result;
     }

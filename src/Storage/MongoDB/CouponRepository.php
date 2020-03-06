@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Storage\MongoDB;
 
-use App\Entity\Coupon;
 use App\Domain\Record\CouponRepositoryInterface;
+use App\Entity\Coupon;
 use App\Storage\MongoDB\Base\AbstractRepository;
 use MongoDB\Client;
 

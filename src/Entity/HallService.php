@@ -23,7 +23,7 @@ class HallService extends AbstractEntity
         $bson['parents'] = array_map(function (string $id) {
             return new ObjectId($id);
         }, $this->parents);
-        
+
         return $bson;
     }
 }

@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controller\Frontend;
 
-use App\RequestUtils;
-use App\ResponseFactory;
 use App\Domain\Calendar\CalendarService;
 use App\Domain\Hall\HallService;
 use App\Http\Controller\Base\ControllerTrait;
 use App\Http\Responder\ResponderInterface;
+use App\RequestUtils;
+use App\ResponseFactory;
+use Exception;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -22,7 +23,7 @@ class CalendarController
 
     private CalendarService $calendarService;
     private HallService $hallService;
-    private ResponderInterface $reponder;
+    private ResponderInterface $responder;
 
     /**
      * CalendarController constructor.
@@ -34,7 +35,8 @@ class CalendarController
         CalendarService $calendarService,
         HallService $hallService,
         ResponderInterface $responder
-    ) {
+    )
+    {
         $this->calendarService = $calendarService;
         $this->hallService = $hallService;
         $this->responder = $responder;
@@ -46,12 +48,13 @@ class CalendarController
      * @method GET
      * @param ServerRequestInterface $request
      * @return ResponseInterface
+     * @throws Exception
      */
     public function index(ServerRequestInterface $request): ResponseInterface
     {
         $hallID = RequestUtils::getPathSegment($request, 3);
         if ($hallID === null) {
-            return $this->responder->error(ResponseFactory::NOT_FOUND, ["Hall not found."]);
+            return $this->responder->error(ResponseFactory::NOT_FOUND, 'Hall not found.');
         }
         $document = $this->calendarService->weekdays($hallID);
         return $this->responder->success($document, 1);
@@ -63,14 +66,15 @@ class CalendarController
      * @method GET
      * @param ServerRequestInterface $request
      * @return ResponseInterface
+     * @throws Exception
      */
     public function week(ServerRequestInterface $request): ResponseInterface
     {
         $hallID = RequestUtils::getPathSegment($request, 3);
         if ($hallID === null) {
-            return $this->responder->error(ResponseFactory::NOT_FOUND, ["Hall not found."]);
+            return $this->responder->error(ResponseFactory::NOT_FOUND, 'Hall not found.');
         }
-        $year = (int) RequestUtils::getPathSegment($request, 4);
+        $year = (int)RequestUtils::getPathSegment($request, 4);
         $document = $this->calendarService->weekdays($hallID, $year);
         return $this->responder->success($document);
     }
@@ -81,15 +85,16 @@ class CalendarController
      * @method GET
      * @param ServerRequestInterface $request
      * @return ResponseInterface
+     * @throws Exception
      */
     public function read(ServerRequestInterface $request): ResponseInterface
     {
         $hallID = RequestUtils::getPathSegment($request, 3);
         if ($hallID === null) {
-            return $this->responder->error(ResponseFactory::NOT_FOUND, ["Hall not found."]);
+            return $this->responder->error(ResponseFactory::NOT_FOUND, 'Hall not found.');
         }
-        $year = (int) RequestUtils::getPathSegment($request, 4);
-        $week = (int) RequestUtils::getPathSegment($request, 5);
+        $year = (int)RequestUtils::getPathSegment($request, 4);
+        $week = (int)RequestUtils::getPathSegment($request, 5);
         $document = $this->calendarService->weekdays($hallID, $year, $week);
         return $this->responder->success($document);
     }

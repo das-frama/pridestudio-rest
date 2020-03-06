@@ -6,6 +6,10 @@ namespace App\Entity;
 
 use App\Storage\MongoDB\Base\AbstractEntity;
 
+/**
+ * Class ServiceChild
+ * @package App\Entity
+ */
 class ServiceChild extends AbstractEntity
 {
     public string $id;

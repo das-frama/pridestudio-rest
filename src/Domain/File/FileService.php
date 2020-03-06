@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Domain\File;
 
 use App\Entity\File;
-use Psr\Http\Message\UploadedFileInterface;
 use Imagick;
+use Psr\Http\Message\UploadedFileInterface;
 
 /**
  * Class FileService

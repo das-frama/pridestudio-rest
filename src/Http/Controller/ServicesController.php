@@ -21,6 +21,11 @@ class ServicesController
     private ServiceService $serviceService;
     private ResponderInterface $responder;
 
+    /**
+     * ServicesController constructor.
+     * @param ServiceService $serviceService
+     * @param ResponderInterface $responder
+     */
     public function __construct(ServiceService $serviceService, ResponderInterface $responder)
     {
         $this->serviceService = $serviceService;

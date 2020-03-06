@@ -4,23 +4,29 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
-use App\ResponseFactory;
 use App\Http\Responder\ResponderInterface;
+use App\ResponseFactory;
+use Exception;
+use Firebase\JWT\JWT;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Firebase\JWT\JWT;
-use Exception;
 
+/**
+ * Class JwtAuthMiddleware
+ * @package App\Http\Middleware
+ */
 class JwtAuthMiddleware implements MiddlewareInterface
 {
-    /** @var ResponderInterface */
-    private $responder;
+    private ResponderInterface $responder;
+    private string $secret;
 
-    /** @var string */
-    private $secret;
-    
+    /**
+     * JwtAuthMiddleware constructor.
+     * @param ResponderInterface $responder
+     * @param string $secret
+     */
     public function __construct(ResponderInterface $responder, string $secret)
     {
         $this->responder = $responder;
@@ -40,7 +46,7 @@ class JwtAuthMiddleware implements MiddlewareInterface
         $cookies = $request->getCookieParams();
         $token = $cookies['jwt'] ?? '';
         if ($token === '') {
-            return $this->responder->error(ResponseFactory::UNAUTHORIZED, ['Authentication required.']);
+            return $this->responder->error(ResponseFactory::UNAUTHORIZED, 'Authentication required.');
         }
 
         try {
@@ -49,10 +55,10 @@ class JwtAuthMiddleware implements MiddlewareInterface
             // $headerCSRF = $request->getHeader('X-CSRF-TOKEN')[0];
             // $tokenCSRF = $claims['csrf'] ?? '';
             // if (empty($headerCSRF) || empty($tokenCSRF) || !hash_equals($headerCSRF, $token)) {
-                // return $this->responder->error(ResponseFactory::BAD_REQUEST, ['Wrong or empty CSRF token.']);
+            // return $this->responder->error(ResponseFactory::BAD_REQUEST, ['Wrong or empty CSRF token.']);
             // }
         } catch (Exception $e) {
-            return $this->responder->error(ResponseFactory::UNAUTHORIZED, [$e->getMessage()]);
+            return $this->responder->error(ResponseFactory::UNAUTHORIZED, 'Unauthorized.', (array)$e->getMessage());
         }
 
         return $next->handle($request);

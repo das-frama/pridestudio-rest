@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Storage\MongoDB\Base\AbstractEntity;
-use MongoDB\BSON\ObjectId;
 use DateTimeImmutable;
+use Exception;
+use MongoDB\BSON\ObjectId;
 
 class PriceRule extends AbstractEntity
 {
@@ -42,7 +43,7 @@ class PriceRule extends AbstractEntity
         $bson['service_ids'] = array_map(function (string $id) {
             return new ObjectId($id);
         }, $this->service_ids);
-        
+
         return $bson;
     }
 
@@ -50,10 +51,11 @@ class PriceRule extends AbstractEntity
      * Get day of the week.
      * @param int $time
      * @return int
+     * @throws Exception
      */
     public static function getWeekday(int $time): int
     {
-        $day = (int) (new DateTimeImmutable('@' . $time))->format('N');
+        $day = (int)(new DateTimeImmutable('@' . $time))->format('N');
         return 1 << ($day - 1);
     }
 }

@@ -38,11 +38,14 @@
     "phpunit/phpunit": "^8.3"
   },
   "scripts": {
+    "post-root-package-install": [
+      "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+    ],
     "test": [
       "phpcs",
       "phpunit"
     ],
-    "serve": "php -S 127.0.0.1:8000 -t public"
+    "serve": "php -S api.pridestudio.local:8000 -t public"
   },
   "config": {
     "process-timeout": 0

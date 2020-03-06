@@ -13,6 +13,9 @@ class Setting extends AbstractEntity
 {
     public string $id;
     public string $key;
+    /**
+     * @var string|int
+     */
     public $value;
     public bool $is_active;
 }

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Storage\MongoDB;
 
+use App\Domain\Hall\HallRepositoryInterface;
 use App\Entity\Hall;
 use App\Entity\HallService;
 use App\Entity\PriceRule;
 use App\Entity\Service;
 use App\Entity\ServiceChild;
-use App\Domain\Hall\HallRepositoryInterface;
 use App\Storage\MongoDB\Base\AbstractRepository;
 use MongoDB\Client;
 

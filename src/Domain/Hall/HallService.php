@@ -27,7 +27,8 @@ class HallService
         $filter = [
             'id' => $id,
         ];
-        return $this->hallRepo->findOne($filter, $include);
+        $hall = $this->hallRepo->findOne($filter, $include);
+        return $hall instanceof Hall ? $hall : null;
     }
 
     /**
@@ -42,12 +43,14 @@ class HallService
             'slug' => $slug,
             'is_active' => true,
         ];
-        return $this->hallRepo->findOne($filter, $include);
+        $hall = $this->hallRepo->findOne($filter, $include);
+        return $hall instanceof Hall ? $hall : null;
     }
 
     /**
      * Find services in hall.
      * @param string $id
+     * @param array $selected
      * @param array $include
      * @return Service[]
      */
@@ -59,7 +62,7 @@ class HallService
         if (empty($selected)) {
             $hall = $this->hallRepo->findOne($filter, ['services']);
             if ($hall === null) {
-                return null;
+                return [];
             }
             $selected = $hall->getDefaultServices();
         }
@@ -154,7 +157,7 @@ class HallService
         if ($this->hallRepo->isExists(['slug' => $hall->slug])) {
             return null;
         }
-        
+
         return $this->hallRepo->insert($hall);
     }
 
@@ -165,7 +168,8 @@ class HallService
      */
     public function update(Hall $hall): ?Hall
     {
-        return $this->hallRepo->update($hall);
+        $hall = $this->hallRepo->update($hall);
+        return $hall instanceof Hall ? $hall : null;
     }
 
     /**

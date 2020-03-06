@@ -6,11 +6,11 @@ namespace App\Storage\MongoDB\Base;
 
 use App\Domain\CommonRepositoryInterface;
 use Exception;
+use MongoDB\BSON\ObjectId;
+use MongoDB\BSON\Regex;
 use MongoDB\Client;
 use MongoDB\Collection;
 use MongoDB\Database;
-use MongoDB\BSON\Regex;
-use MongoDB\BSON\ObjectId;
 
 abstract class AbstractRepository implements CommonRepositoryInterface
 {
@@ -131,7 +131,7 @@ abstract class AbstractRepository implements CommonRepositoryInterface
     public function search(array $search, int $limit = 0, int $skip = 0, array $sort = [], array $include = []): array
     {
         $filter = array_map(function ($value) {
-            $str = (string) $value;
+            $str = (string)$value;
             $first = substr($str, 0, 1);
             $last = substr($str, -1);
             if ($first === '%' && $last === '%') {
@@ -161,7 +161,7 @@ abstract class AbstractRepository implements CommonRepositoryInterface
      */
     public function isExists(array $filter): bool
     {
-        return (bool) $this->collection->count($this->convertFilter($filter));
+        return (bool)$this->collection->count($this->convertFilter($filter));
     }
 
     /**
@@ -178,8 +178,8 @@ abstract class AbstractRepository implements CommonRepositoryInterface
         if (!$result->isAcknowledged()) {
             return null;
         }
-        
-        $entity->id = (string) $result->getInsertedId();
+
+        $entity->id = (string)$result->getInsertedId();
         return $entity;
     }
 
@@ -209,7 +209,7 @@ abstract class AbstractRepository implements CommonRepositoryInterface
     public function delete(string $id): bool
     {
         $result = $this->collection->deleteOne(['_id' => new ObjectId($id)]);
-        return (bool) $result->getDeletedCount();
+        return (bool)$result->getDeletedCount();
     }
 
     /**
@@ -278,7 +278,7 @@ abstract class AbstractRepository implements CommonRepositoryInterface
             ]
         ]);
 
-        return (bool) $result;
+        return (bool)$result;
     }
 
     /**

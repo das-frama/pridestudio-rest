@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace App;
 
-use App\Http\Router\Router;
-use App\Http\Router\RouterInterface;
 use App\Http\Middleware\CorsMiddleware;
 use App\Http\Middleware\LogMiddleware;
 use App\Http\Responder\ResponderInterface;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Log\LoggerInterface;
+use App\Http\Router\Router;
+use App\Http\Router\RouterInterface;
 use Dice\Dice;
+use Error;
+use Exception;
 use Monolog\ErrorHandler;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
-use Error;
-use Exception;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Log\LoggerInterface;
 
 class App
 {
@@ -35,28 +35,34 @@ class App
     {
         // DI.
         $dice = (new Dice)->addRules($config['rules']);
-        
+
         // Set level mode.
         $this->env = getenv('APP_ENV');
         $this->debug = getenv('APP_DEBUG') === 'true';
 
         // Logger.
-        $this->logger = $dice->create(LoggerInterface::class);
-        $this->logger->pushHandler(
-            (new StreamHandler($config['logger']['path'], $config['logger']['level']))
-                ->setFormatter(new LineFormatter(null, null, true, true))
-        );
+        $logger = $dice->create(LoggerInterface::class);
+        if ($logger instanceof LoggerInterface) {
+            $this->logger = $logger;
+            $this->logger->pushHandler(
+                (new StreamHandler($config['logger']['path'], $config['logger']['level']))
+                    ->setFormatter(new LineFormatter(null, null, true, true))
+            );
+        }
         ErrorHandler::register($this->logger);
 
         // Responder.
-        $this->responder = $dice->create(ResponderInterface::class);
+        $responder = $dice->create(ResponderInterface::class);
+        if ($responder instanceof ResponderInterface) {
+            $this->responder = $responder;
+        }
 
         // Router.
         $this->router = new Router(getenv('APP_BASE_PATH'), $dice, $this->responder);
         // Load router middlewares.
         $this->router->load(new CorsMiddleware);
         if ($this->debug) {
-            $this->router->load(new LogMiddleware($this->logger, $this->debug));
+            $this->router->load(new LogMiddleware($this->logger));
         }
         // Load routes.
         $routes = array_merge($config['routes']['dashboard'], $config['routes']['frontend']);
@@ -68,6 +74,7 @@ class App
     /**
      * Run the application.
      * @param ServerRequestInterface $request
+     * @throws Exception
      */
     public function run(ServerRequestInterface $request): void
     {
@@ -75,12 +82,12 @@ class App
             $response = $this->router->handle($this->addParsedBody($request));
         } catch (Exception $e) {
             $message = $this->env === 'production' ? 'Internal Server Error' : $e->getMessage();
-            $response = $this->responder->error(ResponseFactory::INTERNAL_SERVER_ERROR, [$message]);
+            $response = $this->responder->error(ResponseFactory::INTERNAL_SERVER_ERROR, $message, (array)$e);
             $this->emit($response);
             throw $e;
         } catch (Error $e) {
             $message = $this->env === 'production' ? 'Internal Server Error' : $e->getMessage();
-            $response = $this->responder->error(ResponseFactory::INTERNAL_SERVER_ERROR, [$message]);
+            $response = $this->responder->error(ResponseFactory::INTERNAL_SERVER_ERROR, $message, (array)$e);
             $this->emit($response);
             throw $e;
         }
@@ -171,6 +178,6 @@ class App
     private function parseURLBody(string $body): ?object
     {
         parse_str($body, $input);
-        return (object) $input;
+        return (object)$input;
     }
 }

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controller;
 
-use App\RequestUtils;
-use App\ResponseFactory;
-use App\Entity\User;
 use App\Domain\User\UserService;
 use App\Domain\Validation\ValidationService;
+use App\Entity\User;
 use App\Http\Controller\Base\ControllerTrait;
 use App\Http\Responder\ResponderInterface;
+use App\RequestUtils;
+use App\ResponseFactory;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -55,13 +55,13 @@ class UserController
         // Validate id.
         $err = (new ValidationService)->validateObjectId($id);
         if ($err !== []) {
-            return $this->responder->error(ResponseFactory::BAD_REQUEST, ['Wrong user id.']);
+            return $this->responder->error(ResponseFactory::BAD_REQUEST, 'Wrong user id.');
         }
         // Find a user.
         $params = $this->getQueryParams($request);
         $user = $this->userService->findByID($id, $params['include'] ?? []);
         if ($user === null) {
-            return $this->responder->error(ResponseFactory::NOT_FOUND, ['User not found.']);
+            return $this->responder->error(ResponseFactory::NOT_FOUND, 'User not found.');
         }
         return $this->responder->success($user);
     }
@@ -77,7 +77,7 @@ class UserController
         // Get data from request.
         $data = $request->getParsedBody();
         if (empty($data)) {
-            return $this->responder->error(ResponseFactory::BAD_REQUEST, ['Empty body.']);
+            return $this->responder->error(ResponseFactory::BAD_REQUEST, 'Empty body.');
         }
 
         // Validate data.
@@ -89,7 +89,7 @@ class UserController
             'phone' => ['string:1:32'],
         ]);
         if ($errors !== []) {
-            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, $errors);
+            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, 'Unprocessable entity.', $errors);
         }
 
         // Prepare user Entity.
@@ -99,7 +99,7 @@ class UserController
         // Create user.
         $user = $this->userService->create($user);
         if ($user === null) {
-            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, ['Error during saving a record.']);
+            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, 'Error during saving a record.');
         }
 
         return $this->responder->success($user, 1);

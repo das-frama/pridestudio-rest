@@ -4,11 +4,21 @@ declare(strict_types=1);
 
 namespace App\Http\Router;
 
-class PathTree implements \JsonSerializable
-{
-    private $tree;
+use JsonSerializable;
 
-    public function __construct($tree = null)
+/**
+ * Class PathTree
+ * @package App\Http\Router
+ */
+class PathTree implements JsonSerializable
+{
+    private object $tree;
+
+    /**
+     * PathTree constructor.
+     * @param object|null $tree
+     */
+    public function __construct(object $tree = null)
     {
         if ($tree === null) {
             $tree = $this->newTree();
@@ -18,7 +28,7 @@ class PathTree implements \JsonSerializable
 
     public function newTree(): object
     {
-        return (object) ['values' => [], 'branches' => (object) []];
+        return (object)['values' => [], 'branches' => (object)[]];
     }
 
     public function put(array $path, $value): void

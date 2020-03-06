@@ -6,10 +6,18 @@ namespace App\Domain\User;
 
 use App\Entity\User;
 
+/**
+ * Class UserService
+ * @package App\Domain\User
+ */
 class UserService
 {
     private UserRepositoryInterface $userRepo;
 
+    /**
+     * UserService constructor.
+     * @param UserRepositoryInterface $userRepo
+     */
     public function __construct(UserRepositoryInterface $userRepo)
     {
         $this->userRepo = $userRepo;
@@ -23,7 +31,8 @@ class UserService
      */
     public function findByID(string $id, array $include = []): ?User
     {
-        return $this->userRepo->findOne(['id' => $id], $include);
+        $user = $this->userRepo->findOne(['id' => $id], $include);
+        return $user instanceof User ? $user : null;
     }
 
     /**
@@ -34,7 +43,8 @@ class UserService
      */
     public function findByEmail(string $email, array $include = []): ?User
     {
-        return $this->userRepo->findOne(['email' => $email], $include);
+        $user = $this->userRepo->findOne(['email' => $email], $include);
+        return $user instanceof User ? $user : null;
     }
 
     /**
@@ -45,7 +55,7 @@ class UserService
      */
     public function findAll(array $filter = [], array $include = []): array
     {
-        return $this->userRepo->findAll($filter, $include);
+        return $this->userRepo->findAll($filter, 0, 0, [], $include);
     }
 
     /**

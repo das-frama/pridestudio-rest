@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\Storage\MongoDB;
 
-use App\Entity\Client;
 use App\Domain\Client\ClientRepositoryInterface;
+use App\Entity\Client;
 use App\Storage\MongoDB\Base\AbstractRepository;
 use MongoDB\Client as MongoDBClient;
 
+/**
+ * Class ClientRepository
+ * @package App\Storage\MongoDB
+ */
 class ClientRepository extends AbstractRepository implements ClientRepositoryInterface
 {
     /**

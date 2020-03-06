@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controller\Frontend;
 
-use App\ResponseFactory;
-use App\RequestUtils;
 use App\Domain\Booking\BookingDocument;
 use App\Domain\Calendar\CalendarService;
-use App\Domain\Setting\SettingService;
 use App\Domain\Hall\HallService;
+use App\Domain\Setting\SettingService;
 use App\Http\Controller\Base\ControllerTrait;
 use App\Http\Responder\ResponderInterface;
+use App\RequestUtils;
+use App\ResponseFactory;
+use Exception;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -24,12 +25,20 @@ class BookingController
     private CalendarService $calendarService;
     private ResponderInterface $responder;
 
+    /**
+     * BookingController constructor.
+     * @param SettingService $settingService
+     * @param HallService $hallService
+     * @param CalendarService $calendarService
+     * @param ResponderInterface $responder
+     */
     public function __construct(
         SettingService $settingService,
         HallService $hallService,
         CalendarService $calendarService,
         ResponderInterface $responder
-    ) {
+    )
+    {
         $this->settingService = $settingService;
         $this->hallService = $hallService;
         $this->calendarService = $calendarService;
@@ -42,6 +51,7 @@ class BookingController
      * @method GET
      * @param ServerRequestInterface $request
      * @return ResponseInterface
+     * @throws Exception
      */
     public function index(ServerRequestInterface $request): ResponseInterface
     {
@@ -53,7 +63,7 @@ class BookingController
         // Find hall.
         $hall = $this->hallService->findBySlug($hallSlug, ['id', 'name', 'slug', 'preview_image']);
         if ($hall === null) {
-            return $this->responder->error(ResponseFactory::NOT_FOUND, ['Hall not found.']);
+            return $this->responder->error(ResponseFactory::NOT_FOUND, 'Hall not found.');
         }
 
         // Form document.
@@ -72,6 +82,7 @@ class BookingController
      * @method GET
      * @param ServerRequestInterface $request
      * @return ResponseInterface
+     * @throws Exception
      */
     public function hall(ServerRequestInterface $request): ResponseInterface
     {
@@ -79,7 +90,7 @@ class BookingController
         $hallSlug = RequestUtils::getPathSegment($request, 3);
         $hall = $this->hallService->findBySlug($hallSlug, ['id', 'name', 'slug', 'preview_image']);
         if ($hall === null) {
-            return $this->responder->error(ResponseFactory::NOT_FOUND, ['Hall not found.']);
+            return $this->responder->error(ResponseFactory::NOT_FOUND, 'Hall not found.');
         }
 
         // Find settings.

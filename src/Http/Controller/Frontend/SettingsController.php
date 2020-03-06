@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controller\Frontend;
 
-use App\RequestUtils;
-use App\ResponseFactory;
 use App\Domain\Setting\SettingService;
 use App\Http\Controller\Base\ControllerTrait;
 use App\Http\Responder\ResponderInterface;
+use App\RequestUtils;
+use App\ResponseFactory;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -24,7 +24,8 @@ class SettingsController
 
     /**
      * SettingsController constructor.
-     * @param SettingService $service
+     * @param SettingService $settingService
+     * @param ResponderInterface $responder
      */
     public function __construct(SettingService $settingService, ResponderInterface $responder)
     {
@@ -70,9 +71,9 @@ class SettingsController
         $params = $this->getQueryParams($request);
         $setting = $this->settingService->findByKey($key, $params['include'] ?? []);
         if ($setting === null) {
-            return $this->responder->error(ResponseFactory::NOT_FOUND, ['Setting not found.']);
+            return $this->responder->error(ResponseFactory::NOT_FOUND, 'Setting not found.');
         }
         return $this->responder->success($setting);
     }
 }
-        // Return errors if validation fails.
+

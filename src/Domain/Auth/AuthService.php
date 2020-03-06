@@ -6,30 +6,39 @@ namespace App\Domain\Auth;
 
 use App\Domain\User\UserRepositoryInterface;
 use App\Entity\User;
-use Firebase\JWT\JWT;
 use Exception;
+use Firebase\JWT\JWT;
 
+/**
+ * Class AuthService
+ * @package App\Domain\Auth
+ */
 class AuthService
 {
     private UserRepositoryInterface $userRepo;
 
-    /** @var string */
-    private $jwtSecret;
+    private string $jwtSecret;
 
-    private $jwtAllowedAlgs = ['HS256', 'HS384', 'HS512'];
+    private array $jwtAllowedAlgs = ['HS256', 'HS384', 'HS512'];
 
+    /**
+     * AuthService constructor.
+     * @param UserRepositoryInterface $userRepo
+     * @param string $jwtSecret
+     */
     public function __construct(UserRepositoryInterface $userRepo, string $jwtSecret)
     {
         $this->userRepo = $userRepo;
         $this->jwtSecret = $jwtSecret;
     }
-    
+
     /**
      * Login user.
      * @param string $username
      * @param string $password
      * @param int $expiresAt
      * @return array
+     * @throws Exception
      */
     public function login(string $username, string $password, int $expiresAt): array
     {
@@ -59,21 +68,22 @@ class AuthService
     public function getUserByJWT(string $jwt): ?User
     {
         try {
-            $claims = (array) JWT::decode($jwt, $this->jwtSecret, $this->jwtAllowedAlgs);
+            $claims = (array)JWT::decode($jwt, $this->jwtSecret, $this->jwtAllowedAlgs);
         } catch (Exception $e) {
             return null;
         }
         if (empty($claims['sub'])) {
             return null;
         }
-
-        return $this->userRepo->findOne(['id' => $claims['sub']], ['id', 'email', 'name']);
+        $user = $this->userRepo->findOne(['id' => $claims['sub']], ['id', 'email', 'name']);
+        return $user instanceof User ? $user : null;
     }
 
     /**
      * Generate CSRF token from length.
      * @param int $len
      * @return string
+     * @throws Exception
      */
     public function generateCSRF(int $len): string
     {

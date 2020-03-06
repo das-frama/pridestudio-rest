@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Storage\MongoDB;
 
+use App\Domain\Service\ServiceRepositoryInterface;
 use App\Entity\Service;
 use App\Entity\ServiceChild;
-use App\Domain\Service\ServiceRepositoryInterface;
 use App\Storage\MongoDB\Base\AbstractRepository;
 use MongoDB\Client;
 

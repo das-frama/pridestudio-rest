@@ -8,5 +8,5 @@ use App\Domain\CommonRepositoryInterface;
 
 interface CouponRepositoryInterface extends CommonRepositoryInterface
 {
-    
+
 }

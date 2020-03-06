@@ -14,6 +14,10 @@ class InitCommand
 {
     private SystemService $systemService;
 
+    /**
+     * InitCommand constructor.
+     * @param SystemService $systemService
+     */
     public function __construct(SystemService $systemService)
     {
         $this->systemService = $systemService;

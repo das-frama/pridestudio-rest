@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controller\base;
+namespace App\Http\Controller\Base;
 
 use App\Domain\Validation\ValidationService;
 use Psr\Http\Message\ServerRequestInterface;
@@ -20,7 +20,7 @@ trait ControllerTrait
                 return explode(',', $str);
             }
             if (is_numeric($str)) {
-                return (int) $str;
+                return (int)$str;
             }
             return $str;
         }, $params);
@@ -33,14 +33,15 @@ trait ControllerTrait
         if (isset($arr['expand']) && !is_array($arr['expand'])) {
             $arr['expand'] = [$arr['expand']];
         }
-        
+
         return $arr;
     }
 
     /**
      * Validate incoming request body.
-     * @param array $body
-     * @return array
+     * @param ServerRequestInterface $request
+     * @param array $rules
+     * @return ValidationService|null
      */
     private function validate(ServerRequestInterface $request, array $rules): ?ValidationService
     {
@@ -49,8 +50,8 @@ trait ControllerTrait
             return null;
         }
 
-        $service = new ValidationService($data, $rules);
-        $service->validate($rules);
+        $service = new ValidationService();
+        $service->validate($data, $rules);
 
         return $service;
     }

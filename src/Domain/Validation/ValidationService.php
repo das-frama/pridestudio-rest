@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Domain\Validation;
 
-use Mongodb\BSON\ObjectId;
 use Exception;
+use Mongodb\BSON\ObjectId;
 
 class ValidationService
 {
@@ -100,7 +100,7 @@ class ValidationService
         }
         return [];
     }
-    
+
     public function validateRequired($value): array
     {
         $errors = [];

@@ -46,7 +46,7 @@ class ResponseFactory
         $stream->rewind();
         $response = $response->withBody($stream);
         $response = $response->withHeader('Content-Type', $file->mimeType);
-        $response = $response->withHeader('Content-Length', (string) filesize($file->path));
+        $response = $response->withHeader('Content-Length', (string)filesize($file->path));
         return $response;
     }
 

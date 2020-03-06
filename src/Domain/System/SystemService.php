@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace App\Domain\System;
 
-use App\Entity\Setting;
-use App\Entity\Coupon;
 use App\Domain\Hall\HallRepositoryInterface;
 use App\Domain\Record\CouponRepositoryInterface;
 use App\Domain\Setting\SettingRepositoryInterface;
+use App\Entity\Setting;
 
 /**
  * SystemService class
@@ -19,11 +18,18 @@ class SystemService
     private CouponRepositoryInterface $couponsRepo;
     private SettingRepositoryInterface $settingsRepo;
 
+    /**
+     * SystemService constructor.
+     * @param HallRepositoryInterface $hallsRepo
+     * @param CouponRepositoryInterface $couponsRepo
+     * @param SettingRepositoryInterface $settingsRepo
+     */
     public function __construct(
         HallRepositoryInterface $hallsRepo,
         CouponRepositoryInterface $couponsRepo,
         SettingRepositoryInterface $settingsRepo
-    ) {
+    )
+    {
         $this->hallsRepo = $hallsRepo;
         $this->couponsRepo = $couponsRepo;
         $this->settingsRepo = $settingsRepo;

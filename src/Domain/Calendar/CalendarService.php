@@ -7,22 +7,29 @@ namespace App\Domain\Calendar;
 use App\Domain\Record\RecordRepositoryInterface;
 use App\Domain\Setting\SettingRepositoryInterface;
 use App\Entity\Reservation;
-use MongoDB\BSON\ObjectId;
 use DateTimeImmutable;
+use Exception;
+use MongoDB\BSON\ObjectId;
 
 /**
  * Class CalendarService
- * @package App\Domain\calendar
+ * @package App\Domain\Calendar
  */
 class CalendarService
 {
     private SettingRepositoryInterface $settingsRepo;
     private RecordRepositoryInterface $recordsRepo;
 
+    /**
+     * CalendarService constructor.
+     * @param RecordRepositoryInterface $recordsRepo
+     * @param SettingRepositoryInterface $settingsRepo
+     */
     public function __construct(
         RecordRepositoryInterface $recordsRepo,
         SettingRepositoryInterface $settingsRepo
-    ) {
+    )
+    {
         $this->recordsRepo = $recordsRepo;
         $this->settingsRepo = $settingsRepo;
     }
@@ -33,7 +40,7 @@ class CalendarService
      */
     public function currentMonth(): int
     {
-        return (int) date('n');
+        return (int)date('n');
     }
 
     /**
@@ -41,14 +48,15 @@ class CalendarService
      * @param int $year default current year
      * @param int $week default current weak
      * @return CalendarDocument
+     * @throws Exception
      */
     public function weekdays(string $hallID, int $year = null, int $week = null): CalendarDocument
     {
         if ($year === null) {
-            $year = (int) date('o');
+            $year = (int)date('o');
         }
         if ($week === null) {
-            $week = (int) date('W');
+            $week = (int)date('W');
         }
         $year = abs($year);
         $week = abs($week);
@@ -65,7 +73,7 @@ class CalendarService
             $str = sprintf("%04dW%02d%d", $year, $week, $day);
             $time = strtotime($str);
             if ($time === false) {
-                throw new \Exception("Unpredicted week number {$week}", 1);
+                throw new Exception("Unpredicted week number {$week}", 1);
             }
             $dates[] = date('Y-m-d', $time);
         }
@@ -73,8 +81,8 @@ class CalendarService
         $firstDate = new DateTimeImmutable($dates[0]);
         $lastDate = (new DateTimeImmutable($dates[6]))->setTime(23, 59, 59);
         $document = new CalendarDocument;
-        $document->year = (int) $lastDate->format('o');
-        $document->week = (int) $lastDate->format('W');
+        $document->year = (int)$lastDate->format('o');
+        $document->week = (int)$lastDate->format('W');
         $document->dates = $dates;
         $document->reservations = $this->findReservations(
             $hallID,
@@ -93,7 +101,7 @@ class CalendarService
     private function findLimitations(array $dates): array
     {
         $setting = $this->settingsRepo->findOne(['key' => 'calendar_max_booking_range']);
-        $deltaMonth = $setting === null ? 1 : (int) $setting->value;
+        $deltaMonth = $setting === null ? 1 : (int)$setting->value;
 
         $minutes = date('i');
         $nextHourDate = (new DateTimeImmutable())
@@ -129,7 +137,7 @@ class CalendarService
 
     /**
      * Find reservations in hall between startAt and endAt.
-     * @param string $startAt
+     * @param string $hallID
      * @param int $startAt
      * @param int $endAt
      * @return Reservation[]

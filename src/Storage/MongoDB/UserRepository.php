@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Storage\MongoDB;
 
-use App\Entity\User;
 use App\Domain\User\UserRepositoryInterface;
+use App\Entity\User;
 use App\Storage\MongoDB\Base\AbstractRepository;
 use MongoDB\Client;
 

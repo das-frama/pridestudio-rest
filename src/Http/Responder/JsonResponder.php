@@ -9,12 +9,11 @@ use Psr\Http\Message\ResponseInterface;
 
 class JsonResponder implements ResponderInterface
 {
-    public function error(int $status, array $errors): ResponseInterface
+    public function error(int $status, string $message, array $errors = []): ResponseInterface
     {
         return ResponseFactory::fromObject($status, [
-            'data' => [],
-            'count' => 0,
-            'errors' => $errors
+            'message' => $message,
+            'errors' => $errors,
         ]);
     }
 
@@ -26,7 +25,6 @@ class JsonResponder implements ResponderInterface
         return ResponseFactory::fromObject($status, [
             'data' => $result,
             'count' => $count,
-            'errors' => []
         ]);
     }
 }

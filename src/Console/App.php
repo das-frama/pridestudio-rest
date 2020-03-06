@@ -7,6 +7,10 @@ namespace App\Console;
 use Dice\Dice;
 use RecursiveDirectoryIterator;
 
+/**
+ * Class App
+ * @package App\Console
+ */
 class App
 {
     const COMMAND_PATH = 'App\Console\Command';
@@ -17,6 +21,10 @@ class App
 
     private Dice $dice;
 
+    /**
+     * App constructor.
+     * @param array $config
+     */
     public function __construct(array $config)
     {
         // DI.
