@@ -9,7 +9,7 @@ use Psr\Http\Message\ServerRequestInterface;
 
 trait ControllerTrait
 {
-    private function getQueryParams(ServerRequestInterface $request): array
+    protected function getQueryParams(ServerRequestInterface $request): array
     {
         $params = $request->getQueryParams();
         $arr = array_map(function (string $str) {
@@ -43,7 +43,7 @@ trait ControllerTrait
      * @param array $rules
      * @return ValidationService|null
      */
-    private function validate(ServerRequestInterface $request, array $rules): ?ValidationService
+    protected function validate(ServerRequestInterface $request, array $rules): ?ValidationService
     {
         $data = $request->getParsedBody();
         if (empty($data)) {

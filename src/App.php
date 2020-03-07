@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App;
 
+use App\Exception\ValidationException;
 use App\Http\Middleware\CorsMiddleware;
 use App\Http\Middleware\LogMiddleware;
 use App\Http\Responder\ResponderInterface;
@@ -80,6 +81,10 @@ class App
     {
         try {
             $response = $this->router->handle($this->addParsedBody($request));
+            $this->emit($response);
+        } catch (ValidationException $e) {
+            $response = $this->responder->error($e->getCode(), $e->getMessage(), $e->getErrors());
+            $this->emit($response);
         } catch (Exception $e) {
             $message = $this->env === 'production' ? 'Internal Server Error' : $e->getMessage();
             $response = $this->responder->error(ResponseFactory::INTERNAL_SERVER_ERROR, $message, (array)$e);
@@ -91,31 +96,6 @@ class App
             $this->emit($response);
             throw $e;
         }
-
-        $this->emit($response);
-    }
-
-    /**
-     * Print response object with headers.
-     * @param ResponseInterface $response
-     */
-    public function emit(ResponseInterface $response): void
-    {
-        // Emit headers iteratively:
-        foreach ($response->getHeaders() as $name => $values) {
-            foreach ($values as $value) {
-                header(sprintf('%s: %s', $name, $value), false);
-            }
-        }
-
-        header(sprintf(
-            'HTTP/%s %d %s',
-            $response->getProtocolVersion(),
-            $response->getStatusCode(),
-            $response->getReasonPhrase()
-        ), true);
-
-        echo $response->getBody();
     }
 
     /**
@@ -179,5 +159,28 @@ class App
     {
         parse_str($body, $input);
         return (object)$input;
+    }
+
+    /**
+     * Print response object with headers.
+     * @param ResponseInterface $response
+     */
+    public function emit(ResponseInterface $response): void
+    {
+        // Emit headers iteratively:
+        foreach ($response->getHeaders() as $name => $values) {
+            foreach ($values as $value) {
+                header(sprintf('%s: %s', $name, $value), false);
+            }
+        }
+
+        header(sprintf(
+            'HTTP/%s %d %s',
+            $response->getProtocolVersion(),
+            $response->getStatusCode(),
+            $response->getReasonPhrase()
+        ), true);
+
+        echo $response->getBody();
     }
 }

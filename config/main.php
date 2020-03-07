@@ -8,7 +8,7 @@ return [
     'logger' => [
         'name' => 'app',
         'path' => APP_DIR . '/storage/logs/app.log',
-        'level' => Logger::DEBUG,
+        'level' => Logger::WARNING,
     ],
     'routes' => [
         'dashboard' => require __DIR__ . '/../routes/dashboard.php',

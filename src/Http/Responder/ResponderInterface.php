@@ -8,7 +8,19 @@ use Psr\Http\Message\ResponseInterface;
 
 interface ResponderInterface
 {
+    /**
+     * @param int $status
+     * @param string $message
+     * @param array $errors
+     * @return ResponseInterface
+     */
     public function error(int $status, string $message, array $errors = []): ResponseInterface;
 
-    public function success($result, int $count = 1, int $status = 200): ResponseInterface;
+    /**
+     * @param $data
+     * @param int $count
+     * @param int $status
+     * @return ResponseInterface
+     */
+    public function success($data, int $count = 1, int $status = 200): ResponseInterface;
 }

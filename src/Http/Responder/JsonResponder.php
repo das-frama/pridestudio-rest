@@ -12,18 +12,20 @@ class JsonResponder implements ResponderInterface
     public function error(int $status, string $message, array $errors = []): ResponseInterface
     {
         return ResponseFactory::fromObject($status, [
+            'status' => $status,
             'message' => $message,
             'errors' => $errors,
         ]);
     }
 
-    public function success($result, int $count = null, int $status = 200): ResponseInterface
+    public function success($data, int $count = null, int $status = 200): ResponseInterface
     {
         if ($count === null) {
-            $count = is_array($result) ? count($result) : 1;
+            $count = is_array($data) ? count($data) : 1;
         }
         return ResponseFactory::fromObject($status, [
-            'data' => $result,
+            'status' => $status,
+            'data' => $data,
             'count' => $count,
         ]);
     }

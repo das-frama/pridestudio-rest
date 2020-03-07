@@ -34,30 +34,22 @@ class AuthService
 
     /**
      * Login user.
-     * @param string $username
+     * @param string $email
      * @param string $password
-     * @param int $expiresAt
-     * @return array
+     * @return User|null
      * @throws Exception
      */
-    public function login(string $username, string $password, int $expiresAt): array
+    public function login(string $email, string $password): ?User
     {
-        $user = $this->userRepo->findOne(['email' => $username]);
-        if ($user === null) {
-            return [];
+        // Find user.
+        $user = $this->userRepo->findOne(['email' => $email]);
+        if (!($user instanceof User)) {
+            return null;
         }
-        if ($user instanceof User) {
-            if (!$user->verifyPassword($password)) {
-                return [];
-            }
+        if (!$user->verifyPassword($password)) {
+            return null;
         }
-
-        // Generate csrf token.
-        $csrf = $this->generateCSRF(8);
-        return [
-            $csrf,
-            $this->generateJWT($user->id, $this->jwtSecret, $expiresAt, $csrf),
-        ];
+        return $user;
     }
 
     /**
@@ -91,21 +83,30 @@ class AuthService
     }
 
     /**
+     * Get JWT.
+     * @param User $user
+     * @param int $expiresIn
+     * @return string
+     */
+    public function getToken(User $user, int $expiresIn): string
+    {
+        return $this->generateJWT($user->id, $this->jwtSecret, $expiresIn);
+    }
+
+    /**
      * Generate JWT.
      * @param string $sub
      * @param string $secret
-     * @param int $duration
-     * @param string $csrf token
+     * @param int $expiresIn
      * @return string
      */
-    private function generateJWT(string $sub, string $secret, int $duration, string $csrf): string
+    private function generateJWT(string $sub, string $secret, int $expiresIn): string
     {
         $time = time();
         $token = [
             'iat' => $time,
-            'exp' => $time + $duration,
+            'exp' => $time + $expiresIn,
             'sub' => $sub,
-            'csrf' => $csrf,
         ];
 
         return JWT::encode($token, $secret, 'HS256');

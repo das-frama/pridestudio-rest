@@ -22,34 +22,34 @@ abstract class AbstractEntity implements Persistable, JsonSerializable
     protected array $public = [];
     protected bool $unserialized = false;
 
-    public function __construct()
-    {
-        // Set default values by it's type for each property.
-        $reflectionProperties = (new ReflectionClass(static::class))->getProperties(ReflectionProperty::IS_PUBLIC);
-        foreach ($reflectionProperties as $reflectionProperty) {
-            $name = $reflectionProperty->getName();
-            $type = $reflectionProperty->getType()->getName();
-            switch ($type) {
-                case 'string':
-                    $this->{$name} = '';
-                    break;
-                case 'int':
-                    $this->{$name} = 0;
-                    break;
-                case 'float':
-                    $this->{$name} = 0.0;
-                    break;
-                case 'boolean':
-                    $this->{$name} = false;
-                    break;
-                case 'array':
-                    $this->{$name} = [];
-                    break;
-                default:
-                    $this->{$name} = null;
-            }
-        }
-    }
+//    public function __construct()
+//    {
+//        // Set default values by it's type for each property.
+//        $reflectionProperties = (new ReflectionClass(static::class))->getProperties(ReflectionProperty::IS_PUBLIC);
+//        foreach ($reflectionProperties as $reflectionProperty) {
+//            $name = $reflectionProperty->getName();
+//            $type = $reflectionProperty->getType()->getName();
+//            switch ($type) {
+//                case 'string':
+//                    $this->{$name} = '';
+//                    break;
+//                case 'int':
+//                    $this->{$name} = 0;
+//                    break;
+//                case 'float':
+//                    $this->{$name} = 0.0;
+//                    break;
+//                case 'boolean':
+//                    $this->{$name} = false;
+//                    break;
+//                case 'array':
+//                    $this->{$name} = [];
+//                    break;
+//                default:
+//                    $this->{$name} = null;
+//            }
+//        }
+//    }
 
     /**
      * Load array of data to the Entity.
@@ -91,7 +91,9 @@ abstract class AbstractEntity implements Persistable, JsonSerializable
             $isInclude = empty($this->include) || in_array($name, $this->include);
             $isPublic = empty($this->public) || in_array($name, $this->public);
             if ($isInclude && $isPublic) {
-                $properties[$name] = $reflectionProperty->getValue($this);
+                if ($reflectionProperty->isInitialized($this)) {
+                    $properties[$name] = $reflectionProperty->getValue($this);
+                }
             }
         }
         // Display expand properties.
@@ -140,6 +142,19 @@ abstract class AbstractEntity implements Persistable, JsonSerializable
     }
 
     /**
+     * Get all public properties of class.
+     * @return array
+     */
+    public static function publicProperties(): array
+    {
+        // Get all public properties.
+        $reflectionProperties = (new ReflectionClass(static::class))->getProperties(ReflectionProperty::IS_PUBLIC);
+        return array_map(function (ReflectionProperty $reflectionProperty) {
+            return $reflectionProperty->getName();
+        }, $reflectionProperties);
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function bsonUnserialize(array $data): void
@@ -180,18 +195,5 @@ abstract class AbstractEntity implements Persistable, JsonSerializable
         }
 
         return $value;
-    }
-
-    /**
-     * Get all public properties of class.
-     * @return array
-     */
-    public static function publicProperties(): array
-    {
-        // Get all public properties.
-        $reflectionProperties = (new ReflectionClass(static::class))->getProperties(ReflectionProperty::IS_PUBLIC);
-        return array_map(function (ReflectionProperty $reflectionProperty) {
-            return $reflectionProperty->getName();
-        }, $reflectionProperties);
     }
 }

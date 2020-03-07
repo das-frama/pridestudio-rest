@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace App\Entity;
@@ -8,8 +7,6 @@ use App\Storage\MongoDB\Base\AbstractEntity;
 
 class User extends AbstractEntity
 {
-    protected array $public = ['id', 'email', 'name', 'phone', 'role', 'is_active', 'created_at', 'updated_at', 'created_by', 'updated_by'];
-
     public string $id;
     public string $email;
     public string $name;
@@ -19,8 +16,20 @@ class User extends AbstractEntity
     public bool $is_active;
     public int $created_at;
     public int $updated_at;
-    public int $created_by;
+    public string $created_by;
     public string $updated_by;
+    protected array $public = [
+        'id',
+        'email',
+        'name',
+        'phone',
+        'role',
+        'is_active',
+        'created_at',
+        'updated_at',
+        'created_by',
+        'updated_by'
+    ];
 
     /**
      * {@inheritDoc}

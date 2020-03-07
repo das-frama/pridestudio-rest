@@ -102,16 +102,21 @@ class Router implements RouterInterface
             }
         }
 
-        // Proccess route's controller.
+        // Process route's controller.
         try {
             list($class, $method) = $this->routeHandlers[$routeNumbers[0]];
-            $controller = $this->dice->create($class);
-            $response = call_user_func([$controller, $method], $request);
+            $dice = $this->dice->addRule($class, [
+                'call' => [
+                    [$method, [$request], Dice::CHAIN_CALL],
+                ],
+            ]);
+            /** @var ResponseInterface $response */
+            $response = $dice->create($class);
+//            $response = call_user_func([$controller, $method], $request);
+            return $response;
         } catch (\MongoDB\Exception\RuntimeException $e) {
             throw new RuntimeException($e->getMessage(), $e->getCode());
         }
-
-        return $response;
     }
 
     private function removeBasePath(ServerRequestInterface $request): ServerRequestInterface

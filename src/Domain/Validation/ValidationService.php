@@ -9,21 +9,6 @@ use Mongodb\BSON\ObjectId;
 
 class ValidationService
 {
-    const VALIDATION_REQUIRED = "Поле обязательно к заполению.";
-    const VALIDATION_ENUM = "Значение '%s' не присутствует в списке допустимых значений.";
-    const VALIDATION_EMAIL = "Значение '%s' должно быть правильным email адресом.";
-    const VALIDATION_STRING = "Поле '%s' должно быть строкой.";
-    const VALIDATION_STRING_MIN = "Минимальная допустимая длина строки должна быть не меньше %d символов.";
-    const VALIDATION_STRING_MAX = "Максимальная допустимая длина строки должна быть не больше %d символов.";
-    const VALIDATION_BOOL = "Значение '%s' не является булевым типом.";
-    const VALIDATION_INT = "Значение '%s' не является числом.";
-    const VALIDATION_INT_MIN = "Минимальная допустимая длина значения должна быть не меньше %d.";
-    const VALIDATION_INT_MAX = "Максимальная допустимая длина значения должна быть не больше %d.";
-    const VALIDATION_ARRAY = "Значение не является массивом.";
-    const VALIDATION_ARRAY_MIN = "Минимальная допустимая длина массива должна быть не меньше %d элементов.";
-    const VALIDATION_ARRAY_MAX = "Максимальная допустимая длина массива должна быть не больше %d элементов.";
-    const VALIDATION_MONGO_ID = "Некорректный id.";
-
     /**
      * Validate an object against rules.
      * @param array $data
@@ -38,6 +23,7 @@ class ValidationService
                 $err = $this->validateRule($property, $data, $r);
                 if ($err !== []) {
                     $errors[$property] = $err;
+                    continue 2;
                 }
             }
         }
@@ -101,10 +87,15 @@ class ValidationService
         return [];
     }
 
+    private function toCamelCase(string $string): string
+    {
+        return str_replace(' ', '', ucwords(str_replace('_', ' ', $string)));
+    }
+
     public function validateRequired($value): array
     {
         $errors = [];
-        if ($value === null) {
+        if (empty($value)) {
             $errors[] = 'Поле является обязательным.';
         }
         return $errors;
@@ -115,7 +106,7 @@ class ValidationService
         $errors = [];
         $value = filter_var($value, FILTER_SANITIZE_STRING);
         if (!$value) {
-            $errors[] = 'Поле должно быть строкой.';
+            return ['Поле должно быть строкой.'];
         }
         $len = mb_strlen($value);
         if ($min !== 0 && $len < $min) {
@@ -215,10 +206,5 @@ class ValidationService
             $errors[] = 'Значение должно быть одним из: ' . $enums . '.';
         }
         return $errors;
-    }
-
-    private function toCamelCase(string $string): string
-    {
-        return str_replace(' ', '', ucwords(str_replace('_', ' ', $string)));
     }
 }

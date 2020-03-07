@@ -32,7 +32,6 @@ return [
         'constructParams' => [getenv('JWT_SECRET')],
         'shared' => true,
     ],
-
     'App\Domain\Record\RecordRepositoryInterface' => [
         'instanceOf' => 'App\Storage\MongoDB\RecordRepository',
         'shared' => true
