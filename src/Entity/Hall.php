@@ -28,6 +28,18 @@ class Hall extends AbstractEntity
     public ?string $created_by;
     public ?string $updated_by;
 
+    protected array $fillable = [
+        'name',
+        'slug',
+        'description',
+        'preview_image',
+        'base_price',
+        'services',
+        'prices',
+        'sort',
+        'is_active',
+    ];
+
     /**
      * {@inheritDoc}
      */

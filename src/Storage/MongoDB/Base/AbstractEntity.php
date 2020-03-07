@@ -17,6 +17,7 @@ use ReflectionProperty;
  */
 abstract class AbstractEntity implements Persistable, JsonSerializable
 {
+    protected array $fillable = [];
     protected array $include = [];
     protected array $expand = [];
     protected array $public = [];
@@ -60,6 +61,9 @@ abstract class AbstractEntity implements Persistable, JsonSerializable
      */
     public function load(array $data, array $safe = []): void
     {
+        if ($safe === []) {
+            $safe = $this->fillable;
+        }
         foreach ($data as $key => $value) {
             $isSafe = empty($safe) || in_array($key, $safe);
             if (property_exists($this, $key) && $isSafe) {

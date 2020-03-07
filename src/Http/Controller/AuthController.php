@@ -23,19 +23,15 @@ class AuthController extends AbstractController
      * POST /auth/login
      * @method POST
      * @param AuthService $service
-     * @param LoginValidationRequest $validationRequest
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      * @throws Exception
      */
-    public function login(
-        AuthService $service,
-        LoginValidationRequest $validationRequest,
-        ServerRequestInterface $request
-    ): ResponseInterface {
+    public function login(AuthService $service, ServerRequestInterface $request): ResponseInterface
+    {
         // Get body from request.
-        $data = $request->getParsedBody();
-        $this->validateRequestData($data, $validationRequest);
+        $data = $this->validateRequest($request, new LoginValidationRequest());
+
         // Login.
         $user = $service->login($data['email'], $data['password']);
         if ($user === null) {
@@ -53,7 +49,7 @@ class AuthController extends AbstractController
 
     /**
      * Get authenticated user.
-     * GET /me
+     * GET /auth/me
      * @method GET
      * @param ServerRequestInterface $request
      * @return ResponseInterface

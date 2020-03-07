@@ -6,6 +6,7 @@ namespace App\Domain\Hall;
 
 use App\Entity\Hall;
 use App\Entity\Service;
+use App\Model\Pagination;
 
 class HallService
 {
@@ -70,6 +71,32 @@ class HallService
     }
 
     /**
+     * Get all halls with pagination
+     * @param Pagination $pagination
+     * @param array $filter
+     * @return Hall[]
+     */
+    public function findAll(Pagination $pagination = null, array $filter = []): array
+    {
+        // Sort.
+        $sort = [];
+        if ($pagination->orderBy !== "") {
+            $sort[$pagination->orderBy] = $pagination->ascending === 0 ? -1 : 1;
+        }
+        // Skip.
+        $skip = 0;
+        if ($pagination->page > 0) {
+            $skip = $pagination->limit * ($pagination->page - 1);
+        }
+        // Query.
+        if ($pagination->query !== "") {
+            $filter['name'] = '%' . $pagination->query . '%';
+            return $this->hallRepo->search($filter, $pagination->limit, $skip, $sort);
+        }
+        return $this->hallRepo->findAll($filter, $pagination->limit, $skip, $sort);
+    }
+
+    /**
      * Get an ID of hall by slug.
      * @param string $slug
      * @return string|null
@@ -85,41 +112,6 @@ class HallService
             return null;
         }
         return $hall->id;
-    }
-
-    /**
-     * Get all halls.
-     * @param array $params (skip, limit, page, query)
-     * @param bool $onlyActive
-     * @param array $include
-     * @return Hall[]
-     */
-    public function findAll(array $params = [], $onlyActive = false, array $include = []): array
-    {
-        $page = intval($params['page'] ?? 0);
-        $limit = intval($params['limit'] ?? 0);
-        // Sort.
-        $sort = [];
-        if (isset($params['orderBy'])) {
-            $sort[$params['orderBy']] = $params['ascending'] == 0 ? -1 : 1;
-        } else {
-            $sort['sort'] = 1;
-        }
-        // Skip.
-        $skip = 0;
-        if ($page > 0) {
-            $skip = $limit * ($page - 1);
-        }
-        // Query.
-        $filter = [];
-        if ($onlyActive) {
-            $filter['is_active'] = true;
-        }
-        if (isset($params['query'])) {
-            $filter = array_fill_keys(['name', 'slug'], '%' . $params['query'] . '%');
-            return $this->hallRepo->search($filter, $limit, $skip, $sort, $include);
-        }
-        return $this->hallRepo->findAll($filter, $limit, $skip, $sort, $include);
     }
 
     /**

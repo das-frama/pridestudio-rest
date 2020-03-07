@@ -57,10 +57,52 @@ abstract class AbstractRepository implements CommonRepositoryInterface
     }
 
     /**
+     * Convert filter to bson object.
+     * @return array
+     */
+    protected function convertFilter(array $filter): array
+    {
+        $bsonFilter = $filter;
+        if (isset($filter['$or'])) {
+            $bsonFilter = $filter['$or'];
+        }
+        // Change id to _id.
+        if (isset($bsonFilter['id'])) {
+            // $bsonFilter['_id'] = $bsonFilter['id'];
+            try {
+                if (is_array($bsonFilter['id'])) {
+                    $bsonFilter['_id'] = [
+                        '$in' => array_map(function (string $id) {
+                            return new ObjectId($id);
+                        }, $bsonFilter['id'])
+                    ];
+                } else {
+                    $bsonFilter['_id'] = new ObjectId($bsonFilter['id']);
+                }
+            } catch (Exception $e) {
+                return $bsonFilter;
+            }
+            unset($bsonFilter['id']);
+        }
+        if (isset($filter['$or'])) {
+            return [
+                '$or' => array_map(function ($key, $column) {
+                    return [$key => $column];
+                }, array_keys($bsonFilter), $bsonFilter)
+            ];
+        }
+        return $bsonFilter;
+    }
+
+    /**
      * {@inheritDoc}
      */
-    public function findOneAndUpdate(array $filter, AbstractEntity $entity, array $include = [], bool $returnNew = false): ?AbstractEntity
-    {
+    public function findOneAndUpdate(
+        array $filter,
+        AbstractEntity $entity,
+        array $include = [],
+        bool $returnNew = false
+    ): ?AbstractEntity {
         // Prepare update.
         if (property_exists($entity, 'updated_at')) {
             $entity->updated_at = time();
@@ -83,6 +125,29 @@ abstract class AbstractRepository implements CommonRepositoryInterface
         }
         $entity->setInclude($include);
         return $entity;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function search(array $search, int $limit = 0, int $skip = 0, array $sort = [], array $include = []): array
+    {
+        $filter = array_map(function ($value) {
+            $str = (string)$value;
+            $first = substr($str, 0, 1);
+            $last = substr($str, -1);
+            if ($first === '%' && $last === '%') {
+                $str = substr($str, 1, -1);
+            } elseif ($last === '%') {
+                $str = '^' . substr($str, 0, -1);
+            } elseif ($first === '%') {
+                $str = substr($str, 1) . '$';
+            } else {
+                return $str;
+            }
+            return new Regex($str, 'i');
+        }, $search);
+        return $this->findAll(['$or' => $filter], $limit, $skip, $sort, $include);
     }
 
     /**
@@ -123,29 +188,6 @@ abstract class AbstractRepository implements CommonRepositoryInterface
             $entity->setInclude($include);
             return $entity;
         }, $cursor->toArray());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function search(array $search, int $limit = 0, int $skip = 0, array $sort = [], array $include = []): array
-    {
-        $filter = array_map(function ($value) {
-            $str = (string)$value;
-            $first = substr($str, 0, 1);
-            $last = substr($str, -1);
-            if ($first === '%' && $last === '%') {
-                $str = substr($str, 1, -1);
-            } elseif ($last === '%') {
-                $str = '^' . substr($str, 0, -1);
-            } elseif ($first === '%') {
-                $str = substr($str, 1) . '$';
-            } else {
-                return $str;
-            }
-            return new Regex($str, 'i');
-        }, $search);
-        return $this->findAll(['$or' => $filter], $limit, $skip, $sort, $include);
     }
 
     /**
@@ -210,40 +252,6 @@ abstract class AbstractRepository implements CommonRepositoryInterface
     {
         $result = $this->collection->deleteOne(['_id' => new ObjectId($id)]);
         return (bool)$result->getDeletedCount();
-    }
-
-    /**
-     * Convert filter to bson object.
-     * @return array
-     */
-    protected function convertFilter(array $filter): array
-    {
-        $bsonFilter = $filter;
-        if (isset($filter['$or'])) {
-            $bsonFilter = $filter['$or'];
-        }
-        // Change id to _id.
-        if (isset($bsonFilter['id'])) {
-            // $bsonFilter['_id'] = $bsonFilter['id'];
-            try {
-                if (is_array($bsonFilter['id'])) {
-                    $bsonFilter['_id'] = ['$in' => array_map(function (string $id) {
-                        return new ObjectId($id);
-                    }, $bsonFilter['id'])];
-                } else {
-                    $bsonFilter['_id'] = new ObjectId($bsonFilter['id']);
-                }
-            } catch (Exception $e) {
-                return $bsonFilter;
-            }
-            unset($bsonFilter['id']);
-        }
-        if (isset($filter['$or'])) {
-            return ['$or' => array_map(function ($key, $column) {
-                return [$key => $column];
-            }, array_keys($bsonFilter), $bsonFilter)];
-        }
-        return $bsonFilter;
     }
 
     /**
