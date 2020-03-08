@@ -39,7 +39,7 @@ class AuthService extends AbstractService
     public function login(string $email, string $password): ?User
     {
         // Find user.
-        $user = $this->userRepo->findOne(['email' => $email]);
+        $user = $this->repo->findOne(['email' => $email]);
         if (!($user instanceof User)) {
             return null;
         }
