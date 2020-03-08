@@ -1,13 +1,12 @@
 <?php
-
 declare(strict_types=1);
 
 namespace App;
 
-use App\Exception\ValidationException;
-use App\Http\Middleware\CorsMiddleware;
-use App\Http\Middleware\LogMiddleware;
-use App\Http\Responder\ResponderInterface;
+use App\Exceptions\ValidationException;
+use App\Http\Middlewares\CorsMiddleware;
+use App\Http\Middlewares\LogMiddleware;
+use App\Http\Responders\ResponderInterface;
 use App\Http\Router\Router;
 use App\Http\Router\RouterInterface;
 use Dice\Dice;

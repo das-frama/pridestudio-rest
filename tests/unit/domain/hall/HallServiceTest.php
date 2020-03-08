@@ -6,9 +6,9 @@ namespace tests\unit\Domain\hall;
 
 use app\Domain\hall\HallRepositoryInterface;
 use app\Domain\hall\HallService;
-use app\entity\Hall;
-use app\entity\Service;
-use app\entity\ServiceChild;
+use app\Entities\Hall;
+use app\Entities\Service;
+use app\Entities\ServiceChild;
 use PHPUnit\Framework\TestCase;
 
 class HallServiceTest extends TestCase

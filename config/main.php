@@ -3,7 +3,8 @@
 use Monolog\Logger;
 
 return [
-    'name' => 'Pridestudio REST',
+    'name' => 'Pridestudio API',
+    'version' => '0.1.0',
     'rules' => require __DIR__ . '/rules.php',
     'logger' => [
         'name' => 'app',

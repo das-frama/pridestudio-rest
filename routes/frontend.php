@@ -2,22 +2,22 @@
 
 return [
     // Booking.
-    ['GET', '/frontend/booking', ['App\Http\Controller\Frontend\BookingController', 'index']],
-    ['GET', '/frontend/booking/*', ['App\Http\Controller\Frontend\BookingController', 'hall']],
+    ['GET', '/frontend/booking', 'Frontend\BookingController@index'],
+    ['GET', '/frontend/booking/*', 'Frontend\BookingController@hall'],
     // Halls.
-    ['GET', '/frontend/halls', ['App\Http\Controller\Frontend\HallController', 'all']],
-    ['GET', '/frontend/halls/*', ['App\Http\Controller\Frontend\HallController', 'read']],
-    ['GET', '/frontend/halls/*/services', ['App\Http\Controller\Frontend\HallController', 'services']],
+    ['GET', '/frontend/halls', 'Frontend\HallController@all'],
+    ['GET', '/frontend/halls/*', 'Frontend\HallController@read'],
+    ['GET', '/frontend/halls/*/services', 'Frontend\HallController@services'],
     // Calendar.
-    ['GET', '/frontend/calendar/*', ['App\Http\Controller\Frontend\CalendarController', 'index']],
-    ['GET', '/frontend/calendar/*/*', ['App\Http\Controller\Frontend\CalendarController', 'week']],
-    ['GET', '/frontend/calendar/*/*/*', ['App\Http\Controller\Frontend\CalendarController', 'read']],
+    ['GET', '/frontend/calendar/*', 'Frontend\CalendarController@index'],
+    ['GET', '/frontend/calendar/*/*', 'Frontend\CalendarController@week'],
+    ['GET', '/frontend/calendar/*/*/*', 'Frontend\CalendarController@read'],
     // Records.
-    ['POST', '/frontend/records', ['App\Http\Controller\Frontend\RecordController', 'create']],
-    ['POST', '/frontend/records/price', ['App\Http\Controller\Frontend\RecordController', 'price']],
-    ['GET', '/frontend/records/coupon/*', ['App\Http\Controller\Frontend\RecordController', 'coupon']],
+    ['POST', '/frontend/records', 'Frontend\RecordController@create'],
+    ['POST', '/frontend/records/price', 'Frontend\RecordController@price'],
+    ['GET', '/frontend/records/coupon/*', 'Frontend\RecordController@coupon'],
     // Settings.
-    ['GET', '/frontend/settings', ['App\Http\Controller\Frontend\SettingsController', 'all']],
-    ['GET', '/frontend/settings/*', ['App\Http\Controller\SettingsController', 'read']],
-    ['GET', '/frontend/settings/group/*', ['App\Http\Controller\SettingsController', 'group']],
+    ['GET', '/frontend/settings', 'Frontend\SettingsController@all'],
+    ['GET', '/frontend/settings/*', 'Frontend\SettingsController@read'],
+    ['GET', '/frontend/settings/group/*', 'Frontend\SettingsController@group'],
 ];

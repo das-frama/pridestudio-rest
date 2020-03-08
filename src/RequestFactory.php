@@ -1,12 +1,11 @@
 <?php
-
 declare(strict_types=1);
 
 namespace App;
 
-use Psr\Http\Message\ServerRequestInterface;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use Nyholm\Psr7Server\ServerRequestCreator;
+use Psr\Http\Message\ServerRequestInterface;
 
 class RequestFactory
 {

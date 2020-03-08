@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App;
 
-use App\Entity\File;
+use App\Entities\File;
 use Psr\Http\Message\ResponseInterface;
 use Nyholm\Psr7\Factory\Psr17Factory;
 

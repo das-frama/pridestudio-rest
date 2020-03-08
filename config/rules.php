@@ -1,9 +1,23 @@
 <?php
 
-use App\Domain\Auth\AuthService;
-use App\Domain\File\FileService;
-use App\Http\Responder\JsonResponder;
-use App\Http\Responder\ResponderInterface;
+use App\Http\Middlewares\JwtAuthMiddleware;
+use App\Http\Responders\JsonResponder;
+use App\Http\Responders\ResponderInterface;
+use App\Repositories\ClientRepositoryInterface;
+use App\Repositories\CouponRepositoryInterface;
+use App\Repositories\HallRepositoryInterface;
+use App\Repositories\MongoDB\ClientRepository;
+use App\Repositories\MongoDB\CouponRepository;
+use App\Repositories\MongoDB\HallRepository;
+use App\Repositories\MongoDB\RecordRepository;
+use App\Repositories\MongoDB\SettingRepository;
+use App\Repositories\MongoDB\UserRepository;
+use App\Repositories\RecordRepositoryInterface;
+use App\Repositories\ServiceRepositoryInterface;
+use App\Repositories\SettingRepositoryInterface;
+use App\Repositories\UserRepositoryInterface;
+use App\Services\AuthService;
+use App\Services\FileService;
 use MongoDB\Client;
 use Monolog\Logger;
 use Psr\Log\LoggerInterface;
@@ -28,36 +42,36 @@ return [
         'constructParams' => ['app', [], [], null],
         'shared' => true,
     ],
-    'App\Http\Middleware\JwtAuthMiddleware' => [
+    JwtAuthMiddleware::class => [
         'constructParams' => [getenv('JWT_SECRET')],
         'shared' => true,
     ],
-    'App\Domain\Record\RecordRepositoryInterface' => [
-        'instanceOf' => 'App\Storage\MongoDB\RecordRepository',
+    RecordRepositoryInterface::class => [
+        'instanceOf' => RecordRepository::class,
         'shared' => true
     ],
-    'App\Domain\Client\ClientRepositoryInterface' => [
-        'instanceOf' => 'App\Storage\MongoDB\ClientRepository',
+    ClientRepositoryInterface::class => [
+        'instanceOf' => ClientRepository::class,
         'shared' => true
     ],
-    'App\Domain\Record\CouponRepositoryInterface' => [
-        'instanceOf' => 'App\Storage\MongoDB\CouponRepository',
+    CouponRepositoryInterface::class => [
+        'instanceOf' => CouponRepository::class,
         'shared' => true
     ],
-    'App\Domain\Hall\HallRepositoryInterface' => [
-        'instanceOf' => 'App\Storage\MongoDB\HallRepository',
+    HallRepositoryInterface::class => [
+        'instanceOf' => HallRepository::class,
         'shared' => true
     ],
-    'App\Domain\Service\ServiceRepositoryInterface' => [
-        'instanceOf' => 'App\Storage\MongoDB\ServiceRepository',
+    ServiceRepositoryInterface::class => [
+        'instanceOf' => SettingRepository::class,
         'shared' => true
     ],
-    'App\Domain\Setting\SettingRepositoryInterface' => [
-        'instanceOf' => 'App\Storage\MongoDB\SettingRepository',
+    SettingRepositoryInterface::class => [
+        'instanceOf' => SettingRepository::class,
         'shared' => true
     ],
-    'App\Domain\User\UserRepositoryInterface' => [
-        'instanceOf' => 'App\Storage\MongoDB\UserRepository',
+    UserRepositoryInterface::class => [
+        'instanceOf' => UserRepository::class,
         'shared' => true
     ],
 ];

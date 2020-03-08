@@ -6,8 +6,8 @@ namespace tests\unit\http\controller;
 
 use app\ResponseFactory;
 use app\Domain\hall\HallService;
-use app\http\controller\HallController;
-use app\http\responder\JsonResponder;
+use app\http\Controllers\HallController;
+use app\http\Responders\JsonResponder;
 use Psr\Http\Message\ResponseInterface;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\TestCase;

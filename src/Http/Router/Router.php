@@ -1,10 +1,12 @@
 <?php
-
 declare(strict_types=1);
 
 namespace App\Http\Router;
 
-use App\Http\Responder\ResponderInterface;
+use App\Http\Middlewares\CorsMiddleware;
+use App\Http\Middlewares\JwtAuthMiddleware;
+use App\Http\Middlewares\LogMiddleware;
+use App\Http\Responders\ResponderInterface;
 use App\RequestUtils;
 use App\ResponseFactory;
 use Dice\Dice;
@@ -27,6 +29,12 @@ class Router implements RouterInterface
     private ResponderInterface $responder;
     private string $basePath;
 
+    /**
+     * Router constructor.
+     * @param string $basePath
+     * @param Dice $dice
+     * @param ResponderInterface $responder
+     */
     public function __construct(string $basePath, Dice $dice, ResponderInterface $responder)
     {
         $this->basePath = $basePath;
@@ -45,15 +53,15 @@ class Router implements RouterInterface
      * Register a route.
      * @param string $method
      * @param string $path
-     * @param array $handler
-     * @param array $Middlewares
+     * @param string $handler
+     * @param array $middlewares
      */
-    public function register(string $method, string $path, array $handler, array $Middlewares = []): void
+    public function register(string $method, string $path, string $handler, array $middlewares = []): void
     {
         $routeNumber = count($this->routeHandlers);
         $this->routeHandlers[$routeNumber] = $handler;
-        if (!empty($Middlewares)) {
-            $this->routeMiddlewares[$routeNumber] = $Middlewares;
+        if (!empty($middlewares)) {
+            $this->routeMiddlewares[$routeNumber] = array_map([$this, 'getMiddlewareClass'], $middlewares);
         }
         $path = trim($path, '/');
         $parts = [];
@@ -66,11 +74,11 @@ class Router implements RouterInterface
 
     /**
      * Load a Middleware.
-     * @param MiddlewareInterface $Middleware
+     * @param MiddlewareInterface $middleware
      */
-    public function load(MiddlewareInterface $Middleware): void
+    public function load(MiddlewareInterface $middleware): void
     {
-        $this->middlewares[] = $Middleware;
+        $this->middlewares[] = $middleware;
     }
 
     /**
@@ -104,7 +112,8 @@ class Router implements RouterInterface
 
         // Process route's controller.
         try {
-            list($class, $method) = $this->routeHandlers[$routeNumbers[0]];
+            list($class, $method) = explode('@', $this->routeHandlers[$routeNumbers[0]], 2);
+            $class = 'App\\Http\\Controllers\\' . $class;
             $dice = $this->dice->addRule($class, [
                 'call' => [
                     [$method, [$request], Dice::CHAIN_CALL],
@@ -112,10 +121,9 @@ class Router implements RouterInterface
             ]);
             /** @var ResponseInterface $response */
             $response = $dice->create($class);
-//            $response = call_user_func([$controller, $method], $request);
             return $response;
         } catch (\MongoDB\Exception\RuntimeException $e) {
-            throw new RuntimeException($e->getMessage(), $e->getCode());
+            throw new RuntimeException($e->getMessage(), $e->getCode(), $e);
         }
     }
 
@@ -139,5 +147,24 @@ class Router implements RouterInterface
             $segment = RequestUtils::getPathSegment($request, $i);
         }
         return $this->routes->match($path);
+    }
+
+    /**
+     * Get middleware class name based on short key.
+     * @param string $key
+     * @return string
+     */
+    protected function getMiddlewareClass(string $key): string
+    {
+        switch ($key) {
+            case 'jwt':
+                return JwtAuthMiddleware::class;
+            case 'cors':
+                return CorsMiddleware::class;
+            case 'log':
+                return LogMiddleware::class;
+            default:
+                return '';
+        }
     }
 }
