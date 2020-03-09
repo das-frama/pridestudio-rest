@@ -104,29 +104,12 @@ class App
      */
     private function addParsedBody(ServerRequestInterface $request): ServerRequestInterface
     {
-        if (!$request->hasHeader('Content-Type')) {
-            return $request;
-        }
-
         $body = $request->getBody();
         if ($body->isReadable() && $body->isSeekable()) {
             $contents = $body->getContents();
             $body->rewind();
             if ($contents) {
-                switch ($request->getHeaderLine('Content-Type')) {
-                    case 'application/json':
-                        $parsedBody = $this->parseJSONBody($contents);
-                        break;
-
-                    case 'multipart/form-data':
-                    case 'application/x-www-form-urlencoded':
-                        $parsedBody = $this->parseURLBody($contents);
-                        break;
-
-                    default:
-                        return $request;
-                }
-                $request = $request->withParsedBody($parsedBody);
+                $request = $request->withParsedBody($this->parseJSONBody($contents));
             }
         }
 
