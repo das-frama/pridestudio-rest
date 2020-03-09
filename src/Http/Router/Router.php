@@ -22,6 +22,9 @@ use RuntimeException;
 class Router implements RouterInterface
 {
     private array $routeHandlers = [];
+    /**
+     * @var MiddlewareInterface[]
+     */
     private array $middlewares = [];
     private array $routeMiddlewares = [];
     private PathTree $routes;

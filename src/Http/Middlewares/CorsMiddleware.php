@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace App\Http\Middlewares;
@@ -35,9 +34,9 @@ class CorsMiddleware implements MiddlewareInterface
             $response = $next->handle($request);
         }
 
-        $origin = $_SERVER['HTTP_ORIGIN'] ?? '*';
-        $response = $response->withHeader('Access-Control-Allow-Origin', $origin);
-        $response = $response->withHeader('Access-Control-Allow-Credentials', 'true');
+//        $origin = getenv('FRONTEND_APP_HOST') ?? '*';
+//        $response = $response->withHeader('Access-Control-Allow-Origin', 'http://dashboard.pridestudio.local:8080');
+//        $response = $response->withHeader('Access-Control-Allow-Credentials', 'true');
 
         return $response;
     }

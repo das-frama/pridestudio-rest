@@ -60,10 +60,10 @@ class App
         // Router.
         $this->router = new Router(getenv('APP_BASE_PATH'), $dice, $this->responder);
         // Load router middlewares.
-        $this->router->load(new CorsMiddleware);
         if ($this->debug) {
             $this->router->load(new LogMiddleware($this->logger));
         }
+        $this->router->load(new CorsMiddleware);
         // Load routes.
         $routes = array_merge($config['routes']['dashboard'], $config['routes']['frontend']);
         foreach ($routes as $route) {
@@ -166,6 +166,9 @@ class App
      */
     public function emit(ResponseInterface $response): void
     {
+        // Cors
+        $response = $response->withHeader('Access-Control-Allow-Origin', 'http://dashboard.pridestudio.local:8080');
+        $response = $response->withHeader('Access-Control-Allow-Credentials', 'true');
         // Emit headers iteratively:
         foreach ($response->getHeaders() as $name => $values) {
             foreach ($values as $value) {

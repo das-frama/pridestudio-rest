@@ -3,10 +3,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Services\AuthService;
 use App\Http\Controllers\Base\AbstractController;
 use App\Http\ValidationRequests\Auth\LoginValidationRequest;
 use App\ResponseFactory;
+use App\Services\AuthService;
 use Exception;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
