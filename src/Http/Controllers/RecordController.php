@@ -39,7 +39,7 @@ class RecordController extends AbstractController
     public function all(ServerRequestInterface $request): ResponseInterface
     {
         $pagination = $this->getPagination($request);
-        $records = $this->service->paginated($pagination);
+        $records = $this->service->paginated($pagination, ['client']);
         $count = $pagination->query !== "" ? count($records) : $this->service->count();
 
         return $this->responder->success($records, $count);

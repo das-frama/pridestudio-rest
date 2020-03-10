@@ -52,6 +52,8 @@ class Record extends AbstractEntity
         'payment',
         'coupon_id',
         'total',
+        'status',
+        'created_at',
         'comment',
         'client',
         'hall',
