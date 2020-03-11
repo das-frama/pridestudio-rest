@@ -101,12 +101,6 @@ abstract class AbstractRepository implements CommonRepositoryInterface
             '$set' => $entity,
         ];
         $options = $this->defaultOptions;
-        // Prepare projection.
-        $options['projection'] = empty($include) ? [] : array_fill_keys($include, 1);
-        if (isset($options['projection']['id'])) {
-            $options['projection']['_id'] = $options['projection']['id'];
-            unset($options['projection']['id']);
-        }
         $options['returnNewDocument'] = $returnNew;
         // Process result.
         $entity = $this->collection->findOneAndUpdate($this->convertFilter($filter), $update, $options);

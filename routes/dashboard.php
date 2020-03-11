@@ -12,7 +12,7 @@ return [
     ['GET', '/records/*', 'RecordController@read', ['jwt']],
     ['GET', '/records/*/services', 'RecordController@services', ['jwt']],
     ['POST', '/records', 'RecordController@create', ['jwt']],
-    ['PUT', '/records/*', 'RecordController@update', ['jwt']],
+    ['PATCH', '/records/*', 'RecordController@update', ['jwt']],
     ['DELETE', '/records/*', 'RecordController@delete', ['jwt']],
     ['POST', '/records/price', 'RecordController@price', ['jwt']],
     ['GET', '/records/coupon/*', 'RecordController@coupon', ['jwt']],

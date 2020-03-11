@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Entities\Client;
 use App\Entities\Coupon;
 use App\Entities\Hall;
 use App\Entities\Payment;
@@ -95,13 +96,14 @@ class RecordService extends AbstractService
             'email' => $record->client->email,
             'phone' => $record->client->phone,
         ];
-        $client = $this->clientRepo->findOneAndUpdate($filter, $record->client, true);
-        if ($client === null) {
-            $client = $this->clientRepo->insert($record->client);
+        $record->client = $this->clientRepo->findOneAndUpdate($filter, $record->client, true);
+        if ($record->client === null) {
+            $record->client = $this->clientRepo->insert($record->client);
         }
-        if ($client->id !== null) {
-            $record->client_id = $client->id;
+        if ($record->client->id !== null) {
+            $record->client_id = $record->client->id;
         }
+        unset($record->client);
 
         // Hall.
         $hall = $this->hallRepo->findOne(['id' => $record->hall_id], ['id', 'base_price', 'prices']);
@@ -123,13 +125,13 @@ class RecordService extends AbstractService
         $record->status = Record::STATUS_NEW;
 
         // Payment.
-        if ($record->payment instanceof Payment) {
+        if (isset($record->payment) && $record->payment instanceof Payment) {
             $record->payment->aggregator = Payment::AGGREGATOR_ROBOKASSA;
             $record->payment->status = Payment::STATUS_NEW;
         }
 
         // Save record.
-        $record = $this->recordRepo->insert($record);
+        $record = $this->repo->insert($record);
         return $record instanceof Record ? $record : null;
     }
 
@@ -257,22 +259,29 @@ class RecordService extends AbstractService
     public function update(Record $record): ?Record
     {
         // Client. If not exist then create one.
-        $filter = [
-            'email' => $record->client->email,
-            'phone' => $record->client->phone,
-        ];
-        $client = $this->clientRepo->findOneAndUpdate($filter, $record->client, true);
-        if ($client === null) {
-            $client = $this->clientRepo->insert($record->client);
-        }
-        if ($client->id !== null) {
-            $record->client_id = $client->id;
+        if (isset($record->client) && $record->client instanceof Client) {
+            $filter = [
+                'email' => $record->client->email,
+                'phone' => $record->client->phone,
+            ];
+            $record->client = $this->clientRepo->findOneAndUpdate($filter, $record->client, true);
+            if ($record->client === null) {
+                $record->client = $this->clientRepo->insert($record->client);
+            }
+            if ($record->client->id !== null) {
+                $record->client_id = $record->client->id;
+            }
+            unset($record->client);
         }
 
         // Hall.
-        $hall = $this->hallRepo->findOne(['id' => $record->hall_id], ['id', 'base_price', 'prices']);
-        if (!($hall instanceof Hall)) {
-            return null;
+        if (isset($record->hall_id)) {
+            $hall = $this->hallRepo->findOne(['id' => $record->hall_id], ['id', 'base_price', 'prices']);
+            if (!($hall instanceof Hall)) {
+                return null;
+            }
+            // Total price.
+            $record->total = $record->total ?: $this->calculatePrice($record, $hall);
         }
 
         // // Coupon.
@@ -284,8 +293,6 @@ class RecordService extends AbstractService
         //     }
         // }
 
-        // Total price.
-        $record->total = $record->total ?: $this->calculatePrice($record, $hall);
 
         // Payment.
         // if ($record->payment instanceof Payment) {
@@ -295,7 +302,7 @@ class RecordService extends AbstractService
         // }
 
         // Save record.
-        $record = $this->recordRepo->update($record);
+        $record = $this->repo->update($record);
         return $record instanceof Record ? $record : null;
     }
 

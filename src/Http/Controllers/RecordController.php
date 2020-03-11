@@ -8,6 +8,7 @@ use App\Entities\Record;
 use App\Http\Controllers\Base\AbstractController;
 use App\Http\Resources\Booking\PaymentResource;
 use App\Http\Responders\ResponderInterface;
+use App\Http\ValidationRequests\Record\FormValidationRequest;
 use App\RequestUtils;
 use App\ResponseFactory;
 use App\Services\HallService;
@@ -163,10 +164,12 @@ class RecordController extends AbstractController
      */
     public function create(HallService $hallService, ServerRequestInterface $request): ResponseInterface
     {
-        // Get body's data from request.
-        $data = $request->getParsedBody();
-        if (empty($data)) {
-            return $this->responder->error(ResponseFactory::BAD_REQUEST, 'Empty body.');
+        // Validate request and get body.
+        $data = $this->validateRequest($request, new FormValidationRequest());
+
+        // Check if hall exists.
+        if (!$hallService->isExists($data['hall_id'])) {
+            return $this->responder->error(ResponseFactory::NOT_FOUND, 'Hall not found.');
         }
 
         // Load data.
@@ -174,11 +177,6 @@ class RecordController extends AbstractController
         $record->load($data, ['hall_id', 'reservations', 'service_ids', 'payment', 'comment']);
         $record->client = new Client;
         $record->client->load($data['client'], ['name', 'phone', 'email']);
-
-        // Check if hall exists.
-        if (!$hallService->isExists($record->hall_id, true)) {
-            return $this->responder->error(ResponseFactory::NOT_FOUND, 'Hall not found.');
-        }
 
         // Save record.
         $record = $this->service->create($record, $data['coupon']['code'] ?? null);
@@ -191,31 +189,26 @@ class RecordController extends AbstractController
 
     /**
      * Update record.
-     * PUT /records/<id>
-     * @method PUT
+     * PATCH /records/<id>
+     * @method PATCH
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      */
     public function update(ServerRequestInterface $request): ResponseInterface
     {
+        // Validate request data.
+        $data = $this->validateRequest($request);
+
         // Check if record exists.
         $id = RequestUtils::getPathSegment($request, 2);
         if (!$this->service->isExists($id)) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, 'Record not found.');
         }
 
-        // Get body's data from request.
-        $data = $request->getParsedBody();
-        if (empty($data)) {
-            return $this->responder->error(ResponseFactory::BAD_REQUEST, 'Empty body.');
-        }
-
         // Load data.
         $record = new Record;
         $record->load($data, ['hall_id', 'reservations', 'service_ids', 'status', 'total', 'comment']);
         $record->id = $id;
-        $client = new Client;
-        $client->load($data['client'], ['name', 'phone', 'email']);
 
         // // Check if hall exists.
         // if (!$this->hallService->isExists($record->hall_id, true)) {
@@ -228,7 +221,7 @@ class RecordController extends AbstractController
             return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, 'Errors during create.');
         }
 
-        return $this->responder->success($record, 1);
+        return $this->responder->success($record);
     }
 
     /**

@@ -116,9 +116,9 @@ abstract class AbstractEntity implements Persistable, JsonSerializable
         $bson = [];
 
         foreach ($properties as $property) {
-            // if (is_null($this->{$property})) {
-            //     continue;
-            // }
+            if (!isset($this->{$property})) {
+                continue;
+            }
             switch ($property) {
                 case 'id':
                     if (!empty($this->id)) {

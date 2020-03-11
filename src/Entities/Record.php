@@ -66,6 +66,10 @@ class Record extends AbstractEntity
     public function load(array $data, array $safe = []): void
     {
         parent::load($data, $safe);
+        if (isset($data['client']) && in_array('client', $safe)) {
+            $this->client = new Client();
+            $this->client->load($data['client'], $safe['client'] ?? ['name', 'email', 'phone']);
+        }
         if (isset($data['payment']) && in_array('payment', $safe)) {
             $this->payment = new Payment;
             $this->payment->load($data['payment'], ['method_id']);
@@ -86,18 +90,20 @@ class Record extends AbstractEntity
     public function bsonSerialize(): array
     {
         $bson = parent::bsonSerialize();
-        if ($this->client_id) {
+        if (isset($this->client_id)) {
             $bson['client_id'] = new ObjectId($this->client_id);
         }
-        if ($this->hall_id) {
+        if (isset($this->hall_id)) {
             $bson['hall_id'] = new ObjectId($this->hall_id);
         }
-        if ($this->coupon_id) {
+        if (isset($this->coupon_id)) {
             $bson['coupon_id'] = new ObjectId($this->coupon_id);
         }
-        $bson['service_ids'] = array_map(function (string $id) {
-            return new ObjectId($id);
-        }, $this->service_ids);
+        if (isset($this->service_ids)) {
+            $bson['service_ids'] = array_map(function (string $id) {
+                return new ObjectId($id);
+            }, $this->service_ids);
+        }
 
         return $bson;
     }

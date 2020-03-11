@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\Base;
 
-use App\Services\ValidationService;
 use App\Exceptions\ValidationException;
 use App\Http\Responders\ResponderInterface;
 use App\Http\ValidationRequests\Base\ValidationRequestInterface;
 use App\Models\Pagination;
 use App\ResponseFactory;
+use App\Services\ValidationService;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
@@ -89,13 +89,13 @@ abstract class AbstractController
      */
     protected function validateRequest(
         ServerRequestInterface $request,
-        ValidationRequestInterface $validationRequest
+        ValidationRequestInterface $validationRequest = null
     ): array {
         $data = $request->getParsedBody();
         if (empty($data)) {
             throw new ValidationException('Empty body.', [], ResponseFactory::BAD_REQUEST);
         }
-        $errors = $this->validator->validate($data, $validationRequest->rules());
+        $errors = $validationRequest ? $this->validator->validate($data, $validationRequest->rules()) : [];
         if (count($errors) > 0) {
             throw new ValidationException('Validation error', $errors, ResponseFactory::UNPROCESSABLE_ENTITY);
         }
