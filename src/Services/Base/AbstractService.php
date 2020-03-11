@@ -81,9 +81,9 @@ abstract class AbstractService
         return $this->repo->insert($entity);
     }
 
-    public function update($id, array $input)
+    public function update(AbstractEntity $entity)
     {
-        return $this->repo->update($id, $input);
+        return $this->repo->update($entity);
     }
 
     /**

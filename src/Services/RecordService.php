@@ -92,18 +92,13 @@ class RecordService extends AbstractService
     public function create(Record $record, string $couponCode = null): ?Record
     {
         // Client. If not exist then create one.
-        $filter = [
-            'email' => $record->client->email,
-            'phone' => $record->client->phone,
-        ];
-        $record->client = $this->clientRepo->findOneAndUpdate($filter, $record->client, true);
-        if ($record->client === null) {
-            $record->client = $this->clientRepo->insert($record->client);
+        if (isset($record->client) && $record->client instanceof Client) {
+            $record->client = $this->upsertClient($record->client);
+            if ($record->client !== null) {
+                $record->client_id = $record->client->id;
+            }
+            unset($record->client);
         }
-        if ($record->client->id !== null) {
-            $record->client_id = $record->client->id;
-        }
-        unset($record->client);
 
         // Hall.
         $hall = $this->hallRepo->findOne(['id' => $record->hall_id], ['id', 'base_price', 'prices']);
@@ -136,11 +131,27 @@ class RecordService extends AbstractService
     }
 
     /**
+     * Upsert client (insert or update).
+     * @param Client $client
+     * @return Client|null
+     */
+    public function upsertClient(Client $client): ?Client
+    {
+        unset($client->id);
+        $newClient = $this->clientRepo->findOneAndUpdate(['email' => $client->email], $client, true);
+        if ($newClient === null) {
+            $newClient = $this->clientRepo->insert($client);
+        }
+        return $newClient instanceof Client ? $newClient : null;
+    }
+
+    /**
      * Calculate price for reservations.
      * @param Record $record
      * @param Hall $hall
      * @param Coupon|null $coupon
      * @return int
+     * @throws \Exception
      */
     public function calculatePrice(Record $record, Hall $hall, Coupon $coupon = null): int
     {
@@ -255,20 +266,14 @@ class RecordService extends AbstractService
      * Update existing record.
      * @param Record $record
      * @return Record|null
+     * @throws \Exception
      */
     public function update(Record $record): ?Record
     {
-        // Client. If not exist then create one.
+        // Client.
         if (isset($record->client) && $record->client instanceof Client) {
-            $filter = [
-                'email' => $record->client->email,
-                'phone' => $record->client->phone,
-            ];
-            $record->client = $this->clientRepo->findOneAndUpdate($filter, $record->client, true);
-            if ($record->client === null) {
-                $record->client = $this->clientRepo->insert($record->client);
-            }
-            if ($record->client->id !== null) {
+            $record->client = $this->upsertClient($record->client);
+            if ($record->client !== null) {
                 $record->client_id = $record->client->id;
             }
             unset($record->client);

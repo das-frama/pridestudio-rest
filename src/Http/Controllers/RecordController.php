@@ -193,6 +193,7 @@ class RecordController extends AbstractController
      * @method PATCH
      * @param ServerRequestInterface $request
      * @return ResponseInterface
+     * @throws \Exception
      */
     public function update(ServerRequestInterface $request): ResponseInterface
     {
@@ -201,14 +202,16 @@ class RecordController extends AbstractController
 
         // Check if record exists.
         $id = RequestUtils::getPathSegment($request, 2);
-        if (!$this->service->isExists($id)) {
+        $record = $this->service->find($id, ['client']);
+        if (!($record instanceof Record)) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, 'Record not found.');
         }
 
         // Load data.
-        $record = new Record;
         $record->load($data, ['hall_id', 'reservations', 'service_ids', 'status', 'total', 'comment']);
-        $record->id = $id;
+        if (isset($data['client'])) {
+            $record->client->load($data['client']);
+        }
 
         // // Check if hall exists.
         // if (!$this->hallService->isExists($record->hall_id, true)) {

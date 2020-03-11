@@ -66,10 +66,6 @@ class Record extends AbstractEntity
     public function load(array $data, array $safe = []): void
     {
         parent::load($data, $safe);
-        if (isset($data['client']) && in_array('client', $safe)) {
-            $this->client = new Client();
-            $this->client->load($data['client'], $safe['client'] ?? ['name', 'email', 'phone']);
-        }
         if (isset($data['payment']) && in_array('payment', $safe)) {
             $this->payment = new Payment;
             $this->payment->load($data['payment'], ['method_id']);

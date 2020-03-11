@@ -78,7 +78,7 @@ abstract class AbstractController
         $pagination->limit = $params['limit'] ?? 15;
         $pagination->orderBy = $params['orderBy'] ?? '';
         $pagination->ascending = $params['ascending'] ?? 0;
-        $pagination->page = $params['page'] ?? 1;
+        $pagination->page = empty($params['page']) ? 1 : $params['page'];
         return $pagination;
     }
 
