@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Base\AbstractController;
-use App\Http\ValidationRequests\Auth\LoginValidationRequest;
 use App\ResponseFactory;
 use App\Services\AuthService;
 use Exception;
@@ -29,7 +28,10 @@ class AuthController extends AbstractController
     public function login(AuthService $service, ServerRequestInterface $request): ResponseInterface
     {
         // Get body from request.
-        $data = $this->validateRequest($request, new LoginValidationRequest());
+        $data = $this->validateRequest($request, [
+            'email' => ['required', 'email'],
+            'password' => ['required', 'string'],
+        ]);
 
         // Login.
         $user = $service->login($data['email'], $data['password']);
