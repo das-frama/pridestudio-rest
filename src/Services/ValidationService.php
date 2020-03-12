@@ -73,6 +73,9 @@ class ValidationService
 
     public function validateValue($value, string $rule): array
     {
+        if ($value === null && $rule !== 'required') {
+            return [];
+        }
         $name = $rule;
         $params = [];
         if (strpos($rule, ':') !== false) {

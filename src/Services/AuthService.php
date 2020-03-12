@@ -5,7 +5,7 @@ namespace App\Services;
 
 use App\Entities\User;
 use App\Repositories\UserRepositoryInterface;
-use App\Services\Base\AbstractService;
+use App\Services\Base\AbstractResourceService;
 use Exception;
 use Firebase\JWT\JWT;
 
@@ -13,7 +13,7 @@ use Firebase\JWT\JWT;
  * Class AuthService
  * @package App\Services
  */
-class AuthService extends AbstractService
+class AuthService extends AbstractResourceService
 {
     private string $jwtSecret;
     private array $jwtAllowedAlgs = ['HS256', 'HS384', 'HS512'];

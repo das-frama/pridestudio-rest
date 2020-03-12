@@ -18,4 +18,6 @@ class Client extends AbstractEntity
     public string $comment;
     public int $created_at;
     public int $updated_at;
+
+//    protected array $public = ['name', 'email', 'phone', 'sex', 'comment'];
 }

@@ -64,6 +64,7 @@ class App
             $this->router->load(new LogMiddleware($this->logger));
         }
         $this->router->load(new CorsMiddleware);
+
         // Load routes.
         $routes = array_merge($config['routes']['dashboard'], $config['routes']['frontend']);
         foreach ($routes as $route) {

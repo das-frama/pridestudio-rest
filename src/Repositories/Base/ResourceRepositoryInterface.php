@@ -10,7 +10,7 @@ use App\Models\Pagination;
  * Interface CommonRepositoryInterface
  * @package App\Repositories\Base
  */
-interface CommonRepositoryInterface
+interface ResourceRepositoryInterface
 {
     /**
      * Find one Entity by filter.

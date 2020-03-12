@@ -4,13 +4,13 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Entities\Setting;
-use App\Repositories\Base\CommonRepositoryInterface;
+use App\Repositories\Base\ResourceRepositoryInterface;
 
 /**
  * Interface SettingRepositoryInterface
  * @package App\Repositories
  */
-interface SettingRepositoryInterface extends CommonRepositoryInterface
+interface SettingRepositoryInterface extends ResourceRepositoryInterface
 {
     /**
      * @param string $regex

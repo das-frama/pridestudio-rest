@@ -4,13 +4,13 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Entities\Reservation;
-use App\Repositories\Base\CommonRepositoryInterface;
+use App\Repositories\Base\ResourceRepositoryInterface;
 
 /**
  * Interface RecordRepositoryInterface
  * @package App\Repositories
  */
-interface RecordRepositoryInterface extends CommonRepositoryInterface
+interface RecordRepositoryInterface extends ResourceRepositoryInterface
 {
     /**
      * Find nested reservations in records.

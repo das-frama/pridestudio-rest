@@ -61,6 +61,14 @@ class Router implements RouterInterface
      */
     public function register(string $method, string $path, string $handler, array $middlewares = []): void
     {
+        if ($method === 'RESOURCE') {
+            $this->register('GET', $path, $handler . '@all', $middlewares);
+            $this->register('GET', $path . '/*', $handler . '@read', $middlewares);
+            $this->register('POST', $path, $handler . '@create', $middlewares);
+            $this->register('PATCH', $path . '/*', $handler . '@update', $middlewares);
+            $this->register('DELETE', $path . '/*', $handler . '@destroy', $middlewares);
+        }
+
         $routeNumber = count($this->routeHandlers);
         $this->routeHandlers[$routeNumber] = $handler;
         if (!empty($middlewares)) {

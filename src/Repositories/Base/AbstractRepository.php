@@ -10,12 +10,13 @@ use MongoDB\BSON\ObjectId;
 use MongoDB\Client;
 use MongoDB\Collection;
 use MongoDB\Database;
+use MongoDB\Operation\FindOneAndUpdate;
 
 /**
  * Class AbstractRepository
  * @package App\Repositories\Base
  */
-abstract class AbstractRepository implements CommonRepositoryInterface
+abstract class AbstractRepository implements ResourceRepositoryInterface
 {
     public array $sort = ['_id' => 1];
 
@@ -97,11 +98,10 @@ abstract class AbstractRepository implements CommonRepositoryInterface
         if (property_exists($entity, 'updated_at')) {
             $entity->updated_at = time();
         }
-        $update = [
-            '$set' => $entity,
-        ];
+        $update = ['$set' => $entity];
         $options = $this->defaultOptions;
-        $options['returnNewDocument'] = $returnNew;
+        $options['returnDocument'] = $returnNew ?
+            FindOneAndUpdate::RETURN_DOCUMENT_AFTER : FindOneAndUpdate::RETURN_DOCUMENT_BEFORE;
         // Process result.
         $entity = $this->collection->findOneAndUpdate($this->convertFilter($filter), $update, $options);
         return $entity instanceof AbstractEntity ? $entity : null;

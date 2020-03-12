@@ -5,17 +5,15 @@ namespace App\Services\Base;
 
 use App\Entities\Base\AbstractEntity;
 use App\Models\Pagination;
-use App\Repositories\Base\CommonRepositoryInterface;
+use App\Repositories\Base\ResourceRepositoryInterface;
 
-abstract class AbstractService
+abstract class AbstractResourceService implements ResourceServiceInterface
 {
-    protected CommonRepositoryInterface $repo;
+    protected ResourceRepositoryInterface $repo;
     protected array $relations = [];
 
     /**
-     * @param string $id
-     * @param array $with
-     * @return AbstractEntity|null
+     * @inheritDoc
      */
     public function find(string $id, array $with = []): ?AbstractEntity
     {
@@ -24,7 +22,7 @@ abstract class AbstractService
             return null;
         }
         foreach ($this->relations as $key => $relation) {
-            /** @var $repository CommonRepositoryInterface */
+            /** @var $repository ResourceRepositoryInterface */
             list ($prop, $repository) = $relation;
             if (in_array($key, $with) && property_exists($record, $key) && isset($record->{$prop})) {
                 if (is_array($record->{$prop})) {
@@ -39,21 +37,17 @@ abstract class AbstractService
     }
 
     /**
-     * @return AbstractEntity[]
+     * @inheritDoc
      */
-    public function all()
+    public function all(): array
     {
         return $this->repo->findAll();
     }
 
     /**
-     * Find paginated.
-     *
-     * @param Pagination $pagination
-     * @param array $with
-     * @return AbstractEntity[]
+     * @inheritDoc
      */
-    public function paginated(Pagination $pagination, array $with = [])
+    public function paginated(Pagination $pagination, array $with = []): array
     {
         $records = $this->repo->findPaginated($pagination, [], $with);
         if ($with === []) {
@@ -62,7 +56,7 @@ abstract class AbstractService
 
         foreach ($records as $record) {
             foreach ($this->relations as $key => $relation) {
-                /** @var $repository CommonRepositoryInterface */
+                /** @var $repository ResourceRepositoryInterface */
                 list ($prop, $repository) = $relation;
                 if (in_array($key, $with) && property_exists($record, $key) && isset($record->{$prop})) {
                     if (is_array($record->{$prop})) {
@@ -76,19 +70,24 @@ abstract class AbstractService
         return $records;
     }
 
-    public function create(AbstractEntity $entity)
+    /**
+     * @inheritDoc
+     */
+    public function create(AbstractEntity $entity): ?AbstractEntity
     {
         return $this->repo->insert($entity);
     }
 
-    public function update(AbstractEntity $entity)
+    /**
+     * @inheritDoc
+     */
+    public function update(AbstractEntity $entity): ?AbstractEntity
     {
         return $this->repo->update($entity);
     }
 
     /**
-     * @param string $id
-     * @return bool
+     * @inheritDoc
      */
     public function destroy(string $id): bool
     {
@@ -96,9 +95,7 @@ abstract class AbstractService
     }
 
     /**
-     * Check if given record is exists.
-     * @param string $id
-     * @return bool
+     * @inheritDoc
      */
     public function isExists(string $id): bool
     {
@@ -106,8 +103,7 @@ abstract class AbstractService
     }
 
     /**
-     * Count entities.
-     * @return int
+     * @inheritDoc
      */
     public function count(): int
     {

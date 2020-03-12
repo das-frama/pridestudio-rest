@@ -14,14 +14,14 @@ use App\Repositories\ClientRepositoryInterface;
 use App\Repositories\CouponRepositoryInterface;
 use App\Repositories\HallRepositoryInterface;
 use App\Repositories\RecordRepositoryInterface;
-use App\Services\Base\AbstractService;
+use App\Services\Base\AbstractResourceService;
 use DateTimeImmutable;
 
 /**
  * Class RecordService
  * @package App\Services
  */
-class RecordService extends AbstractService
+class RecordService extends AbstractResourceService
 {
     private RecordRepositoryInterface $recordRepo;
     private ClientRepositoryInterface $clientRepo;

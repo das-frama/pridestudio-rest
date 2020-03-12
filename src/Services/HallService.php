@@ -6,13 +6,13 @@ namespace App\Services;
 use App\Entities\Hall;
 use App\Entities\Service;
 use App\Repositories\HallRepositoryInterface;
-use App\Services\Base\AbstractService;
+use App\Services\Base\AbstractResourceService;
 
 /**
  * Class HallService
  * @package App\Services
  */
-class HallService extends AbstractService
+class HallService extends AbstractResourceService
 {
     /**
      * HallService constructor.

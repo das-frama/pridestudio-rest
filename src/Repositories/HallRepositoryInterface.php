@@ -4,13 +4,13 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Entities\Service;
-use App\Repositories\Base\CommonRepositoryInterface;
+use App\Repositories\Base\ResourceRepositoryInterface;
 
 /**
  * Interface HallRepositoryInterface
  * @package App\Repositories
  */
-interface HallRepositoryInterface extends CommonRepositoryInterface
+interface HallRepositoryInterface extends ResourceRepositoryInterface
 {
     /**
      * Find hall's services.

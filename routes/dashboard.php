@@ -17,6 +17,11 @@ return [
     ['POST', '/records/price', 'RecordController@price', ['jwt']],
     ['GET', '/records/coupon/*', 'RecordController@coupon', ['jwt']],
     ['GET', '/records/statuses', 'RecordController@statuses', ['jwt']],
+    // Clients.
+    ['RESOURCE', '/clients', 'ClientController', ['jwt']],
+//    // Coupons.
+//    ['RESOURCE', '/coupons', 'CouponController', ['jwt']],
+
     // Services.
     ['GET', '/services', 'ServicesController@all', ['jwt']],
     // Halls.
