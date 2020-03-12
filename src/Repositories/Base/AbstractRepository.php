@@ -48,7 +48,13 @@ abstract class AbstractRepository implements ResourceRepositoryInterface
     public function findOne(array $filter, array $with = []): ?AbstractEntity
     {
         $record = $this->collection->findOne($this->convertFilter($filter), $this->defaultOptions);
-        return $record instanceof AbstractEntity ? $record : null;
+        if (!($record instanceof AbstractEntity)) {
+            return null;
+        }
+        if ($with !== []) {
+            return $this->withRelations($record, $with);
+        }
+        return $record;
     }
 
     /**
@@ -87,6 +93,28 @@ abstract class AbstractRepository implements ResourceRepositoryInterface
             ];
         }
         return $bsonFilter;
+    }
+
+    /**
+     * @param AbstractEntity $entity
+     * @param array $with
+     * @return AbstractEntity
+     */
+    protected function withRelations(AbstractEntity $entity, array $with = []): AbstractEntity
+    {
+        $record = clone $entity;
+        foreach ($with as $key => $relation) {
+            /** @var $repository ResourceRepositoryInterface */
+            list ($prop, $repository) = $relation;
+            if (isset($record->{$prop})) {
+                if (is_array($record->{$prop})) {
+                    $record->{$key} = $repository->findAll(['id' => $record->{$prop}]);
+                } else {
+                    $record->{$key} = $repository->findOne(['id' => $record->{$prop}]);
+                }
+            }
+        }
+        return $record;
     }
 
     /**
@@ -133,7 +161,13 @@ abstract class AbstractRepository implements ResourceRepositoryInterface
             'sort' => $this->sort,
         ]);
 
-        return $this->collection->find($this->convertFilter($filter), $options)->toArray();
+        $items = $this->collection->find($this->convertFilter($filter), $options)->toArray();
+        if ($with !== []) {
+            foreach ($items as &$item) {
+                $item = $this->withRelations($item, $with);
+            }
+        }
+        return $items;
     }
 
     /**
@@ -206,16 +240,6 @@ abstract class AbstractRepository implements ResourceRepositoryInterface
     {
         $result = $this->collection->deleteOne(['_id' => new ObjectId($id)]);
         return (bool)$result->getDeletedCount();
-    }
-
-    /**
-     * @param AbstractEntity $entity
-     * @param array $with
-     * @return AbstractEntity
-     */
-    protected function withRelations(AbstractEntity $entity, array $with): AbstractEntity
-    {
-        return $entity;
     }
 
     /**

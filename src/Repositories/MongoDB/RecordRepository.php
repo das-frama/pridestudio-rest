@@ -59,22 +59,6 @@ class RecordRepository extends AbstractRepository implements RecordRepositoryInt
         ], ['client_id', 'hall_id', 'reservations', 'status']);
     }
 
-    public function findOne(array $filter, array $with = []): ?Record
-    {
-        $record = parent::findOne($filter, $with);
-        if (!($record instanceof Record)) {
-            return null;
-        }
-        if (isset($with['client']) && $with['client'] instanceof ClientRepositoryInterface) {
-            $client = $with['client']->findOne(['id' => $record->client_id]);
-            if ($client instanceof Client) {
-                $record->client = $client;
-            }
-        }
-
-        return $record;
-    }
-
     /**
      * {@inheritDoc}
      */
@@ -89,31 +73,4 @@ class RecordRepository extends AbstractRepository implements RecordRepositoryInt
         }
         return $result;
     }
-
-//    /**
-//     * @param Record $record
-//     * @param array $with
-//     * @return Record
-//     */
-//    protected function withRelations(Record $record, array $with): Record
-//    {
-//        $newRecord = clone $record;
-//        foreach ($with as $relation) {
-//            if (!isset($this->relations[$relation]) || !property_exists($newRecord, $relation)) {
-//                continue;
-//            }
-//            list($property, $collection) = $this->relations[$relation];
-//            if (is_array($newRecord->{$property})) {
-//                $newRecord->{$relation} = $this->database->{$collection}->find([
-//                    '_id' => $this->convertToObjectId($newRecord->{$property}),
-//                ])->toArray();
-//            } else {
-//                $newRecord->{$relation} = $this->database->{$collection}->findOne([
-//                    '_id' => new ObjectId($newRecord->{$property}),
-//                ]);
-//            }
-//        }
-//
-//        return $newRecord;
-//    }
 }

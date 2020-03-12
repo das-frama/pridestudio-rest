@@ -20,4 +20,5 @@ class Client extends AbstractEntity
     public int $updated_at;
 
 //    protected array $public = ['name', 'email', 'phone', 'sex', 'comment'];
+    protected array $fillable = ['name', 'email', 'phone', 'sex', 'comment'];
 }

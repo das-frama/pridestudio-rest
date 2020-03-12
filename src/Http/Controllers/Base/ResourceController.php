@@ -23,6 +23,12 @@ class ResourceController extends AbstractController
         'create' => [],
         'update' => [],
     ];
+    protected array $with = [
+        'all' => [],
+        'read' => [],
+//        'create' => [],
+//        'update' => [],
+    ];
 
     /**
      * ResourceController constructor.
@@ -51,7 +57,7 @@ class ResourceController extends AbstractController
     public function all(ServerRequestInterface $request): ResponseInterface
     {
         $pagination = $this->getPagination($request);
-        $records = $this->repo->findPaginated($pagination);
+        $records = $this->repo->findPaginated($pagination, [], $this->with['all']);
         return $this->responder->success($records);
     }
 
@@ -64,7 +70,7 @@ class ResourceController extends AbstractController
     public function read(ServerRequestInterface $request): ResponseInterface
     {
         $id = RequestUtils::getPathSegment($request, 2);
-        $record = $this->repo->findOne(['id' => $id]);
+        $record = $this->repo->findOne(['id' => $id], $this->with['read']);
         if ($record === null) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, 'Record not found.');
         }

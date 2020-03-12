@@ -63,17 +63,21 @@ class Record extends AbstractEntity
     /**
      * {@inheritDoc}
      */
-    public function load(array $data, array $safe = []): void
+    public function load(array $data, array $safe = [], array $clientSafe = []): void
     {
         parent::load($data, $safe);
+        if (isset($data['client']) && in_array('client', $safe)) {
+            $this->client = new Client();
+            $this->client->load($data['client'], $clientSafe);
+        }
         if (isset($data['payment']) && in_array('payment', $safe)) {
-            $this->payment = new Payment;
+            $this->payment = new Payment();
             $this->payment->load($data['payment'], ['method_id']);
         }
         if (isset($data['reservations']) && is_array($data['reservations']) && in_array('reservations', $safe)) {
             $this->reservations = [];
             foreach ($data['reservations'] as $d) {
-                $reservation = new Reservation;
+                $reservation = new Reservation();
                 $reservation->load($d);
                 $this->reservations[] = $reservation;
             }
