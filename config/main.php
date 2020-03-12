@@ -12,7 +12,7 @@ return [
         'level' => Logger::WARNING,
     ],
     'routes' => [
-        'dashboard' => require __DIR__ . '/../routes/dashboard.php',
+        'api' => require __DIR__ . '/../routes/api.php',
         'frontend' => require __DIR__ . '/../routes/frontend.php',
     ],
 ];

@@ -66,7 +66,7 @@ class App
         $this->router->load(new CorsMiddleware);
 
         // Load routes.
-        $routes = array_merge($config['routes']['dashboard'], $config['routes']['frontend']);
+        $routes = array_merge($config['routes']['api'], $config['routes']['frontend']);
         foreach ($routes as $route) {
             $this->router->register($route[0], $route[1], $route[2], $route[3] ?? []);
         }
@@ -134,17 +134,6 @@ class App
     }
 
     /**
-     * Parse x-www-form-urlencoded to php object.
-     * @param string $body
-     * @return object
-     */
-    private function parseURLBody(string $body): ?object
-    {
-        parse_str($body, $input);
-        return (object)$input;
-    }
-
-    /**
      * Print response object with headers.
      * @param ResponseInterface $response
      */
@@ -168,5 +157,16 @@ class App
         ), true);
 
         echo $response->getBody();
+    }
+
+    /**
+     * Parse x-www-form-urlencoded to php object.
+     * @param string $body
+     * @return object
+     */
+    private function parseURLBody(string $body): ?object
+    {
+        parse_str($body, $input);
+        return (object)$input;
     }
 }

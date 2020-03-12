@@ -61,7 +61,7 @@ class HallRepository extends AbstractRepository implements HallRepositoryInterfa
             'updated_at' => ['bsonType' => 'int'],
             'created_by' => ['bsonType' => 'objectId'],
             'updated_by' => ['bsonType' => 'objectId'],
-        ], ['name', 'slug', 'sort', 'is_active']);
+        ], ['name', 'slug']);
     }
 
     /**
