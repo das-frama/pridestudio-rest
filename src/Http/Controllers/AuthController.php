@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Base\AbstractController;
+use App\RequestUtils;
 use App\ResponseFactory;
 use App\Services\AuthService;
 use Exception;
@@ -34,18 +35,30 @@ class AuthController extends AbstractController
         ]);
 
         // Login.
-        $user = $service->login($data['email'], $data['password']);
-        if ($user === null) {
+        $response = $service->login($data['email'], $data['password']);
+        if ($response === null) {
             return $this->responder->error(ResponseFactory::UNAUTHORIZED, 'Wrong credentials', [
                 'email' => 'Wrong username or password.',
             ]);
         }
+        return $this->responder->success($response);
+    }
 
-        // Set JWT.
-        $expiresIn = time() + (int)getenv('JWT_DURATION');
-        $jwt = $service->getToken($user, $expiresIn);
+    /**
+     * Get a new access token by refresh token.
+     * @param AuthService $service
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
+     */
+    public function refresh(AuthService $service, ServerRequestInterface $request): ResponseInterface
+    {
+        $token = RequestUtils::getPathSegment($request, 3);
+        $response = $service->refresh($token);
+        if ($response === null) {
+            return $this->responder->error(ResponseFactory::FORBIDDEN, 'Refresh token not found.');
+        }
 
-        return $this->responder->success($jwt, 1);
+        return $this->responder->success($response);
     }
 
     /**

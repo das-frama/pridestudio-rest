@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Middlewares;
 
-use App\Repositories\UserRepositoryInterface;
 use App\Http\Responders\ResponderInterface;
+use App\Repositories\UserRepositoryInterface;
 use App\RequestUtils;
 use App\ResponseFactory;
 use Exception;

@@ -31,7 +31,7 @@ return [
         'constructParams' => [getenv('APP_STORAGE_PATH')],
     ],
     AuthService::class => [
-        'constructParams' => [getenv('JWT_SECRET')],
+        'constructParams' => [getenv('JWT_SECRET'), (int)getenv('JWT_DURATION')],
     ],
     ResponderInterface::class => [
         'instanceOf' => JsonResponder::class,

@@ -14,6 +14,7 @@ class User extends AbstractEntity
     public string $password_hash;
     public string $role;
     public bool $is_active;
+    public string $refresh_token;
     public int $created_at;
     public int $updated_at;
     public string $created_by;
