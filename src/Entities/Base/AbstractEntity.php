@@ -63,9 +63,20 @@ abstract class AbstractEntity implements Persistable, JsonSerializable
         if ($safe === []) {
             $safe = $this->fillable;
         }
+        $reflection = (new ReflectionClass(static::class));
         foreach ($data as $key => $value) {
             $isSafe = empty($safe) || in_array($key, $safe);
-            if (property_exists($this, $key) && $isSafe) {
+            if (!property_exists($this, $key) || !$isSafe) {
+                continue;
+            }
+            $property = $reflection->getProperty($key);
+            $className = $property->getType()->getName();
+            if (is_subclass_of($className, AbstractEntity::class)) {
+                if (!$property->isInitialized($this)) {
+                    $this->{$key} = new $className();
+                }
+                $this->{$key}->load($value);
+            } else {
                 $this->{$key} = $value;
             }
         }

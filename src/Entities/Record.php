@@ -59,20 +59,25 @@ class Record extends AbstractEntity
         'hall',
         'services',
     ];
+    protected array $fillable = [
+        'hall_id',
+        'reservations',
+        'payment',
+        'coupon_id',
+        'total',
+        'status',
+        'comment',
+        'client'
+    ];
 
     /**
      * {@inheritDoc}
      */
-    public function load(array $data, array $safe = [], array $clientSafe = []): void
+    public function load(array $data, array $safe = []): void
     {
         parent::load($data, $safe);
-        if (isset($data['client']) && in_array('client', $safe)) {
-            $this->client = new Client();
-            $this->client->load($data['client'], $clientSafe);
-        }
-        if (isset($data['payment']) && in_array('payment', $safe)) {
-            $this->payment = new Payment();
-            $this->payment->load($data['payment'], ['method_id']);
+        if ($safe === []) {
+            $safe = $this->fillable;
         }
         if (isset($data['reservations']) && is_array($data['reservations']) && in_array('reservations', $safe)) {
             $this->reservations = [];

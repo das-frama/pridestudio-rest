@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Entities\Client;
 use App\Entities\Hall;
 use App\Entities\Record;
 use App\Http\Controllers\Base\ResourceController;
@@ -61,6 +62,7 @@ class RecordController extends ResourceController
             'total' => ['int'],
             'status' => ['int:0:10'],
             'comment' => ['string'],
+            'client' => ['array'],
             'client.name' => ['string:3:255'],
             'client.email' => ['email'],
             'client.phone' => ['string'],
@@ -69,6 +71,73 @@ class RecordController extends ResourceController
             'client' => ['client_id', $clientRepo],
         ];
         parent::__construct(Record::class, $repo, $responder, $validator);
+    }
+
+    /**
+     * @method POST
+     * @param RecordService $service
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
+     */
+    public function create(RecordService $service, ServerRequestInterface $request): ResponseInterface
+    {
+        $data = $this->validateRequest($request, $this->validation['create']);
+        // Create a record.
+        $record = new Record();
+        $record->load($data);
+
+        // Upsert client.
+        if (isset($record->client)) {
+            $record->client = $service->upsertClient($record->client);
+            if ($record->client instanceof Client) {
+                $record->client_id = $record->client->id;
+                unset($record->client);
+            }
+        }
+
+        // Update.
+        $record = $this->repo->insert($record);
+        if ($record === null) {
+            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, 'Record not updated.');
+        }
+
+        return $this->responder->success($record);
+    }
+
+
+    /**
+     * @method PATCH
+     * @param RecordService $service
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
+     */
+    public function update(RecordService $service, ServerRequestInterface $request): ResponseInterface
+    {
+        $data = $this->validateRequest($request, $this->validation['update']);
+        // Find record.
+        $id = RequestUtils::getPathSegment($request, 2);
+        $record = $this->repo->findOne(['id' => $id], $this->with['read']);
+        if (!$record instanceof Record) {
+            return $this->responder->error(ResponseFactory::NOT_FOUND, 'Record not found.');
+        }
+        $record->load($data);
+
+        // Upsert client.
+        if (isset($record->client)) {
+            $record->client = $service->upsertClient($record->client);
+            if ($record->client instanceof Client) {
+                $record->client_id = $record->client->id;
+                unset($record->client);
+            }
+        }
+
+        // Update.
+        $record = $this->repo->update($record);
+        if ($record === null) {
+            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, 'Record not updated.');
+        }
+
+        return $this->responder->success($record);
     }
 
     /**
