@@ -3,9 +3,10 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Entities\Reservation;
+use App\Http\Resources\CalendarResource;
 use App\Repositories\RecordRepositoryInterface;
 use App\Repositories\SettingRepositoryInterface;
-use App\Entities\Reservation;
 use DateTimeImmutable;
 use Exception;
 use MongoDB\BSON\ObjectId;
@@ -27,8 +28,7 @@ class CalendarService
     public function __construct(
         RecordRepositoryInterface $recordsRepo,
         SettingRepositoryInterface $settingsRepo
-    )
-    {
+    ) {
         $this->recordsRepo = $recordsRepo;
         $this->settingsRepo = $settingsRepo;
     }
@@ -44,6 +44,7 @@ class CalendarService
 
     /**
      * Get days of the week by week number and year.
+     * @param string $hallID
      * @param int $year default current year
      * @param int $week default current weak
      * @return CalendarResource
@@ -93,6 +94,22 @@ class CalendarService
     }
 
     /**
+     * Find reservations in hall between startAt and endAt.
+     * @param string $hallID
+     * @param int $startAt
+     * @param int $endAt
+     * @return Reservation[]
+     */
+    private function findReservations(string $hallID, int $startAt, int $endAt): array
+    {
+        $filter = [
+            'hall_id' => new ObjectId($hallID),
+            'reservations.start_at' => ['$gte' => $startAt, '$lt' => $endAt],
+        ];
+        return $this->recordsRepo->findReservations($filter);
+    }
+
+    /**
      * Find limitations for passed dates.
      * @param array $dates
      * @return array
@@ -132,21 +149,5 @@ class CalendarService
         return array_values(array_filter($limitations, function (array $limitation) {
             return count($limitation) > 0;
         }));
-    }
-
-    /**
-     * Find reservations in hall between startAt and endAt.
-     * @param string $hallID
-     * @param int $startAt
-     * @param int $endAt
-     * @return Reservation[]
-     */
-    private function findReservations(string $hallID, int $startAt, int $endAt): array
-    {
-        $filter = [
-            'hall_id' => new ObjectId($hallID),
-            'reservations.start_at' => ['$gte' => $startAt, '$lt' => $endAt],
-        ];
-        return $this->recordsRepo->findReservations($filter);
     }
 }

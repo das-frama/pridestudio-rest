@@ -13,7 +13,7 @@ use Firebase\JWT\JWT;
  * Class AuthService
  * @package App\Services
  */
-class AuthService extends AbstractResourceService
+class AuthService
 {
     private string $jwtSecret;
     private array $jwtAllowedAlgs = ['HS256', 'HS384', 'HS512'];

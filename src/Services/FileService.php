@@ -42,6 +42,20 @@ class FileService
     }
 
     /**
+     * Convert web path to os specific path.
+     * @param string $path
+     * @return string
+     */
+    private function toOSPath(string $path): string
+    {
+        if (substr($path, 0, 1) !== '/') {
+            $path = '/' . $path;
+        }
+        $path = str_replace('//', '/', $path);
+        return WEB_ROOT_DIR . str_replace('/', DIRECTORY_SEPARATOR, $path);
+    }
+
+    /**
      * Upload many files.
      * @param UploadedFileInterface[] $files
      * @param string $path
@@ -71,6 +85,22 @@ class FileService
         $url = $this->storagePath . '/' . $path . '/' . $name;
         $url = str_replace('//', '/', $url);
         return $url;
+    }
+
+    /**
+     * Generate new file name.
+     * @param UploadedFileInterface $file
+     * @return string
+     */
+    private function generateFileName(UploadedFileInterface $file): string
+    {
+        $extensions = [
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+        ];
+        $mimeType = $file->getClientMediaType();
+        $ext = $extensions[$mimeType] ?? '';
+        return uniqid() . '.' . $ext;
     }
 
     /**
@@ -117,35 +147,5 @@ class FileService
         }
         $mimeType = mime_content_type($osPath);
         return substr($mimeType, 0, 5) === 'image';
-    }
-
-    /**
-     * Generate new file name.
-     * @param UploadedFileInterface $file
-     * @return string
-     */
-    private function generateFileName(UploadedFileInterface $file): string
-    {
-        $extensions = [
-            'image/jpeg' => 'jpg',
-            'image/png' => 'png',
-        ];
-        $mimeType = $file->getClientMediaType();
-        $ext = $extensions[$mimeType] ?? '';
-        return uniqid() . '.' . $ext;
-    }
-
-    /**
-     * Convert web path to os specific path.
-     * @param string $path
-     * @return string
-     */
-    private function toOSPath(string $path): string
-    {
-        if (substr($path, 0, 1) !== '/') {
-            $path = '/' . $path;
-        }
-        $path = str_replace('//', '/', $path);
-        return WEB_ROOT_DIR . str_replace('/', DIRECTORY_SEPARATOR, $path);
     }
 }
