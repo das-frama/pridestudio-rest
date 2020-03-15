@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Services\SystemService;
 use App\Http\Controllers\Base\ControllerTrait;
 use App\Http\Responders\ResponderInterface;
+use App\Services\SystemService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 

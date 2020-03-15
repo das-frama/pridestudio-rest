@@ -15,6 +15,7 @@ use App\Repositories\CouponRepositoryInterface;
 use App\Repositories\HallRepositoryInterface;
 use App\Repositories\RecordRepositoryInterface;
 use DateTimeImmutable;
+use Exception;
 
 /**
  * Class RecordService
@@ -26,7 +27,7 @@ class RecordService
     private ClientRepositoryInterface $clientRepo;
     private CouponRepositoryInterface $couponRepo;
     private HallRepositoryInterface $hallRepo;
-    
+
     /**
      * RecordService constructor.
      * @param RecordRepositoryInterface $recordRepo
@@ -149,7 +150,7 @@ class RecordService
      * @param Hall $hall
      * @param Coupon|null $coupon
      * @return int
-     * @throws \Exception
+     * @throws Exception
      */
     public function calculatePrice(Record $record, Hall $hall, Coupon $coupon = null): int
     {
@@ -188,7 +189,7 @@ class RecordService
      * @param Reservation $reservation
      * @param int $basePrice
      * @return int
-     * @throws \Exception
+     * @throws Exception
      */
     private function calculatePriceRule(PriceRule $rule, Reservation $reservation, int $basePrice): int
     {
@@ -264,7 +265,7 @@ class RecordService
      * Update existing record.
      * @param Record $record
      * @return Record|null
-     * @throws \Exception
+     * @throws Exception
      */
     public function update(Record $record): ?Record
     {

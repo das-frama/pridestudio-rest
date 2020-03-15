@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Services\FileService;
 use App\Http\Responders\ResponderInterface;
 use App\RequestUtils;
 use App\ResponseFactory;
+use App\Services\FileService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 

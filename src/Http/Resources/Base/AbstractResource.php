@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace App\Http\Resources\Base;
 
 use JsonSerializable;
+use ReflectionObject;
+use ReflectionProperty;
 
 abstract class AbstractResource implements JsonSerializable
 {
@@ -25,7 +27,7 @@ abstract class AbstractResource implements JsonSerializable
      */
     public function jsonSerialize(): array
     {
-        $reflectionProperties = (new \ReflectionObject($this))->getProperties(\ReflectionProperty::IS_PUBLIC);
+        $reflectionProperties = (new ReflectionObject($this))->getProperties(ReflectionProperty::IS_PUBLIC);
         $properties = [];
         foreach ($reflectionProperties as $reflectionProperty) {
             $name = $reflectionProperty->getName();

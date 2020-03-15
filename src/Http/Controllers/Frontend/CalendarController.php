@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Frontend;
 
-use App\Services\CalendarService;
-use App\Services\HallService;
 use App\Http\Controllers\Base\ControllerTrait;
 use App\Http\Responders\ResponderInterface;
 use App\RequestUtils;
 use App\ResponseFactory;
+use App\Services\CalendarService;
+use App\Services\HallService;
 use Exception;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -35,8 +35,7 @@ class CalendarController
         CalendarService $calendarService,
         HallService $hallService,
         ResponderInterface $responder
-    )
-    {
+    ) {
         $this->calendarService = $calendarService;
         $this->hallService = $hallService;
         $this->responder = $responder;

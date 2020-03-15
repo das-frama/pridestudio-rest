@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Frontend;
 
-use App\Services\HallService;
-use App\Services\ValidationService;
 use App\Http\Controllers\Base\ControllerTrait;
 use App\Http\Responders\ResponderInterface;
 use App\RequestUtils;
 use App\ResponseFactory;
+use App\Services\HallService;
+use App\Services\ValidationService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
