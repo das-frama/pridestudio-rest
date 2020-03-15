@@ -3,7 +3,7 @@
 use Monolog\Logger;
 
 return [
-    'name' => 'Pridestudio API',
+    'name' => 'Pridestudio',
     'version' => '0.1.1',
 
     'env' => getenv('APP_ENV'),
@@ -27,5 +27,6 @@ return [
     'routes' => [
         'api' => require __DIR__ . '/../routes/api.php',
         'frontend' => require __DIR__ . '/../routes/frontend.php',
+        'console' => require  __DIR__ . '/../routes/console.php',
     ],
 ];

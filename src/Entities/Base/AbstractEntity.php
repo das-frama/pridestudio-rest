@@ -22,34 +22,16 @@ abstract class AbstractEntity implements Persistable, JsonSerializable
     protected array $public = [];
     protected bool $unserialized = false;
 
-//    public function __construct()
-//    {
-//        // Set default values by it's type for each property.
-//        $reflectionProperties = (new ReflectionClass(static::class))->getProperties(ReflectionProperty::IS_PUBLIC);
-//        foreach ($reflectionProperties as $reflectionProperty) {
-//            $name = $reflectionProperty->getName();
-//            $type = $reflectionProperty->getType()->getName();
-//            switch ($type) {
-//                case 'string':
-//                    $this->{$name} = '';
-//                    break;
-//                case 'int':
-//                    $this->{$name} = 0;
-//                    break;
-//                case 'float':
-//                    $this->{$name} = 0.0;
-//                    break;
-//                case 'boolean':
-//                    $this->{$name} = false;
-//                    break;
-//                case 'array':
-//                    $this->{$name} = [];
-//                    break;
-//                default:
-//                    $this->{$name} = null;
-//            }
-//        }
-//    }
+    /**
+     * AbstractEntity constructor.
+     * @param array $params
+     */
+    public function __construct(array $params = [])
+    {
+        if (!empty($params)) {
+            $this->load($params);
+        }
+    }
 
     /**
      * Load array of data to the Entity.

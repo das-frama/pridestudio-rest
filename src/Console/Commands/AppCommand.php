@@ -6,12 +6,12 @@ namespace App\Console\Commands;
 use App\Services\SystemService;
 
 /**
- * InitCommand class.
+ * AppCommand class.
  * Example: App init
  */
-class InitCommand
+class AppCommand
 {
-    private SystemService $service;
+    protected SystemService $service;
 
     /**
      * InitCommand constructor.
@@ -22,24 +22,27 @@ class InitCommand
         $this->service = $service;
     }
 
-    public function main(): int
+    /**
+     * @return int
+     */
+    public function init(): int
     {
         // Settings.
         $data = $this->getData('settings.php');
         if ($this->service->initSettings($data)) {
-            fwrite(STDOUT, "Settings init successfull.\n");
+            fwrite(STDOUT, "Settings init successfully.\n");
         } else {
             fwrite(STDOUT, "Settings already initiated.\n");
         }
         // Halls.
         if ($this->service->initHalls()) {
-            fwrite(STDOUT, "Halls init successfull.\n");
+            fwrite(STDOUT, "Halls init successfully.\n");
         } else {
             fwrite(STDOUT, "Halls already initiated.\n");
         }
         // Coupons.
         if ($this->service->initCoupons()) {
-            fwrite(STDOUT, "Coupons init successfull.\n");
+            fwrite(STDOUT, "Coupons init successfully.\n");
         } else {
             fwrite(STDOUT, "Coupons already initiated.\n");
         }
@@ -50,6 +53,6 @@ class InitCommand
     private function getData(string $filename): array
     {
         $path = join(DIRECTORY_SEPARATOR, ['data', 'init', $filename]);
-        return require(APP_DIR . DIRECTORY_SEPARATOR . $path);
+        return require APP_DIR . DIRECTORY_SEPARATOR . $path;
     }
 }
