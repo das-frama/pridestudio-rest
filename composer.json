@@ -1,6 +1,7 @@
 {
   "name": "das-frama/pridestudio",
   "description": "A pridestudio web app for rent places.",
+  "version": "0.1.1",
   "type": "project",
   "require": {
     "php": "^7.4",

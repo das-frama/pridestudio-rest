@@ -1,16 +1,15 @@
 <?php
 declare(strict_types=1);
 
-use App\App;
-use App\RequestFactory;
-use Dotenv\Dotenv;
+/**
+ * A custom PHP Web App for Pridestudio.
+ *
+ * @author Andrey Galaktionov <das.frama@gmail.com>
+ * @version 0.1.1
+ */
 
 require __DIR__ . '/../vendor/autoload.php';
 
-define('WEB_ROOT_DIR', dirname(__FILE__));
-define('APP_DIR', dirname(WEB_ROOT_DIR));
-define('HOST', getenv('APP_HOST'));
-
-(DotEnv::create(APP_DIR))->load();
+(Dotenv\DotEnv::create(__DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR))->load();
 $config = require __DIR__ . '/../config/main.php';
-(new App($config))->run(RequestFactory::fromGlobals());
+(new App\App($config))->run(\App\RequestFactory::fromGlobals());

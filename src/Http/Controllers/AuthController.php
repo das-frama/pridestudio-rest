@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Base\AbstractController;
-use App\RequestUtils;
 use App\ResponseFactory;
 use App\Services\AuthService;
 use Exception;
@@ -35,13 +34,16 @@ class AuthController extends AbstractController
         ]);
 
         // Login.
-        $response = $service->login($data['email'], $data['password']);
-        if ($response === null) {
+        $token = $service->login($data['email'], $data['password']);
+        if ($token === null) {
             return $this->responder->error(ResponseFactory::UNAUTHORIZED, 'Wrong credentials', [
                 'email' => 'Wrong username or password.',
             ]);
         }
-        return $this->responder->success($response);
+
+        $refreshExpiresIn = time() + 3600 * 24 * 30;
+        setcookie('refresh_token', $token->refresh_token, $refreshExpiresIn, '/', 'pridestudio.local', false, true);
+        return $this->responder->success($token);
     }
 
     /**
@@ -52,13 +54,20 @@ class AuthController extends AbstractController
      */
     public function refresh(AuthService $service, ServerRequestInterface $request): ResponseInterface
     {
-        $token = RequestUtils::getPathSegment($request, 3);
-        $response = $service->refresh($token);
-        if ($response === null) {
+//        $refresh = RequestUtils::getPathSegment($request, 3);
+        $cookie = $request->getCookieParams();
+        if (!isset($cookie['refresh_token'])) {
+            return $this->responder->error(ResponseFactory::BAD_REQUEST, 'Empty refresh token.');
+        }
+        $refresh = $cookie['refresh_token'];
+        $token = $service->refresh($refresh);
+        if ($token === null) {
             return $this->responder->error(ResponseFactory::FORBIDDEN, 'Refresh token not found.');
         }
 
-        return $this->responder->success($response);
+        $refreshExpiresIn = time() + 3600 * 24 * 30;
+        setcookie('refresh_token', $token->refresh_token, $refreshExpiresIn, '/', 'pridestudio.local', false, true);
+        return $this->responder->success($token);
     }
 
     /**

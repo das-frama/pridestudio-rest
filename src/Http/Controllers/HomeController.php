@@ -31,6 +31,6 @@ class HomeController
      */
     public function index(ServerRequestInterface $request): ResponseInterface
     {
-        return $this->responder->success("Привет. Это API прайдстудио.");
+        return $this->responder->success('Привет! Это API pridestudio.');
     }
 }

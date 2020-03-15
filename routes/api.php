@@ -38,6 +38,6 @@ return [
     ['GET', '/system/init', 'SystemController@init', ['jwt']],
     // Auth.
     ['POST', '/auth/login', 'AuthController@login'],
-    ['POST', '/auth/refresh/*', 'AuthController@refresh'],
+    ['POST', '/auth/refresh', 'AuthController@refresh'],
     ['GET', '/auth/me', 'AuthController@me', ['jwt']],
 ];
