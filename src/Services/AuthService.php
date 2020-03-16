@@ -109,18 +109,20 @@ class AuthService
      */
     public function getRefreshToken(): string
     {
-        return $this->generateRandomString(32);
+        return random_string(32);
     }
 
     /**
-     * Generate CSRF token from length.
-     * @param int $len
-     * @return string
-     * @throws Exception
+     * @param string $token
+     * @return bool
      */
-    protected function generateRandomString(int $len): string
+    public function clearRefreshToken(string $token): bool
     {
-        return bin2hex(random_bytes($len));
+        // Find user.
+        $user = new User();
+        $user->refresh_token = $token;
+        $user = $this->repo->findOneAndUpdate(['refresh_token' => $token], $user);
+        return $user instanceof User;
     }
 
     /**

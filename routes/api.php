@@ -36,8 +36,10 @@ return [
     ['GET', '/settings/*', 'SettingsController@read', ['jwt']],
     // System.
     ['GET', '/system/init', 'SystemController@init', ['jwt']],
+
     // Auth.
     ['POST', '/auth/login', 'AuthController@login'],
-    ['POST', '/auth/refresh', 'AuthController@refresh'],
+    ['POST', '/auth/logout', 'AuthController@logout', ['jwt']],
+    ['POST', '/auth/refresh', 'AuthController@refresh', ['jwt']],
     ['GET', '/auth/me', 'AuthController@me', ['jwt']],
 ];

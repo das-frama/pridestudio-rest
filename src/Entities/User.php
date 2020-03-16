@@ -20,7 +20,7 @@ class User extends AbstractEntity
     public string $created_by;
     public string $updated_by;
 
-    protected array $fillable = ['name', 'email', 'is_active', 'role', ''];
+    protected array $fillable = ['name', 'email', 'is_active', 'role'];
     protected array $public = [
         'id',
         'email',
