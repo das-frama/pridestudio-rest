@@ -16,6 +16,7 @@ class App
     const COLOR_LIGHT_GREY = '0;37';
     const COLOR_GREEN = '0;32';
     const COLOR_YELLOW = '1;33';
+    const COLOR_RED = '1;31';
 
     protected array $config;
     protected array $commands;
@@ -30,7 +31,6 @@ class App
         $this->config = $config;
         // DI.
         $this->dice = (new Dice())->addRules($config['rules']);
-
         // Commands.
         $this->commands = $config['routes']['console'];
     }

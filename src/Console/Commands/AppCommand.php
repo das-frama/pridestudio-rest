@@ -3,13 +3,14 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Console\Commands\Base\AbstractCommand;
 use App\Services\SystemService;
 
 /**
  * AppCommand class.
  * Example: App init
  */
-class AppCommand
+class AppCommand extends AbstractCommand
 {
     protected SystemService $service;
 
@@ -29,9 +30,12 @@ class AppCommand
     {
         // Create public storage symlink.
         if ($this->createStorageSymlink()) {
-            fwrite(STDOUT, "Public storage symlink created.\n");
-        } else {
-            fwrite(STDERR, "Could not create a symlink.\n");
+            $this->line('Public storage symlink created.');
+        }
+
+        // Generate JWT secret key.
+        if ($this->putJWTSecret(random_string(16))) {
+            $this->line('JWT secret stored.');
         }
 
         // Settings.
@@ -66,9 +70,30 @@ class AppCommand
         $target = join(DIRECTORY_SEPARATOR, [APP_DIR, 'storage', 'public']);
         $link = join(DIRECTORY_SEPARATOR, [APP_DIR, 'public', 'storage']);
         if (is_link($link)) {
-            return true;
+            return false;
         }
         return symlink($target, $link);
+    }
+
+    /**
+     * Generate JWT secret and put it in .env file.
+     * @param string $secret
+     * @return bool
+     */
+    protected function putJWTSecret(string $secret): bool
+    {
+        $env = APP_DIR . DIRECTORY_SEPARATOR . '.env';
+        if (!file_exists($env)) {
+            return false;
+        }
+        $currentSecret = getenv('JWT_SECRET');
+        if (!empty($currentSecret)) {
+            return false;
+        }
+
+        $content = file_get_contents($env);
+        $key = 'JWT_SECRET=';
+        return (bool)file_put_contents($env, str_replace($key . $currentSecret, $key . $secret, $content));
     }
 
     private function getData(string $filename): array
