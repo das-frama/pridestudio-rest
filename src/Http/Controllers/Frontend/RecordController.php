@@ -55,29 +55,15 @@ class RecordController extends AbstractController
         // Prepare record.
         $record = new Record($data);
         $record = $this->service->withHall($record);
+        if ($record->hall === null) {
+            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, 'Hall not exists.');
+        }
         $record = $this->service->withCoupon($record);
 
         $payment = new PaymentResource([
             'price' => $this->service->calculatePrice($record),
         ]);
         return $this->responder->success($payment);
-    }
-
-    /**
-     * Check coupon.
-     * GET /frontend/records/coupon/<coupon-code>
-     * @method GET
-     * @param ServerRequestInterface $request
-     * @return ResponseInterface
-     */
-    public function coupon(ServerRequestInterface $request): ResponseInterface
-    {
-        $code = RequestUtils::getPathSegment($request, 4);
-        $coupon = $this->service->findCouponByCode($code);
-        if ($coupon === null) {
-            return $this->responder->error(ResponseFactory::NOT_FOUND, 'Coupon not found.');
-        }
-        return $this->responder->success($coupon);
     }
 
     /**

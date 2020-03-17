@@ -1,6 +1,9 @@
 <?php
 
 return [
+    // Coupon.
+    ['GET', '/frontend/booking/coupon/*', 'Frontend\BookingController@coupon'],
+
     // Booking.
 //    ['GET', '/frontend/booking', 'Frontend\BookingController@index'],
 //    ['GET', '/frontend/booking/*', 'Frontend\BookingController@hall'],
@@ -12,10 +15,11 @@ return [
 //    ['GET', '/frontend/calendar/*', 'Frontend\CalendarController@index'],
 //    ['GET', '/frontend/calendar/*/*', 'Frontend\CalendarController@week'],
 //    ['GET', '/frontend/calendar/*/*/*', 'Frontend\CalendarController@read'],
+
 //    // Records.
     ['POST', '/frontend/records', 'Frontend\RecordController@create'],
-//    ['POST', '/frontend/records/price', 'Frontend\RecordController@price'],
-//    ['GET', '/frontend/records/coupon/*', 'Frontend\RecordController@coupon'],
+    ['POST', '/frontend/records/price', 'Frontend\RecordController@price'],
+
 //    // Settings.
 //    ['GET', '/frontend/settings', 'Frontend\SettingsController@all'],
 //    ['GET', '/frontend/settings/*', 'Frontend\SettingsController@read'],
