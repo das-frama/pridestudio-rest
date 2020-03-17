@@ -90,6 +90,9 @@ class RecordService
     {
         // Hall.
         $record = $this->withHall($record);
+        if ($record->hall === null) {
+            return null;
+        }
         // Client.
         $record = $this->withClient($record, true);
         // Coupon.

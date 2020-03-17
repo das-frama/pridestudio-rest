@@ -40,6 +40,6 @@ return [
     // Auth.
     ['POST', '/auth/login', 'AuthController@login'],
     ['POST', '/auth/logout', 'AuthController@logout', ['jwt']],
-    ['POST', '/auth/refresh', 'AuthController@refresh', ['jwt']],
+    ['POST', '/auth/refresh', 'AuthController@refresh'],
     ['GET', '/auth/me', 'AuthController@me', ['jwt']],
 ];

@@ -3,12 +3,10 @@ declare(strict_types=1);
 
 namespace App\Repositories\MongoDB;
 
-use App\Entities\Client;
 use App\Entities\Payment;
 use App\Entities\Record;
 use App\Entities\Reservation;
 use App\Repositories\Base\AbstractRepository;
-use App\Repositories\ClientRepositoryInterface;
 use App\Repositories\RecordRepositoryInterface;
 use MongoDB\Client as MongoDBClient;
 
