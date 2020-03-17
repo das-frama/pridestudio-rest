@@ -5,7 +5,6 @@ namespace App\Services;
 
 use App\Entities\Client;
 use App\Entities\Coupon;
-use App\Entities\Hall;
 use App\Entities\Payment;
 use App\Entities\PriceRule;
 use App\Entities\Record;
@@ -23,7 +22,7 @@ use Exception;
  */
 class RecordService
 {
-    private RecordRepositoryInterface $recordRepo;
+    private RecordRepositoryInterface $repo;
     private ClientRepositoryInterface $clientRepo;
     private CouponRepositoryInterface $couponRepo;
     private HallRepositoryInterface $hallRepo;
@@ -83,50 +82,67 @@ class RecordService
     }
 
     /**
-     * Create a new record.
+     * Store a new record.
      * @param Record $record
-     * @param string $couponCode
      * @return Record|null
      */
-    public function create(Record $record, string $couponCode = null): ?Record
+    public function book(Record $record): ?Record
     {
-        // Client. If not exist then create one.
-        if (isset($record->client) && $record->client instanceof Client) {
-            $record->client = $this->upsertClient($record->client);
-            if ($record->client !== null) {
-                $record->client_id = $record->client->id;
-            }
-            unset($record->client);
-        }
-
         // Hall.
-        $hall = $this->hallRepo->findOne(['id' => $record->hall_id], ['id', 'base_price', 'prices']);
-        if (!($hall instanceof Hall)) {
-            return null;
-        }
-
+        $record = $this->withHall($record);
+        // Client.
+        $record = $this->withClient($record, true);
         // Coupon.
-        $coupon = null;
-        if ($couponCode !== null) {
-            $coupon = $this->couponRepo->findOne(['code' => $couponCode], ['id', 'factor']);
-            if ($coupon instanceof Coupon) {
-                $record->coupon_id = $coupon->id;
-            }
-        }
-
+        $record = $this->withCoupon($record);
         // Total price.
-        $record->total = $this->calculatePrice($record, $hall, $coupon);
+        $record->total = $this->calculatePrice($record);
         $record->status = Record::STATUS_NEW;
-
         // Payment.
         if (isset($record->payment) && $record->payment instanceof Payment) {
             $record->payment->aggregator = Payment::AGGREGATOR_ROBOKASSA;
             $record->payment->status = Payment::STATUS_NEW;
         }
-
-        // Save record.
+        // Remove relations.
+        unset($record->client);
+        unset($record->hall);
+        unset($record->coupon);
+        // Store record.
         $record = $this->repo->insert($record);
         return $record instanceof Record ? $record : null;
+    }
+
+    /**
+     * @param Record $record
+     * @return Record
+     */
+    public function withHall(Record $record): Record
+    {
+        $newRecord = clone $record;
+        $newRecord->hall = $this->hallRepo->findOne(['id' => $record->hall_id]);
+        return $newRecord;
+    }
+
+    /**
+     * @param Record $record
+     * @param bool $upsert
+     * @return Record
+     */
+    public function withClient(Record $record, $upsert = false): Record
+    {
+        $newRecord = clone $record;
+        if (isset($newRecord->client_id)) {
+            $newRecord->client = $this->clientRepo->findOne(['id' => $record->client_id]);
+        } elseif (isset($newRecord->client)) {
+            if ($upsert) {
+                $newRecord->client = $this->upsertClient($newRecord->client);
+            } else {
+                $newRecord->client = $this->clientRepo->findOne(['email' => $newRecord->client->email]);
+            }
+            if (isset($newRecord->client->id)) {
+                $newRecord->client_id = $newRecord->client->id;
+            }
+        }
+        return $newRecord;
     }
 
     /**
@@ -145,26 +161,43 @@ class RecordService
     }
 
     /**
+     * @param Record $record
+     * @return Record
+     */
+    public function withCoupon(Record $record): Record
+    {
+        $newRecord = clone $record;
+        if (isset($newRecord->coupon_id)) {
+            $newRecord->coupon = $this->couponRepo->findOne(['id' => $record->coupon_id]);
+        } elseif (isset($newRecord->coupon->code)) {
+            $newRecord->coupon = $this->couponRepo->findOne(['code' => $record->coupon->code]);
+            if (isset($newRecord->coupon->id)) {
+                $newRecord->coupon_id = $record->coupon->id;
+            }
+        }
+        return $newRecord;
+    }
+
+    /**
      * Calculate price for reservations.
      * @param Record $record
-     * @param Hall $hall
-     * @param Coupon|null $coupon
      * @return int
      * @throws Exception
      */
-    public function calculatePrice(Record $record, Hall $hall, Coupon $coupon = null): int
+    public function calculatePrice(Record $record): int
     {
-        if (empty($record->reservations)) {
+        if (empty($record->reservations) || !isset($record->hall)) {
             return 0;
         }
+
         $amount = 0;
         // Calculate reservations.
         foreach ($record->reservations as $reservation) {
-            if (empty($hall->prices)) {
-                $amount += $hall->base_price * intval($reservation->length / 60);
+            if (empty($record->hall->prices)) {
+                $amount += $record->hall->base_price * intval($reservation->length / 60);
                 continue;
             }
-            foreach ($hall->prices as $price) {
+            foreach ($record->hall->prices as $price) {
                 // If price has services.
                 if (!empty($price->service_ids)) {
                     // And they should intersect with record services.
@@ -172,12 +205,12 @@ class RecordService
                         continue;
                     }
                 }
-                $amount += $this->calculatePriceRule($price, $reservation, $hall->base_price);
+                $amount += $this->calculatePriceRule($price, $reservation, $record->hall->base_price);
             }
         }
         // Apply coupon discount.
-        if ($coupon !== null && $coupon->factor !== null) {
-            $amount -= intval($amount * $coupon->factor);
+        if (isset($record->coupon) && isset($record->coupon->factor)) {
+            $amount -= intval($amount * $record->coupon->factor);
         }
 
         return $amount;
@@ -259,55 +292,6 @@ class RecordService
         }
 
         return $amount;
-    }
-
-    /**
-     * Update existing record.
-     * @param Record $record
-     * @return Record|null
-     * @throws Exception
-     */
-    public function update(Record $record): ?Record
-    {
-        // Client.
-        if (isset($record->client) && $record->client instanceof Client) {
-            $record->client = $this->upsertClient($record->client);
-            if ($record->client !== null) {
-                $record->client_id = $record->client->id;
-            }
-            unset($record->client);
-        }
-
-        // Hall.
-        if (isset($record->hall_id)) {
-            $hall = $this->hallRepo->findOne(['id' => $record->hall_id], ['id', 'base_price', 'prices']);
-            if (!($hall instanceof Hall)) {
-                return null;
-            }
-            // Total price.
-            $record->total = $record->total ?: $this->calculatePrice($record, $hall);
-        }
-
-        // // Coupon.
-        // $coupon = null;
-        // if ($couponCode !== null) {
-        //     $coupon = $this->couponRepo->findOne(['code' => $couponCode], ['id', 'factor']);
-        //     if ($coupon !== null) {
-        //         $record->coupon_id = $coupon->id;
-        //     }
-        // }
-
-
-        // Payment.
-        // if ($record->payment instanceof Payment) {
-        //     $record->payment->aggregator = Payment::AGGREGATOR_ROBOKASSA;
-        //     $record->payment->status = Payment::STATUS_NEW;
-        //     $record->payment->updated_at = time();
-        // }
-
-        // Save record.
-        $record = $this->repo->update($record);
-        return $record instanceof Record ? $record : null;
     }
 
     /**

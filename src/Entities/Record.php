@@ -30,6 +30,7 @@ class Record extends AbstractEntity
     public string $coupon_id;
     public int $total;
     public string $comment;
+    public string $client_comment;
     public int $status;
     public int $created_at;
     public int $updated_at;
@@ -55,6 +56,7 @@ class Record extends AbstractEntity
         'status',
         'created_at',
         'comment',
+        'client_comment',
         'client',
         'hall',
         'services',
@@ -67,6 +69,7 @@ class Record extends AbstractEntity
         'total',
         'status',
         'comment',
+        'client_comment',
         'client'
     ];
 

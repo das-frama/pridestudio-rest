@@ -3,34 +3,34 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Frontend;
 
-use App\Entities\Client;
 use App\Entities\Record;
-use App\Http\Controllers\Base\ControllerTrait;
+use App\Http\Controllers\Base\AbstractController;
 use App\Http\Resources\Booking\PaymentResource;
 use App\Http\Responders\ResponderInterface;
 use App\RequestUtils;
 use App\ResponseFactory;
-use App\Services\HallService;
 use App\Services\RecordService;
+use App\Services\ValidationService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
  * RecordController class.
  */
-class RecordController
+class RecordController extends AbstractController
 {
-    use ControllerTrait;
+    protected RecordService $service;
 
-    private RecordService $recordService;
-    private HallService $hallService;
-    private ResponderInterface $responder;
-
-    public function __construct(RecordService $recordService, HallService $hallService, ResponderInterface $responder)
+    /**
+     * RecordController constructor.
+     * @param RecordService $service
+     * @param ResponderInterface $responder
+     * @param ValidationService $validator
+     */
+    public function __construct(RecordService $service, ResponderInterface $responder, ValidationService $validator)
     {
-        $this->recordService = $recordService;
-        $this->hallService = $hallService;
-        $this->responder = $responder;
+        $this->service = $service;
+        parent::__construct($responder, $validator);
     }
 
     /**
@@ -43,29 +43,24 @@ class RecordController
     public function price(ServerRequestInterface $request): ResponseInterface
     {
         // Get body from request.
-        $data = $request->getParsedBody();
-        if (empty($data)) {
-            return $this->responder->error(ResponseFactory::BAD_REQUEST, 'Empty body.');
-        }
-        // Load data from request.
-        $record = new Record;
-        $record->load($data, ['hall_id', 'reservations', 'service_ids', 'payment_id', 'comment']);
-        // Find hall.
-        $hall = $this->hallService->findByID($record->hall_id, ['id', 'base_price', 'prices']);
-        if ($hall === null) {
-            return $this->responder->error(ResponseFactory::NOT_FOUND, 'Hall not found.');
-        }
-        /// Find a coupon.
-        $coupon = null;
-        $couponCode = $data['coupon']['code'] ?? null;
-        if (!empty($couponCode)) {
-            $coupon = $this->recordService->findCouponByCode($couponCode, ['id', 'factor']);
-        }
-        // Response with document.
-        $paymentDoc = new PaymentResource;
-        $paymentDoc->price = $this->recordService->calculatePrice($record, $hall, $coupon);
-        // $bookingDoc->prepayment = $bookingDoc->price * 0.5;
-        return $this->responder->success($paymentDoc);
+        $data = $this->validateRequest($request, [
+            'hall_id' => ['required', 'objectId'],
+            'reservations' => ['required', 'array'],
+            'reservations.$.start_at' => ['required', 'int'],
+            'reservations.$.length' => ['required', 'int:0:1440'],
+            'service_ids' => ['array'],
+            'coupon' => ['array'],
+            'coupon.code' => ['string'],
+        ]);
+        // Prepare record.
+        $record = new Record($data);
+        $record = $this->service->withHall($record);
+        $record = $this->service->withCoupon($record);
+
+        $payment = new PaymentResource([
+            'price' => $this->service->calculatePrice($record),
+        ]);
+        return $this->responder->success($payment);
     }
 
     /**
@@ -78,46 +73,43 @@ class RecordController
     public function coupon(ServerRequestInterface $request): ResponseInterface
     {
         $code = RequestUtils::getPathSegment($request, 4);
-        $coupon = $this->recordService->findCouponByCode($code, ['code', 'factor']);
+        $coupon = $this->service->findCouponByCode($code);
         if ($coupon === null) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, 'Coupon not found.');
         }
-
         return $this->responder->success($coupon);
     }
 
     /**
-     * Post record.
-     * POST /frontend/records
+     * Book.
      * @method POST
+     * @param RecordService $service
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      */
     public function create(ServerRequestInterface $request): ResponseInterface
     {
-        // Get body's data from request.
-        $data = $request->getParsedBody();
-        if (empty($data)) {
-            return $this->responder->error(ResponseFactory::BAD_REQUEST, 'Empty body.');
-        }
-
-        // Load data.
-        $record = new Record;
-        $record->load($data, ['hall_id', 'reservations', 'service_ids', 'comment']);
-        $client = new Client;
-        $client->load($data['client'], ['name', 'phone', 'email']);
-
-        // Check if hall exists.
-        if (!$this->hallService->isExists($record->hall_id, true)) {
-            return $this->responder->error(ResponseFactory::NOT_FOUND, "Hall not found.");
-        }
-
-        // Save record.
-        $record = $this->recordService->create($record, $client, $data['coupon']['code'] ?? null);
+        // Validate request.
+        $data = $this->validateRequest($request, [
+            'hall_id' => ['required', 'objectId'],
+            'reservations' => ['required', 'array'],
+            'reservations.$.start_at' => ['required', 'int'],
+            'reservations.$.length' => ['required', 'int:0:1440'],
+            'service_ids' => ['array'],
+            'client_comment' => ['string'],
+            'client' => ['required'],
+            'client.name' => ['required', 'string:3:255'],
+            'client.email' => ['required', 'email'],
+            'client.phone' => ['required', 'string'],
+            'coupon' => ['array'],
+            'coupon.code' => ['string'],
+        ]);
+        // Create and store record.
+        $record = $this->service->book(new Record($data));
         if ($record === null) {
-            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, 'Errors during create.');
+            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, 'Could not store record.');
         }
 
-        return $this->responder->success($record->id, 1, ResponseFactory::CREATED);
+        return $this->responder->success($record);
     }
 }
