@@ -3,32 +3,34 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Frontend;
 
+use App\Entities\Client;
+use App\Entities\Coupon;
+use App\Entities\Record;
 use App\Http\Controllers\Base\AbstractController;
+use App\Http\Requests\BookRequest;
 use App\Http\Responders\ResponderInterface;
 use App\RequestUtils;
 use App\ResponseFactory;
 use App\Services\BookingService;
-use App\Services\ValidationService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
+/**
+ * Class BookingController
+ * @package App\Http\Controllers\Frontend
+ */
 class BookingController extends AbstractController
 {
     protected BookingService $service;
-//    private SettingService $settingService;
-//    private HallService $hallService;
-//    private CalendarService $calendarService;
-//    private ResponderInterface $responder;
 
     /**
      * BookingController constructor.
      * @param BookingService $service
      * @param ResponderInterface $responder
-     * @param ValidationService $validator
      */
-    public function __construct(BookingService $service, ResponderInterface $responder, ValidationService $validator)
+    public function __construct(BookingService $service, ResponderInterface $responder)
     {
-        parent::__construct($responder, $validator);
+        parent::__construct($responder);
         $this->service = $service;
 //        $this->settingService = $settingService;
 //        $this->hallService = $hallService;
@@ -96,21 +98,4 @@ class BookingController extends AbstractController
 //
 //        return $this->responder->success($bookingDoc);
 //    }
-
-    /**
-     * Check coupon.
-     * GET /frontend/booking/coupon/<code>
-     * @method GET
-     * @param ServerRequestInterface $request
-     * @return ResponseInterface
-     */
-    public function coupon(ServerRequestInterface $request): ResponseInterface
-    {
-        $code = RequestUtils::getPathSegment($request, 4);
-        $coupon = $this->service->findCoupon($code);
-        if ($coupon === null) {
-            return $this->responder->error(ResponseFactory::NOT_FOUND, 'Coupon not found.');
-        }
-        return $this->responder->success($coupon);
-    }
 }

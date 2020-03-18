@@ -6,6 +6,7 @@ namespace App\Http\Router;
 use App\Http\Middlewares\CorsMiddleware;
 use App\Http\Middlewares\JwtAuthMiddleware;
 use App\Http\Middlewares\LogMiddleware;
+use App\Http\Requests\Base\RequestInterface;
 use App\Http\Responders\ResponderInterface;
 use App\RequestUtils;
 use App\ResponseFactory;
@@ -125,10 +126,15 @@ class Router implements RouterInterface
         try {
             list($class, $method) = explode('@', $this->routeHandlers[$routeNumbers[0]], 2);
             $class = 'App\\Http\\Controllers\\' . $class;
-            $dice = $this->dice->addRule($class, [
-                'call' => [
-                    [$method, [$request], Dice::CHAIN_CALL],
+            $dice = $this->dice->addRules([
+                RequestInterface::class => [
+                    'substitutions' => [ServerRequestInterface::class => $request],
                 ],
+                $class => [
+                    'call' => [
+                        [$method, [$request], Dice::CHAIN_CALL],
+                    ],
+                ]
             ]);
             /** @var ResponseInterface $response */
             $response = $dice->create($class);

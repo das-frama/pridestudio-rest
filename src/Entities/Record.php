@@ -38,11 +38,11 @@ class Record extends AbstractEntity
     public string $updated_by;
 
     // Relations.
-    public ?Client $client;
-    public ?Hall $hall;
-    public ?Coupon $coupon;
+    protected ?Client $client;
+    protected ?Hall $hall;
+    protected ?Coupon $coupon;
     /** @var Service[] */
-    public ?array $services;
+    protected ?array $services;
 
     protected array $public = [
         'id',
@@ -63,14 +63,15 @@ class Record extends AbstractEntity
     ];
     protected array $fillable = [
         'hall_id',
-        'reservations',
-        'payment',
+        'client_id',
         'coupon_id',
+        'reservations',
+        'service_ids',
+        'payment',
         'total',
         'status',
         'comment',
         'client_comment',
-        'client'
     ];
 
     /**
@@ -90,6 +91,14 @@ class Record extends AbstractEntity
                 $this->reservations[] = $reservation;
             }
         }
+    }
+
+    /**
+     * @return Client|null
+     */
+    public function client(): ?Client
+    {
+        return $this->client;
     }
 
     /**

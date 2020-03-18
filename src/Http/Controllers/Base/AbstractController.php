@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Base;
 
 use App\Exceptions\ValidationException;
+use App\Http\Requests\Base\AbstractRequest;
+use App\Http\Requests\Base\RequestInterface;
 use App\Http\Responders\ResponderInterface;
 use App\Models\Pagination;
 use App\ResponseFactory;
@@ -16,17 +18,14 @@ use Psr\Http\Message\ServerRequestInterface;
 abstract class AbstractController
 {
     protected ResponderInterface $responder;
-    protected ValidationService $validator;
 
     /**
      * AbstractController constructor.
      * @param ResponderInterface $responder
-     * @param ValidationService $validator
      */
-    public function __construct(ResponderInterface $responder, ValidationService $validator)
+    public function __construct(ResponderInterface $responder)
     {
         $this->responder = $responder;
-        $this->validator = $validator;
     }
 
     /**
@@ -81,25 +80,12 @@ abstract class AbstractController
         return $pagination;
     }
 
-    /**
-     * @param ServerRequestInterface $request
-     * @param array $rules
-     * @return array
-     */
-    protected function validateRequest(ServerRequestInterface $request, array $rules): array
-    {
-        $data = $request->getParsedBody();
-        if (empty($data)) {
-            throw new ValidationException('Empty body.', [], ResponseFactory::BAD_REQUEST);
-        }
-        if (empty($rules)) {
-            return $data;
-        }
-        $data = array_filter($data, fn($key) => isset($rules[$key]), ARRAY_FILTER_USE_KEY);
-        $errors = $this->validator->validate($data, $rules);
-        if (count($errors) > 0) {
-            throw new ValidationException('Validation error', $errors, ResponseFactory::UNPROCESSABLE_ENTITY);
-        }
-        return $data;
-    }
+//    /**
+//     * @param RequestInterface $request
+//     * @return RequestInterface
+//     */
+//    protected function validateRequest(RequestInterface $request): RequestInterface
+//    {
+//
+//    }
 }
