@@ -2,8 +2,8 @@
 
 return [
     // Booking.
-//    ['GET', '/frontend/booking', 'Frontend\BookingController@index'],
-//    ['GET', '/frontend/booking/*', 'Frontend\BookingController@hall'],
+    ['GET', '/frontend/booking', 'Frontend\BookingController@index'],
+    ['GET', '/frontend/booking/*', 'Frontend\BookingController@index'],
 //    // Halls.
 //    ['GET', '/frontend/halls', 'Frontend\HallController@all'],
 //    ['GET', '/frontend/halls/*', 'Frontend\HallController@read'],

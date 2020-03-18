@@ -55,7 +55,7 @@ class SettingRepository extends AbstractRepository implements SettingRepositoryI
         if ($onlyActive) {
             $filter['is_active'] = true;
         }
-        return $this->findAll($filter, 0, 0, [], $include);
+        return $this->findAll($filter);
     }
 
     /**
