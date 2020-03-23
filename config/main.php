@@ -3,7 +3,7 @@
 use Monolog\Logger;
 
 return [
-    'name' => 'Pridestudio',
+    'name' => 'PrideStudio',
     'version' => '0.1.1',
 
     'env' => getenv('APP_ENV'),
@@ -19,7 +19,7 @@ return [
 
     'logger' => [
         'name' => 'app',
-        'path' => realpath('../storage/logs/app.log'),
+        'path' => realpath('../storage/logs') . DIRECTORY_SEPARATOR . 'app.log',
         'level' => Logger::WARNING,
     ],
 
