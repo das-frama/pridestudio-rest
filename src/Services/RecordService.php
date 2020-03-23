@@ -120,11 +120,11 @@ class RecordService
      */
     public function upsertClient(Client $client): Client
     {
-        $newClient = $this->clientRepo->findOneAndUpdate(['email' => $client->email], $client, true);
-        if (!$newClient instanceof Client) {
-            $newClient = $this->clientRepo->insert($client);
+        $client = $this->clientRepo->findOneAndUpdate(['email' => $client->email], $client, true);
+        if (!$client instanceof Client) {
+            $client = $this->clientRepo->insert($client);
         }
-        return $newClient;
+        return $client;
     }
 
     /**
