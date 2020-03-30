@@ -15,6 +15,7 @@ use Exception;
 use Monolog\ErrorHandler;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
@@ -23,7 +24,7 @@ class App
 {
     private RouterInterface $router;
     private ResponderInterface $responder;
-    private LoggerInterface $logger;
+    private Logger $logger;
     private string $env;
     private bool $debug;
 
@@ -42,13 +43,11 @@ class App
 
         // Logger.
         $logger = $dice->create(LoggerInterface::class);
-        if ($logger instanceof LoggerInterface) {
-            $this->logger = $logger;
-            $this->logger->pushHandler(
-                (new StreamHandler($config['logger']['path'], $config['logger']['level']))
-                    ->setFormatter(new LineFormatter(null, null, true, true))
-            );
-        }
+        $this->logger = $logger;
+        $this->logger->pushHandler(
+            (new StreamHandler($config['logger']['path'], $config['logger']['level']))
+                ->setFormatter(new LineFormatter(null, null, true, true))
+        );
         ErrorHandler::register($this->logger);
 
         // Responder.
