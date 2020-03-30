@@ -82,19 +82,19 @@ class App
     {
         try {
             $response = $this->router->handle($this->addParsedBody($request));
-            $this->emit($response);
+            $this->emit($this->withOrigin($request, $response));
         } catch (ValidationException $e) {
             $response = $this->responder->error($e->getCode(), $e->getMessage(), $e->getErrors());
-            $this->emit($response);
+            $this->emit($this->withOrigin($request, $response));
         } catch (Exception $e) {
             $message = $this->env === 'production' ? 'Internal Server Error' : $e->getMessage();
             $response = $this->responder->error(ResponseFactory::INTERNAL_SERVER_ERROR, $message, (array)$e);
-            $this->emit($response);
+            $this->emit($this->withOrigin($request, $response));
             throw $e;
         } catch (Error $e) {
             $message = $this->env === 'production' ? 'Internal Server Error' : $e->getMessage();
             $response = $this->responder->error(ResponseFactory::INTERNAL_SERVER_ERROR, $message, (array)$e);
-            $this->emit($response);
+            $this->emit($this->withOrigin($request, $response));
             throw $e;
         }
     }

@@ -43,7 +43,7 @@ class UserCommand
 
         // Check if user already exists.
         $user = $this->repo->findOne(['email' => $email]);
-        if ($user === null) {
+        if (!$user instanceof User) {
             $user = new User([
                 'name' => 'Super Dude',
                 'email' => $email,

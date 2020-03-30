@@ -43,6 +43,6 @@ class CorsMiddleware implements MiddlewareInterface
             $response = $response->withHeader('Access-Control-Expose-Headers', '');
         }
 
-        return $this->withOrigin($request, $response);
+        return $response;
     }
 }
