@@ -29,4 +29,11 @@ return [
         'frontend' => require __DIR__ . '/../routes/frontend.php',
         'console' => require  __DIR__ . '/../routes/console.php',
     ],
+
+    'cors' => [
+        'origins' => [
+            'http://dashboard.pridestudio.local:8080',
+            'http://pridestudio.local:8080',
+        ]
+    ]
 ];

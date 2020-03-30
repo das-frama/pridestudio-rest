@@ -1,11 +1,11 @@
 <?php
-
 declare(strict_types=1);
 
 namespace App\Http\Controllers\Frontend;
 
-use App\Http\Controllers\Base\ControllerTrait;
+use App\Http\Controllers\Base\AbstractController;
 use App\Http\Responders\ResponderInterface;
+use App\Repositories\HallRepositoryInterface;
 use App\RequestUtils;
 use App\ResponseFactory;
 use App\Services\HallService;
@@ -16,22 +16,22 @@ use Psr\Http\Message\ServerRequestInterface;
 /**
  * HallController class.
  */
-class HallController
+class HallController extends AbstractController
 {
-    use ControllerTrait;
-
-    private HallService $hallService;
-    private ResponderInterface $responder;
+    protected HallService $service;
+    protected HallRepositoryInterface $repo;
 
     /**
      * HallController constructor.
-     * @param HallService $hallService
+     * @param HallRepositoryInterface $repo
+     * @param HallService $service
      * @param ResponderInterface $responder
      */
-    public function __construct(HallService $hallService, ResponderInterface $responder)
+    public function __construct(HallRepositoryInterface $repo, HallService $service, ResponderInterface $responder)
     {
-        $this->hallService = $hallService;
-        $this->responder = $responder;
+        parent::__construct($responder);
+        $this->service = $service;
+        $this->repo = $repo;
     }
 
     /**
@@ -43,10 +43,9 @@ class HallController
      */
     public function all(ServerRequestInterface $request): ResponseInterface
     {
-        $params = $this->getQueryParams($request);
-        $include = $params['include'] ?? [];
-        $halls = $this->hallService->findAll($params, true, $include);
-        $count = isset($params['query']) ? count($halls) : $this->hallService->count();
+        $pagination = $this->getPagination($request);
+        $halls = $this->repo->findPaginated($pagination);
+        $count = $this->repo->count();
         return $this->responder->success($halls, $count);
     }
 
@@ -59,12 +58,11 @@ class HallController
     public function read(ServerRequestInterface $request): ResponseInterface
     {
         $slug = RequestUtils::getPathSegment($request, 3);
-        $params = $this->getQueryParams($request);
-        $hall = $this->hallService->findBySlug($slug, $params['include'] ?? []);
+        $hall = $this->repo->findOne(['slug' => $slug]);
         if ($hall === null) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, 'Hall not found.');
         }
-        return $this->responder->success($hall, 1);
+        return $this->responder->success($hall);
     }
 
     /**
@@ -76,7 +74,7 @@ class HallController
     public function services(ServerRequestInterface $request): ResponseInterface
     {
         $id = RequestUtils::getPathSegment($request, 3);
-        if (!$this->hallService->isExists($id)) {
+        if (!$this->service->isExists($id)) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, 'Hall not found.');
         }
         $params = $this->getQueryParams($request);
@@ -90,7 +88,7 @@ class HallController
                 }
             }
         }
-        $services = $this->hallService->findServices($id, $selected, $params['include'] ?? []);
+        $services = $this->service->findServices($id, $selected, $params['include'] ?? []);
         return $this->responder->success($services, count($services));
     }
 }
