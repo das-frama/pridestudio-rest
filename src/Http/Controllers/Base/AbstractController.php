@@ -80,12 +80,20 @@ abstract class AbstractController
         return $pagination;
     }
 
-//    /**
-//     * @param RequestInterface $request
-//     * @return RequestInterface
-//     */
-//    protected function validateRequest(RequestInterface $request): RequestInterface
-//    {
-//
-//    }
+    /**
+     * @param RequestInterface $request
+     * @return RequestInterface
+     */
+    protected function validate(ServerRequestInterface $request, array $rules): RequestInterface
+    {
+        $data = $request->getParsedBody();
+        if (empty($data)) {
+            throw new ValidationException('Empty body', [], ResponseFactory::BAD_REQUEST);
+        }
+        $data = array_filter($data, fn($key) => isset($rules[$key]), ARRAY_FILTER_USE_KEY);
+        $errors = (new ValidationService())->validate($data, $rules);
+        if (count($errors) > 0) {
+            throw new ValidationException('Validation error', $errors, ResponseFactory::UNPROCESSABLE_ENTITY);
+        }
+    }
 }

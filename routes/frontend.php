@@ -4,10 +4,12 @@ return [
     // Booking.
     ['GET', '/frontend/booking', 'Frontend\BookingController@index'],
     ['GET', '/frontend/booking/*', 'Frontend\BookingController@index'],
+
 //    // Halls.
-//    ['GET', '/frontend/halls', 'Frontend\HallController@all'],
-//    ['GET', '/frontend/halls/*', 'Frontend\HallController@read'],
+    ['GET', '/frontend/halls', 'Frontend\HallController@all'],
+    ['GET', '/frontend/halls/*', 'Frontend\HallController@read'],
 //    ['GET', '/frontend/halls/*/services', 'Frontend\HallController@services'],
+
 //    // Calendar.
 //    ['GET', '/frontend/calendar/*', 'Frontend\CalendarController@index'],
 //    ['GET', '/frontend/calendar/*/*', 'Frontend\CalendarController@week'],

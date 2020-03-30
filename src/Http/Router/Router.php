@@ -98,10 +98,7 @@ class Router implements RouterInterface
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        // Remove base path from request.
-        $request = $this->removeBasePath($request);
-
-        // Router Middlewares.
+        // Common middlewares.
         if (count($this->middlewares)) {
             $handler = array_pop($this->middlewares);
             return $handler->process($request, $this);
@@ -123,25 +120,21 @@ class Router implements RouterInterface
         }
 
         // Process route's controller.
-        try {
-            list($class, $method) = explode('@', $this->routeHandlers[$routeNumbers[0]], 2);
-            $class = 'App\\Http\\Controllers\\' . $class;
-            $dice = $this->dice->addRules([
-                RequestInterface::class => [
-                    'substitutions' => [ServerRequestInterface::class => $request],
+        list($class, $method) = explode('@', $this->routeHandlers[$routeNumbers[0]], 2);
+        $class = 'App\\Http\\Controllers\\' . $class;
+        $dice = $this->dice->addRules([
+            RequestInterface::class => [
+                'substitutions' => [ServerRequestInterface::class => $request],
+            ],
+            $class => [
+                'call' => [
+                    [$method, [$request], Dice::CHAIN_CALL],
                 ],
-                $class => [
-                    'call' => [
-                        [$method, [$request], Dice::CHAIN_CALL],
-                    ],
-                ]
-            ]);
-            /** @var ResponseInterface $response */
-            $response = $dice->create($class);
-            return $response;
-        } catch (\MongoDB\Exception\RuntimeException $e) {
-            throw new RuntimeException($e->getMessage(), $e->getCode(), $e);
-        }
+            ]
+        ]);
+        /** @var ResponseInterface $response */
+        $response = $dice->create($class);
+        return $response;
     }
 
     private function removeBasePath(ServerRequestInterface $request): ServerRequestInterface

@@ -35,17 +35,15 @@ class ResourceController extends AbstractController
      * @param string $entityClass
      * @param ResourceRepositoryInterface $repo
      * @param ResponderInterface $responder
-     * @param ValidationService $validator
      */
     public function __construct(
         string $entityClass,
         ResourceRepositoryInterface $repo,
-        ResponderInterface $responder,
-        ValidationService $validator
+        ResponderInterface $responder
     ) {
         $this->entityClass = $entityClass;
         $this->repo = $repo;
-        parent::__construct($responder, $validator);
+        parent::__construct($responder);
     }
 
     /**

@@ -62,13 +62,15 @@ class App
         if ($this->debug) {
             $this->router->load(new LogMiddleware($this->logger));
         }
-        $this->router->load(new CorsMiddleware);
+        $this->router->load(new CorsMiddleware($config['cors']['origins']));
 
         // Load routes.
         $routes = array_merge($config['routes']['api'], $config['routes']['frontend']);
         foreach ($routes as $route) {
             $this->router->register($route[0], $route[1], $route[2], $route[3] ?? []);
         }
+
+        $this->config = $config;
     }
 
     /**
@@ -138,9 +140,6 @@ class App
      */
     public function emit(ResponseInterface $response): void
     {
-        // Cors
-        $response = $response->withHeader('Access-Control-Allow-Origin', 'http://dashboard.pridestudio.local:8080');
-        $response = $response->withHeader('Access-Control-Allow-Credentials', 'true');
         // Emit headers iteratively:
         foreach ($response->getHeaders() as $name => $values) {
             foreach ($values as $value) {
@@ -156,6 +155,22 @@ class App
         ), true);
 
         echo $response->getBody();
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface $response
+     * @return ResponseInterface
+     */
+    protected function withOrigin(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $origins = $this->config['cors']['origins'];
+        $headers = $request->getHeaders();
+        if (isset($headers['Origin']) && in_array($headers['Origin'][0], $origins)) {
+            $response = $response->withHeader('Access-Control-Allow-Origin', $headers['Origin'][0]);
+        }
+
+        return $response->withHeader('Access-Control-Allow-Credentials', 'true');
     }
 
     /**
