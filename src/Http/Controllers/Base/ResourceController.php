@@ -3,11 +3,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Base;
 
+use App\Http\Requests\Base\AbstractRequest;
 use App\Http\Responders\ResponderInterface;
 use App\Repositories\Base\ResourceRepositoryInterface;
 use App\RequestUtils;
 use App\ResponseFactory;
-use App\Services\ValidationService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -19,16 +19,7 @@ class ResourceController extends AbstractController
 {
     protected ResourceRepositoryInterface $repo;
     protected string $entityClass;
-    protected array $validation = [
-        'create' => [],
-        'update' => [],
-    ];
-    protected array $with = [
-        'all' => [],
-        'read' => [],
-//        'create' => [],
-//        'update' => [],
-    ];
+    protected string $requestClass;
 
     /**
      * ResourceController constructor.
@@ -38,10 +29,12 @@ class ResourceController extends AbstractController
      */
     public function __construct(
         string $entityClass,
+        string $requestClass,
         ResourceRepositoryInterface $repo,
         ResponderInterface $responder
     ) {
         $this->entityClass = $entityClass;
+        $this->requestClass = $requestClass;
         $this->repo = $repo;
         parent::__construct($responder);
     }
@@ -55,7 +48,7 @@ class ResourceController extends AbstractController
     public function all(ServerRequestInterface $request): ResponseInterface
     {
         $pagination = $this->getPagination($request);
-        $records = $this->repo->findPaginated($pagination, [], $this->with['all']);
+        $records = $this->repo->findPaginated($pagination);
         return $this->responder->success($records);
     }
 
@@ -68,7 +61,7 @@ class ResourceController extends AbstractController
     public function read(ServerRequestInterface $request): ResponseInterface
     {
         $id = RequestUtils::getPathSegment($request, 2);
-        $record = $this->repo->findOne(['id' => $id], $this->with['read']);
+        $record = $this->repo->findOne(['id' => $id]);
         if ($record === null) {
             return $this->responder->error(ResponseFactory::NOT_FOUND, 'Record not found.');
         }
@@ -83,12 +76,10 @@ class ResourceController extends AbstractController
      */
     public function create(ServerRequestInterface $request): ResponseInterface
     {
-        $data = $this->validateRequest($request, $this->validation['create']);
-
+        /** @var AbstractRequest $formRequest */
+        $formRequest = new $this->requestClass($request);
         // Prepare.
-        $record = new $this->entityClass;
-        $record->load($data);
-
+        $record = new $this->entityClass($formRequest->toArray());
         // Create.
         $record = $this->repo->insert($record);
         if ($record === null) {
@@ -106,17 +97,15 @@ class ResourceController extends AbstractController
      */
     public function update(ServerRequestInterface $request): ResponseInterface
     {
-        $data = $this->validateRequest($request, $this->validation['update']);
-
+        /** @var AbstractRequest $formRequest */
+        $formRequest = new $this->requestClass($request);
         // Prepare.
-        $record = new $this->entityClass;
-        $record->load($data);
-
+        $record = new $this->entityClass($formRequest->toArray());
         // Update.
         $id = RequestUtils::getPathSegment($request, 2);
         $record = $this->repo->findOneAndUpdate(['id' => $id], $record, true);
         if ($record === null) {
-            return $this->responder->error(ResponseFactory::UNPROCESSABLE_ENTITY, 'Error during update.');
+            return $this->responder->error(ResponseFactory::NOT_FOUND, 'Record not found.');
         }
 
         return $this->responder->success($record);
