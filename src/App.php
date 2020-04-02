@@ -22,11 +22,12 @@ use Psr\Log\LoggerInterface;
 
 class App
 {
-    private RouterInterface $router;
-    private ResponderInterface $responder;
-    private Logger $logger;
-    private string $env;
-    private bool $debug;
+    protected RouterInterface $router;
+    protected ResponderInterface $responder;
+    protected Logger $logger;
+    protected string $env;
+    protected bool $debug;
+    protected array $config;
 
     /**
      * App constructor.
@@ -42,6 +43,7 @@ class App
         $this->debug = getenv('APP_DEBUG') === 'true';
 
         // Logger.
+        /** @var Logger $logger */
         $logger = $dice->create(LoggerInterface::class);
         $this->logger = $logger;
         $this->logger->pushHandler(
