@@ -11,10 +11,12 @@ use App\Repositories\MongoDB\CouponRepository;
 use App\Repositories\MongoDB\HallRepository;
 use App\Repositories\MongoDB\RecordRepository;
 use App\Repositories\MongoDB\SettingRepository;
+use App\Repositories\MongoDB\StaticRepository;
 use App\Repositories\MongoDB\UserRepository;
 use App\Repositories\RecordRepositoryInterface;
 use App\Repositories\ServiceRepositoryInterface;
 use App\Repositories\SettingRepositoryInterface;
+use App\Repositories\StaticRepositoryInterface;
 use App\Repositories\UserRepositoryInterface;
 use App\Services\AuthService;
 use App\Services\FileService;
@@ -72,6 +74,10 @@ return [
     ],
     UserRepositoryInterface::class => [
         'instanceOf' => UserRepository::class,
+        'shared' => true
+    ],
+    StaticRepositoryInterface::class => [
+        'instanceOf' => StaticRepository::class,
         'shared' => true
     ],
 ];

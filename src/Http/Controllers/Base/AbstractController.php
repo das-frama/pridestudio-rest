@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Base;
 
 use App\Exceptions\ValidationException;
-use App\Http\Requests\Base\AbstractRequest;
 use App\Http\Requests\Base\RequestInterface;
 use App\Http\Responders\ResponderInterface;
 use App\Models\Pagination;
@@ -81,7 +80,8 @@ abstract class AbstractController
     }
 
     /**
-     * @param RequestInterface $request
+     * @param ServerRequestInterface $request
+     * @param array $rules
      * @return RequestInterface
      */
     protected function validate(ServerRequestInterface $request, array $rules): RequestInterface

@@ -24,4 +24,7 @@ return [
 //    ['GET', '/frontend/settings', 'Frontend\SettingsController@all'],
 //    ['GET', '/frontend/settings/*', 'Frontend\SettingsController@read'],
 //    ['GET', '/frontend/settings/group/*', 'Frontend\SettingsController@group'],
+
+    // Rules.
+    ['GET', '/frontend/rules', 'Frontend\StaticController@rules'],
 ];
