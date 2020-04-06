@@ -11,6 +11,7 @@ class PriceRequest extends AbstractRequest
     public array $reservations;
     public array $service_ids;
     public string $coupon;
+    public float $prepayment;
 
     /**
      * @return array|\string[][]
@@ -24,6 +25,7 @@ class PriceRequest extends AbstractRequest
             'reservations.$.length' => ['required', 'int:0:1440'],
             'service_ids' => ['array'],
             'coupon' => ['string'],
+            'prepayment' => ['float', 'enum:1.0,0.5'],
         ];
     }
 }

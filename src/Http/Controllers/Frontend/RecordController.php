@@ -81,8 +81,11 @@ class RecordController extends AbstractController
         if (isset($request->coupon)) {
             $coupon = $this->service->findCouponByCode($request->coupon);
         }
+
+        $price = $this->service->calculatePrice($record, $hall, $coupon);
         $payment = new PaymentResource([
-            'price' => $this->service->calculatePrice($record, $hall, $coupon),
+            'price' => $price,
+            'prepayment' => (int) ($price * $request->prepayment),
         ]);
         return $this->responder->success($payment);
     }
