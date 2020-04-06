@@ -106,8 +106,7 @@ class ValidationService
     public function validateString($value, int $min = 0, int $max = 0): array
     {
         $errors = [];
-        $value = filter_var($value, FILTER_SANITIZE_STRING);
-        if (!$value) {
+        if (!is_string($value)) {
             return ['Поле должно быть строкой.'];
         }
         $len = mb_strlen($value);
@@ -123,8 +122,7 @@ class ValidationService
     public function validateInt($value, int $min = 0, int $max = 0): array
     {
         $errors = [];
-        $value = filter_var($value, FILTER_VALIDATE_INT);
-        if (!$value) {
+        if (!is_int($value)) {
             $errors[] = 'Поле должно быть числом.';
         }
         if ($min !== 0 && $value < $min) {
@@ -136,11 +134,26 @@ class ValidationService
         return $errors;
     }
 
+    public function validateFloat($value, float $min = 0.0, float $max = 0.0): array
+    {
+        $errors = [];
+        $value = filter_var($value, FILTER_VALIDATE_FLOAT);
+        if (!is_float($value)) {
+            $errors[] = 'Поле должно быть числом с плавающей точкой.';
+        }
+        if ($min !== 0.0 && $value < $min) {
+            $errors[] = 'Минимальный размер значения должен быть больше чем ' . $min . '.';
+        }
+        if ($max !== 0.0 && $value > $max) {
+            $errors[] = 'Максимальный размер значения не должен превышать ' . $max . '.';
+        }
+        return $errors;
+    }
+
     public function validateBool($value): array
     {
         $errors = [];
-        $value = filter_var($value, FILTER_VALIDATE_BOOLEAN);
-        if (!$value) {
+        if (!is_bool($value)) {
             $errors[] = 'Значение должно быть булевым типом.';
         }
         return $errors;
