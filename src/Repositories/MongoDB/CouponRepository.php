@@ -48,6 +48,6 @@ class CouponRepository extends AbstractRepository implements CouponRepositoryInt
             'updated_at' => ['bsonType' => 'int'],
             'created_by' => ['bsonType' => 'objectId'],
             'updated_by' => ['bsonType' => 'objectId'],
-        ], ['code', 'factor', 'is_active']);
+        ], ['code', 'factor']);
     }
 }

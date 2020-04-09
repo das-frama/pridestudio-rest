@@ -53,13 +53,12 @@ class App
         }
 
         // Check params.
-
-
         list ($class, $method) = explode('@', $handler);
         $class = sprintf("App\\Console\\Commands\\%s", $class);
+        $params = array_map(fn($p) => is_numeric($p) ? $p + 0 : $p, array_slice($argv, 2));
         $dice = $this->dice->addRule($class, [
             'call' => [
-                [$method, [...array_slice($argv, 2)], Dice::CHAIN_CALL],
+                [$method, [...$params], Dice::CHAIN_CALL],
             ],
         ]);
 

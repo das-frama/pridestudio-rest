@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Console\Commands\Base\AbstractCommand;
 use App\Entities\User;
 use App\Repositories\UserRepositoryInterface;
 use App\Services\ValidationService;
@@ -10,12 +11,15 @@ use App\Services\ValidationService;
 /**
  * UserCommand class.
  *
- * `php app user:init super@user.com password123`
+ * `php pride user:init super@user.com password123`
  */
-class UserCommand
+class UserCommand extends AbstractCommand
 {
-    private UserRepositoryInterface $repo;
+    protected UserRepositoryInterface $repo;
 
+    /**
+     * UserRepositoryInterface $repo
+     */
     public function __construct(UserRepositoryInterface $repo)
     {
         $this->repo = $repo;
@@ -37,8 +41,8 @@ class UserCommand
             'password' => ['required', 'string:3:255'],
         ]);
         if (!empty($errors)) {
-            fwrite(STDOUT, implode("\n", $errors));
-            return -1;
+            $this->line(implode("\n", $errors));
+            return 1;
         }
 
         // Check if user already exists.
@@ -56,11 +60,11 @@ class UserCommand
         // Store user.
         $user = isset($user->id) ? $this->repo->update($user) : $this->repo->insert($user);
         if ($user === null) {
-            fwrite(STDOUT, "Super user can't be created.\n");
-            return -1;
+            $this->line("Super user can't be created.");
+            return 1;
         }
 
-        fwrite(STDOUT, "Super user successfully created.\n");
+        $this->line("Super user successfully created.");
         return 0;
     }
 }

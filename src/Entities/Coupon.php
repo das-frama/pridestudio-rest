@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace App\Entities;
@@ -23,4 +22,6 @@ class Coupon extends AbstractEntity
     public int $updated_at;
     public string $created_by;
     public string $updated_by;
+
+    protected array $fillable = ['code', 'factor'];
 }

@@ -39,24 +39,20 @@ class AppCommand extends AbstractCommand
         }
 
         // Settings.
-//        $data = $this->getData('settings.php');
-//        if ($this->service->initSettings($data)) {
-//            fwrite(STDOUT, "Settings init successfully.\n");
-//        } else {
-//            fwrite(STDOUT, "Settings already initiated.\n");
-//        }
-//        // Halls.
-//        if ($this->service->initHalls()) {
-//            fwrite(STDOUT, "Halls init successfully.\n");
-//        } else {
-//            fwrite(STDOUT, "Halls already initiated.\n");
-//        }
-//        // Coupons.
-//        if ($this->service->initCoupons()) {
-//            fwrite(STDOUT, "Coupons init successfully.\n");
-//        } else {
-//            fwrite(STDOUT, "Coupons already initiated.\n");
-//        }
+        $data = $this->getFileContent('settings');
+        if ($this->service->initSettings($data)) {
+            $this->line("Settings init successfully.");
+        }
+        // Coupons.
+        if ($this->service->initCoupons()) {
+            $this->line("Coupons init successfully.");
+        }
+        //        // Halls.
+        //        if ($this->service->initHalls()) {
+        //            fwrite(STDOUT, "Halls init successfully.\n");
+        //        } else {
+        //            fwrite(STDOUT, "Halls already initiated.\n");
+        //        }
 
         return 0;
     }
@@ -93,12 +89,15 @@ class AppCommand extends AbstractCommand
 
         $content = file_get_contents($env);
         $key = 'JWT_SECRET=';
-        return (bool)file_put_contents($env, str_replace($key . $currentSecret, $key . $secret, $content));
+        return (bool) file_put_contents($env, str_replace($key . $currentSecret, $key . $secret, $content));
     }
 
-    private function getData(string $filename): array
+    /**
+     * Get file.
+     */
+    protected function getFileContent(string $file): array
     {
-        $path = join(DIRECTORY_SEPARATOR, ['data', 'init', $filename]);
+        $path = join(DIRECTORY_SEPARATOR, ['data', 'init', $file . '.php']);
         return require APP_DIR . DIRECTORY_SEPARATOR . $path;
     }
 }
